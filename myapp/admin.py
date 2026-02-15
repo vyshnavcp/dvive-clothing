@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from .models import Product, Category, SubCategory, Size
 
+
 admin.site.unregister(User)
 
 @register(User)
