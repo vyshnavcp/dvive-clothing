@@ -1,0 +1,362 @@
+﻿<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <title>Crafto - The Multipurpose HTML5 Template</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="author" content="ThemeZaa">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <meta name="description" content="Elevate your online presence with Crafto - a modern, versatile, multipurpose Bootstrap 5 responsive HTML5, SCSS template using highly creative 52+ ready demos.">
+        <!-- favicon icon -->
+        <link rel="shortcut icon" href="/static/images/favicon.png">
+        <link rel="apple-touch-icon" href="/static/images/apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+        <!-- google fonts preconnect -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <!-- style sheets and font icons  -->
+        <link rel="stylesheet" href="/static/css/vendors.min.css"/>
+        <link rel="stylesheet" href="/static/css/icon.min.css"/>
+        <link rel="stylesheet" href="/static/css/style.css"/>
+        <link rel="stylesheet" href="/static/css/responsive.css"/>
+        <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+    </head>
+    <body data-mobile-nav-style="classic">
+       {% include "components/navbar.html" %}
+        <!-- start section -->
+        <section class="top-space-margin half-section bg-gradient-very-light-gray">
+            <div class="container">
+                <div class="row align-items-center justify-content-center" data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 200, "easing": "easeOutQuad" }'>
+                    <div class="col-12 col-xl-8 col-lg-10 text-center position-relative page-title-extra-large">
+                        <h1 class="alt-font fw-600 text-dark-gray mb-10px">Checkout</h1> 
+                    </div>
+                    <div class="col-12 breadcrumb breadcrumb-style-01 d-flex justify-content-center">
+                        <ul>
+                            <li><a href="{% url 'home' %}">Home</a></li> 
+                            <li>Checkout</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section -->
+       <!-- start section -->
+        <section class="pt-0">
+            <div class="container">
+                <div class="row justify-content-center mb-8 lg-mb-10 align-items-center">
+                    <div class="col-auto icon-with-text-style-08 lg-mb-10px">
+                        <div class="feature-box feature-box-left-icon">
+                            <div class="feature-box-icon me-5px">
+                                <i class="feather icon-feather-user top-9px position-relative text-dark-gray icon-small"></i>
+                            </div>
+                            <div class="feature-box-content">
+                                <span class="d-inline-block text-dark-gray align-middle alt-font fw-500">Returning customer? <a href="{% url 'user_login' %}" class="text-decoration-line-bottom fw-600 text-dark-gray">Click here to login</a></span> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto d-none d-lg-inline-block">
+                        <span class="w-1px h-20px bg-extra-medium-gray d-block"></span>
+                    </div>
+                    <div class="col-auto icon-with-text-style-08">
+                        <div class="feature-box feature-box-left-icon">
+                            <div class="feature-box-icon me-5px">
+                                <i class="feather icon-feather-scissors top-9px position-relative text-dark-gray icon-small"></i>
+                            </div>
+                            <div class="feature-box-content">
+                                <span class="d-inline-block text-dark-gray align-middle alt-font fw-500">Have a coupon? <a href="{% url 'cart_page' %}" class="text-decoration-line-bottom fw-600 text-dark-gray">Click here to enter your code</a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                <div class="row align-items-start">
+                    <div class="col-lg-7 pe-50px md-pe-15px md-mb-50px xs-mb-35px">
+                        <span class="fs-26 alt-font fw-600 text-dark-gray mb-20px d-block">Billing details</span>
+                        
+                        <form action="{% url 'checkout_post' %}" method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-12 mb-20px">
+                                    <label class="mb-10px">First name <span class="text-red">*</span></label>
+                                    <input class="border-radius-4px input-small" type="text"  value="{{ user.first_name }}" aria-label="first-name"   name="first_name" required>
+                                </div>
+                                
+                                <div class="col-12 mb-20px">
+                                    <label class="mb-10px">Email address <span class="text-red">*</span></label>
+                                    <input class="border-radius-4px input-small" type="email" value="{{ user.email }}" aria-label="email" name="email" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="text" 
+                                        class="form-control form-control-lg border border-1 border-secondary" 
+                                        id="phone" 
+                                        name="phone" 
+                                        placeholder="Enter your phone number" 
+                                        value="{{ profile_phone }}" 
+                                        required>
+                                    <small class="text-danger" id="phone_error"></small>
+                                </div>
+                                <div class="col-12 mb-20px">
+                                    <label class="mb-10px" for="state1">State <span class="text-red">*</span></label>
+                                    <select name="state" id="state1" class="form-select select-small border-radius-4px">
+                                        <option>Select a state</option>
+
+                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                        <option value="Assam">Assam</option>
+                                        <option value="Bihar">Bihar</option>
+                                        <option value="Chhattisgarh">Chhattisgarh</option>
+                                        <option value="Goa">Goa</option>
+                                        <option value="Gujarat">Gujarat</option>
+                                        <option value="Haryana">Haryana</option>
+                                        <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                        <option value="Jharkhand">Jharkhand</option>
+                                        <option value="Karnataka">Karnataka</option>
+                                        <option value="Kerala">Kerala</option>
+                                        <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                        <option value="Maharashtra">Maharashtra</option>
+                                        <option value="Manipur">Manipur</option>
+                                        <option value="Meghalaya">Meghalaya</option>
+                                        <option value="Mizoram">Mizoram</option>
+                                        <option value="Nagaland">Nagaland</option>
+                                        <option value="Odisha">Odisha</option>
+                                        <option value="Punjab">Punjab</option>
+                                        <option value="Rajasthan">Rajasthan</option>
+                                        <option value="Sikkim">Sikkim</option>
+                                        <option value="Tamil Nadu">Tamil Nadu</option>
+                                        <option value="Telangana">Telangana</option>
+                                        <option value="Tripura">Tripura</option>
+                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                        <option value="Uttarakhand">Uttarakhand</option>
+                                        <option value="West Bengal">West Bengal</option>
+
+                                        <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                        <option value="Chandigarh">Chandigarh</option>
+                                        <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                        <option value="Delhi">Delhi</option>
+                                        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                        <option value="Ladakh">Ladakh</option>
+                                        <option value="Lakshadweep">Lakshadweep</option>
+                                        <option value="Puducherry">Puducherry</option>
+                                    </select>
+                                    <small class="text-red" id="state_error"></small>
+                                </div>
+
+
+                                <div class="col-12 mb-20px">
+                                    <label class="mb-10px">Town / City <span class="text-red">*</span></label>
+                                    <input class="border-radius-4px input-small" type="text" aria-label="town" placeholder="Enter your town or city" name="town" required>
+                                    <small class="text-red" id="town_error"></small>
+                                </div>
+                                <div class="col-12 mb-20px">
+                                    <label class="mb-10px">Pincode <span class="text-red">*</span></label>
+                                    <input class="border-radius-4px input-small" type="text" aria-label="zip" name="pincode" placeholder="Enter your pincode" required>
+                                    <small class="text-red" id="pincode_error"></small>
+                                </div>
+                                <div class="col-12 mb-20px">
+                                    <label class="mb-10px">Address <span class="text-red">*</span></label>
+                                    <input class="border-radius-4px input-small mb-20px" 
+                                        type="text" 
+                                        aria-label="text" 
+                                        name="address" 
+                                        placeholder="House number and street name" 
+                                        required
+                                        value="{{ profile_address }}">
+                                    <small class="text-red" id="address_error"></small>
+                                </div>
+                                <div class="col-12 mb-20px">
+                                    <label class="mb-10px">Land Mark <span class="text-red">*</span></label>
+                                    <input class="border-radius-4px input-small mb-20px" type="text" aria-label="text" name="land_mark" placeholder="Nearby Famous Place/Shop/School,etc." required>
+                                    <small class="text-red" id="land_mark_error"></small>
+
+                                </div>      
+                                    
+                            </div>
+                        
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="bg-very-light-gray border-radius-6px p-50px lg-p-25px your-order-box">
+                            <span class="fs-26 alt-font fw-600 text-dark-gray mb-5px d-block">Your order</span>
+                            <table class="w-100 total-price-table your-order-table">
+                                <tbody>
+                                    <tr>
+                                        <th class="w-60 lg-w-55 xs-w-50 fw-600 text-dark-gray alt-font">Product</th>
+                                        <td class="fw-600 text-dark-gray alt-font">Total</td>
+                                    </tr>
+                                    {% for item in items %}
+                                    <tr class="product">
+                                        <td class="product-thumbnail">
+                                            <a href="demo-jewellery-store-single-product.html" class="text-dark-gray fw-500 d-block lh-initial">{{item.product.name}}</a>
+                                            <span class="fs-14 d-block">Color: {{ item.color.name }}</span>
+                                        </td>
+                                        <td class="product-price" data-title="Price">₹{{item.price}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="w-50 fw-600 text-dark-gray alt-font">Subtotal</th>
+                                        <td class="text-dark-gray fw-600">₹{{subtotal}}</td>
+                                    </tr>
+                                   
+                                    <tr>
+                                        <th class="w-50 fw-600 text-dark-gray alt-font">Shipping Charge</th>
+                                        <td class="text-dark-gray fw-600">
+                                            ₹<span id="shipping_charge">0</span>
+                                        </td>
+                                    </tr>
+
+                                    <!-- <tr class="shipping">
+                                        <th class="fw-600 text-dark-gray alt-font">Shipping</th>
+                                        <td data-title="Shipping">
+                                            <ul class="p-0">
+                                                <li class="d-flex align-items-center">
+                                                    <input id="free_shipping" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0" checked="checked">
+                                                    <label class="md-line-height-18px" for="free_shipping">Free shipping</label>
+                                                </li>
+                                                <li class="d-flex align-items-center">
+                                                    <input id="flat" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0">
+                                                    <label class="md-line-height-18px" for="flat">Flat: $12.00</label>
+                                                </li>
+                                                <li class="d-flex align-items-center">
+                                                    <input id="local_pickup" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0">
+                                                    <label class="md-line-height-18px" for="local_pickup">Local pickup</label>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>  -->
+                                    <tr class="total-amount">
+                                        <th class="fw-600 text-dark-gray alt-font">Total</th>
+                                        <td data-title="Total">
+                                            <h6 class="d-block fw-700 mb-0 text-dark-gray alt-font">
+                                                ₹<span id="order_total">{{ total }}</span>
+                                            </h6>
+                                            <!-- <span class="fs-14">(Includes $19.29 tax)</span> -->
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="p-40px lg-p-25px bg-white border-radius-6px box-shadow-large mt-10px mb-30px sm-mb-25px checkout-accordion">
+                                <div class="w-100" id="accordion-style-05">
+
+                                    <!-- start tab content -->
+                                    <div class="heading active-accordion">
+                                        <label class="mb-5px">
+                                            <input class="d-inline w-auto me-5px mb-0 p-0" type="radio" name="payment-option" value="razorpay" checked>
+                                            <span class="d-inline-block text-dark-gray fw-500">
+                                                Razorpay
+                                                <img src="/static/images/razorpay-logo.png" class="w-120px ms-10px" alt=""/>
+                                            </span> 
+                                            <a class="accordion-toggle" data-bs-toggle="collapse" data-bs-parent="#accordion-style-05" href="#style-5-collapse-4"></a>
+                                        </label>
+                                    </div>
+                                    <div id="style-5-collapse-4" class="collapse show" data-bs-parent="#accordion-style-05">
+                                        <div class="p-25px bg-very-light-gray mt-20px fs-14 lh-24">
+                                            Pay securely using UPI, Cards, Net Banking & Wallets via Razorpay.
+                                        </div>
+                                    </div>
+                                    <!-- end tab content -->    
+                                     <!-- Cash on Delivery -->
+                                    <div class="heading active-accordion mt-15px">
+                                        <label class="mb-5px"><input class="d-inline w-auto me-5px mb-0 p-0"
+                                                type="radio"
+                                                name="payment-option"
+                                                value="cod">
+                                            <span class="d-inline-block text-dark-gray fw-500">
+                                                Cash on Delivery
+                                                <img src="/static/images/cod-icon.png" class="w-120px ms-10px" alt=""/>
+                                            </span>
+                                            <a class="accordion-toggle"
+                                            data-bs-toggle="collapse"
+                                            data-bs-parent="#accordion-style-05"
+                                            href="#style-5-collapse-5"></a>
+                                        </label>
+                                    </div>
+
+                                    <div id="style-5-collapse-5"
+                                        class="collapse"
+                                        data-bs-parent="#accordion-style-05">
+                                        <div class="p-25px bg-very-light-gray mt-20px fs-14 lh-24">
+                                            Pay with cash when your order is delivered to your doorstep.
+                                        </div>
+                                    </div>
+
+                                </div> 
+                            </div>
+                            <p class="fs-14 lh-24">Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our <a class="text-decoration-line-bottom text-dark-gray fw-500" href="#">privacy policy.</a></p>
+                            <div class="position-relative terms-condition-box text-start d-flex align-items-center">
+                                <label>
+                                    <input type="checkbox" name="terms_condition" value="1" class="check-box align-middle">
+                                    <span class="box fs-14 lh-28">I have agree to the website <a href="#" class="text-decoration-line-bottom text-dark-gray fw-500">terms and conditions.</a></span>
+                                </label>
+                            </div>
+                            <button type="submit"  class="btn btn-dark-gray btn-large btn-switch-text btn-round-edge btn-box-shadow w-100 mt-30px">
+                                <span>
+                                    <span class="btn-double-text" data-text="Place order">Place order</span>
+                                </span>
+                            </button>>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section --> 
+         {% include "components/footer.html" %}
+        <!-- javascript libraries -->
+        <script type="text/javascript" src="/static/js/jquery.js"></script>
+        <script type="text/javascript" src="/static/js/vendors.min.js"></script>
+        <script type="text/javascript" src="/static/js/main.js"></script>
+        <script>
+function ajaxCheckoutValidate() {
+    const phone = document.querySelector("input[name='phone']").value;
+    const pincode = document.querySelector("input[name='pincode']").value;
+    const town = document.querySelector("input[name='town']").value;
+    const address = document.querySelector("input[name='address']").value;
+    const state = document.querySelector("select[name='state']").value;
+    const land_mark = document.querySelector("input[name='land_mark']").value;
+
+    fetch("{% url 'ajax_validate_checkout' %}?" + new URLSearchParams({
+        phone: phone,
+        pincode: pincode,
+        town: town,
+        address: address,
+        state: state,
+        land_mark: land_mark
+    }))
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("phone_error").innerText = data.phone_error;
+        document.getElementById("pincode_error").innerText = data.pincode_error;
+        document.getElementById("town_error").innerText = data.town_error;
+        document.getElementById("address_error").innerText = data.address_error;
+        document.getElementById("state_error").innerText = data.state_error;
+        document.getElementById("land_mark_error").innerText = data.land_mark_error;
+    });
+}
+
+// Live validation
+document.querySelectorAll(
+    "input[name='phone'], input[name='pincode'], input[name='town'], input[name='address'], input[name='land_mark'], select[name='state']"
+).forEach(el => {
+    el.addEventListener("keyup", ajaxCheckoutValidate);
+    el.addEventListener("change", ajaxCheckoutValidate);
+});
+function updateShipping() {
+    const state = document.querySelector("select[name='state']").value;
+
+    if (!state || state === "Select a state") return;
+
+    fetch("{% url 'ajax_shipping_charge' %}?state=" + state)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("shipping_charge").innerText = data.shipping;
+            document.getElementById("order_total").innerText = data.total;
+        });
+}
+
+// Trigger when state changes
+document.querySelector("select[name='state']").addEventListener("change", updateShipping);
+</script>
+
+    </body>
+
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Add Product</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Bootstrap + Icons + Font -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+    background:#f6f6f6;
+    font-family:'Poppins', sans-serif;
+    margin:0;
+}
+
+/* ================= NAVBAR ================= */
+
+.header-with-topbar{
+    background:#000;
+    box-shadow:0 4px 20px rgba(0,0,0,0.35);
+}
+
+.dashboard-header{
+    padding:18px 24px;
+}
+
+.dashboard-header h4,
+.dashboard-header small,
+.dashboard-header i{
+    color:#fff;
+}
+
+.dashboard-header .nav-link{
+    color:#fff !important;
+    font-weight:500;
+    transition:0.3s;
+}
+
+.dashboard-header .nav-link:hover{
+    color:#bdbdbd !important;
+}
+
+.navbar-toggler{
+    border:0;
+}
+
+.navbar-toggler-icon{
+    filter:invert(1);
+}
+
+/* ================= PAGE CONTENT ================= */
+
+.page-wrapper{
+    padding:40px 20px;
+}
+
+.card{
+    border:none;
+    border-radius:16px;
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 20px 50px rgba(0,0,0,.12);
+}
+
+.form-control, .form-select{
+    border-radius:10px;
+    padding:12px;
+}
+
+.section-title{
+    font-weight:600;
+    margin-bottom:10px;
+    border-left:4px solid #111;
+    padding-left:10px;
+    font-size:16px;
+}
+
+.btn-black{
+    background:#111;
+    color:#fff;
+    border-radius:12px;
+    padding:14px;
+    font-weight:600;
+    width:100%;
+    transition:0.3s;
+}
+
+.btn-black:hover{
+    background:linear-gradient(135deg,#333,#000);
+}
+
+.badge-json{
+    background:#111;
+    color:#fff;
+    border-radius:6px;
+    padding:3px 8px;
+    font-size:12px;
+}
+
+.font-monospace{
+    font-family:monospace;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<header class="header-with-topbar">
+<nav class="navbar dashboard-header navbar-expand-lg">
+    <div class="container-fluid px-0">
+
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-speedometer2 fs-2"></i>
+            <div>
+                <h4 class="mb-0">Admin Dashboard</h4>
+                <small>Overview of store performance</small>
+            </div>
+        </div>
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
+                        Logout
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+    </div>
+</nav>
+</header>
+
+<!-- ================= PAGE CONTENT ================= -->
+
+<div class="page-wrapper">
+<div class="container">
+<div class="row justify-content-center">
+<div class="col-lg-10">
+
+<div class="card p-4">
+<h4 class="fw-bold mb-4">Add New Product</h4>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+
+<!-- BASIC INFO -->
+<div class="section-title">Basic Information</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <label>Product Name</label>
+        <input type="text" name="name" id="product_name" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label>Slug</label>
+        <input type="text" name="slug" id="slug" class="form-control">
+    </div>
+    <div class="col-md-6">
+        <label>Brand</label>
+        <input type="text" name="brand" class="form-control">
+    </div>
+    <div class="col-md-6">
+        <label>Product Code</label>
+        <input type="text" name="product_code" class="form-control" required>
+    </div>
+</div>
+
+<!-- CATEGORY -->
+<div class="mb-4">
+    <label>Sub Category</label>
+    <select name="subcategory" class="form-select" required>
+        <option value="">Select</option>
+        {% for sub in subcategories %}
+        <option value="{{ sub.id }}">{{ sub.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<!-- PRICING -->
+<div class="section-title">Pricing</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label>Price</label>
+        <input type="number" name="price" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+        <label>Old Price</label>
+        <input type="number" name="old_price" class="form-control">
+    </div>
+    <div class="col-md-4">
+        <label>Stock</label>
+        <input type="number" name="stock" class="form-control" required>
+    </div>
+</div>
+
+<!-- SIZES -->
+<div class="section-title">Sizes</div>
+<div class="mb-4">
+    {% for size in sizes %}
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="sizes" value="{{ size.id }}">
+        <label class="form-check-label">{{ size.name }}</label>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- FLAGS -->
+<div class="section-title">Flags</div>
+<div class="mb-4">
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="status" checked> <label>Status</label></div>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="is_signature_collection"> <label>Signature Collection</label></div>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="is_featured"> <label>Featured</label></div>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="is_best_seller"> <label>Best Seller</label></div>
+</div>
+
+<!-- DESCRIPTION -->
+<div class="mb-4">
+    <label>Description</label>
+    <textarea name="description" rows="4" class="form-control"></textarea>
+</div>
+
+<!-- ADDITIONAL INFO -->
+<div class="section-title">
+    Additional Info <span class="badge-json">JSON</span>
+</div>
+<div class="mb-4">
+<textarea name="additional_info" rows="6"
+class="form-control font-monospace"
+placeholder='{
+  "style_type": "Zari Work",
+  "material_type": "Silk",
+  "occasion": "Wedding"
+}'></textarea>
+<small class="text-muted">Must be valid JSON</small>
+</div>
+
+<!-- IMAGES -->
+<div class="section-title">Images</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><input type="file" name="image1" class="form-control"></div>
+    <div class="col-md-4"><input type="file" name="image2" class="form-control"></div>
+    <div class="col-md-4"><input type="file" name="image3" class="form-control"></div>
+    <div class="col-md-4"><input type="file" name="image4" class="form-control"></div>
+    <div class="col-md-4"><input type="file" name="image5" class="form-control"></div>
+</div>
+
+<button class="btn-black">Save Product</button>
+
+</form>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+document.getElementById("product_name").addEventListener("keyup", function(){
+    const slug = this.value.toLowerCase()
+        .replace(/[^a-z0-9]+/g,"-")
+        .replace(/(^-|-$)/g,"");
+    document.getElementById("slug").value = slug;
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

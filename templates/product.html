@@ -1,0 +1,340 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <title>Crafto - The Multipurpose HTML5 Template</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="author" content="ThemeZaa">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta name="description"
+        content="Elevate your online presence with Crafto - a modern, versatile, multipurpose Bootstrap 5 responsive HTML5, SCSS template using highly creative 52+ ready demos.">
+    <!-- favicon icon -->
+    <link rel="shortcut icon" href="/static/images/favicon.png">
+    <link rel="apple-touch-icon" href="/static/images/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+    <!-- google fonts preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- style sheets and font icons  -->
+    <link rel="stylesheet" href="/static/css/vendors.min.css" />
+    <link rel="stylesheet" href="/static/css/icon.min.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/responsive.css" />
+    <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+</head>
+
+<body data-mobile-nav-style="classic">
+    {% include "components/navbar.html" %}
+    <!-- start section -->
+    <section class="top-space-margin half-section bg-gradient-very-light-gray">
+        <div class="container">
+            <div class="row align-items-center justify-content-center"
+                data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 100, "easing": "easeOutQuad" }'>
+                <div class="col-12 col-xl-8 col-lg-10 text-center position-relative page-title-extra-large">
+                    <h1 class="alt-font fw-600 text-dark-gray mb-10px">Shop</h1>
+                </div>
+                <div class="col-12 breadcrumb breadcrumb-style-01 d-flex justify-content-center">
+                    <ul>
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li>Shop</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- end section -->
+    <!-- start section -->
+    <section class="pt-0 ps-6 pe-6 lg-ps-2 lg-pe-2 sm-ps-0 sm-pe-0">
+        <div class="container-fluid">
+            <div class="row flex-row-reverse">
+                <div class="col-xxl-10 col-lg-9 ps-5 md-ps-15px md-mb-60px">
+                    <ul class="shop-modern shop-wrapper grid-loading grid grid-4col xl-grid-3col sm-grid-2col xs-grid-1col gutter-extra-large text-center"
+                        data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 150, "easing": "easeOutQuad" }'>
+                        <li class="grid-sizer"></li>
+                        <!-- start shop item -->
+
+                        <!-- end shop item -->
+                        <!-- start shop item -->
+                        {% if page_obj %}
+                            {% for product in page_obj %}
+                                <li class="grid-item">
+                                    <div class="shop-box mb-10px">
+                                        <div class="shop-image mb-20px">
+                                            <a href="{% url 'product_detail' product.slug %}">
+                                                <img src="{{ product.image1.url }}" alt="">
+                                                <div class="shop-overlay bg-gradient-gray-light-dark-transparent"></div>
+                                            </a>
+                                            <div class="shop-buttons-wrap">
+                                                <a href="{% url 'product_detail' product.slug %}"
+                                                class="alt-font btn btn-small btn-box-shadow btn-white btn-round-edge left-icon add-to-cart">
+                                                    <i class="feather icon-feather-shopping-bag"></i>
+                                                    <span class="quick-view-text button-text">Add to cart</span>
+                                                </a>
+                                            </div>
+                                            <div class="shop-hover d-flex justify-content-center">
+                                                <ul>
+                                                    <li>
+                                                        <a href="#"
+                                                        class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px"
+                                                        data-bs-toggle="tooltip" data-bs-placement="left" title="Add to wishlist">
+                                                        <i class="feather icon-feather-heart fs-16"></i>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#"
+                                                        class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px"
+                                                        data-bs-toggle="tooltip" data-bs-placement="left" title="Quick shop">
+                                                        <i class="feather icon-feather-eye fs-16"></i>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="shop-footer text-center">
+                                            <a href="{% url 'product_detail' product.slug %}"
+                                            class="alt-font text-dark-gray fs-19 fw-500">{{ product.name }}</a>
+                                            <div class="price lh-22 fs-16"><del>₹{{ product.old_price }}</del> ₹{{ product.price }}</div>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="grid-item w-100">
+                                <div class="text-center pt-80px pb-80px">
+                                    <h4 class="alt-font fw-500 text-dark-gray mb-10px">No products found</h4>
+                                    {% if search_query %}
+                                        <p class="fs-16">No results for <strong>"{{ search_query }}"</strong></p>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endif %}
+
+
+                    </ul>
+                    <div class="w-100 d-flex mt-4 justify-content-center md-mt-30px">
+                        <ul class="pagination pagination-style-01 fs-13 fw-500 mb-0">
+
+                            <!-- PREVIOUS -->
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination_base }}?page={{ page_obj.previous_page_number }}">
+                                    <i class="feather icon-feather-arrow-left fs-18 d-xs-none"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="feather icon-feather-arrow-left fs-18 d-xs-none"></i>
+                                </span>
+                            </li>
+                            {% endif %}
+
+                            <!-- PAGE NUMBERS -->
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ pagination_base }}?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- NEXT -->
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ pagination_base }}?page={{ page_obj.next_page_number }}">
+                                    <i class="feather icon-feather-arrow-right fs-18 d-xs-none"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="feather icon-feather-arrow-right fs-18 d-xs-none"></i>
+                                </span>
+                            </li>
+                            {% endif %}
+
+                        </ul>
+                    </div>
+
+                </div>
+                <div class="col-xxl-2 col-lg-3 shop-sidebar"
+                    data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 300, "easing": "easeOutQuad" }'>
+                    <div class="mb-30px">
+                        <span class="alt-font fw-500 fs-19 text-dark-gray d-block mb-10px">Filter by categories</span>
+                        <ul class="shop-filter category-filter fs-16">
+                            {% for sub in subcategory_counts %}
+                            <li><a href="{% url 'filter_by_subcategory' slug=sub.slug %}"><span class="product-cb product-category-cb"></span> {{ sub.name }}</a><span
+                                    class="item-qty">{{ sub.product_count }}</span></li>
+                            {% endfor %}
+
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-30px">
+                            <span class="alt-font fw-500 fs-19 text-dark-gray d-block mb-10px">Filter by size</span>
+                            <ul class="shop-filter price-filter fs-16">
+                                {% for size in size_counts %}
+                                <li>
+                                    <a href="?size={{ size.name }}"
+                                    class="{% if size.name == active_size %}active{% endif %}">
+                                        <span class="product-cb product-category-cb"></span>{{ size.name }}
+                                    </a>
+                                    <span class="item-qty">{{ size.product_count }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    <div class="mb-30px">
+                        <div class="d-flex align-items-center mb-20px">
+                            <span class="alt-font fw-500 fs-19 text-dark-gray">New arrivals</span>
+                            <div class="d-flex ms-auto">
+                                <!-- start slider navigation -->
+                                <div
+                                    class="slider-one-slide-prev-1 icon-very-small swiper-button-prev slider-navigation-style-08 me-5px">
+                                    <i class="fa-solid fa-arrow-left text-dark-gray"></i></div>
+                                <div
+                                    class="slider-one-slide-next-1 icon-very-small swiper-button-next slider-navigation-style-08 ms-5px">
+                                    <i class="fa-solid fa-arrow-right text-dark-gray"></i></div>
+                                <!-- end slider navigation -->
+                            </div>
+                        </div>
+                        <div class="swiper slider-one-slide"
+                            data-slider-options='{ "slidesPerView": 1, "loop": true, "autoplay": { "delay": 5000, "disableOnInteraction": false }, "navigation": { "nextEl": ".slider-one-slide-next-1", "prevEl": ".slider-one-slide-prev-1" }, "keyboard": { "enabled": true, "onlyInViewport": true }, "effect": "slide" }'>
+                            <div class="swiper-wrapper">
+                                <!-- start text slider item -->
+                                <div class="swiper-slide">
+                                    <div class="shop-filter new-arribals">
+                                        <div class="d-flex align-items-center mb-20px">
+                                            <figure class="mb-0">
+                                                <a href="demo-fashion-store-single-product.html">
+                                                    <img class="border-radius-4px w-80px"
+                                                        src="https://placehold.co/600x765" alt="">
+                                                </a>
+                                            </figure>
+                                            <div class="col ps-25px">
+                                                <a href="demo-fashion-store-single-product.html"
+                                                    class="text-dark-gray alt-font fw-500 d-inline-block lh-normal">Textured
+                                                    sweater</a>
+                                                <div class="fs-15 lh-normal"><del class="me-5px">$30.00</del>$23.00
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-20px">
+                                            <figure class="mb-0">
+                                                <a href="demo-fashion-store-single-product.html">
+                                                    <img class="border-radius-4px w-80px"
+                                                        src="https://placehold.co/600x765" alt="">
+                                                </a>
+                                            </figure>
+                                            <div class="col ps-25px">
+                                                <a href="demo-fashion-store-single-product.html"
+                                                    class="text-dark-gray alt-font fw-500 d-inline-block lh-normal">Traveller
+                                                    shirt</a>
+                                                <div class="fs-15 lh-normal"><del class="me-5px">$50.00</del>$43.00
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <figure class="mb-0">
+                                                <a href="demo-fashion-store-single-product.html">
+                                                    <img class="border-radius-4px w-80px"
+                                                        src="https://placehold.co/600x765" alt="">
+                                                </a>
+                                            </figure>
+                                            <div class="col ps-25px">
+                                                <a href="demo-fashion-store-single-product.html"
+                                                    class="text-dark-gray alt-font fw-500 d-inline-block lh-normal">Crewneck
+                                                    tshirt</a>
+                                                <div class="fs-15 lh-normal"><del class="me-5px">$20.00</del>$15.00
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- end text slider item -->
+                                <!-- start text slider item -->
+                                <div class="swiper-slide">
+                                    <div class="shop-filter new-arribals">
+                                        <div class="d-flex align-items-center mb-20px">
+                                            <figure class="mb-0">
+                                                <a href="demo-fashion-store-single-product.html">
+                                                    <img class="border-radius-4px w-80px"
+                                                        src="https://placehold.co/600x765" alt="">
+                                                </a>
+                                            </figure>
+                                            <div class="col ps-25px">
+                                                <a href="demo-fashion-store-single-product.html"
+                                                    class="text-dark-gray alt-font fw-500 d-inline-block lh-normal">Skinny
+                                                    trousers</a>
+                                                <div class="fs-15 lh-normal"><del class="me-5px">$15.00</del>$10.00
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-20px">
+                                            <figure class="mb-0">
+                                                <a href="demo-fashion-store-single-product.html">
+                                                    <img class="border-radius-4px w-80px"
+                                                        src="https://placehold.co/600x765" alt="">
+                                                </a>
+                                            </figure>
+                                            <div class="col ps-25px">
+                                                <a href="demo-fashion-store-single-product.html"
+                                                    class="text-dark-gray alt-font fw-500 d-inline-block lh-normal">Sleeve
+                                                    sweater</a>
+                                                <div class="fs-15 lh-normal"><del class="me-5px">$35.00</del>$30.00
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <figure class="mb-0">
+                                                <a href="demo-fashion-store-single-product.html">
+                                                    <img class="border-radius-4px w-80px"
+                                                        src="https://placehold.co/600x765" alt="">
+                                                </a>
+                                            </figure>
+                                            <div class="col ps-25px">
+                                                <a href="demo-fashion-store-single-product.html"
+                                                    class="text-dark-gray alt-font fw-500 d-inline-block lh-normal">Pocket
+                                                    white</a>
+                                                <div class="fs-15 lh-normal"><del class="me-5px">$20.00</del>$15.00
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- end text slider item -->
+                            </div>
+                            <!-- start slider navigation -->
+                        </div>
+                    </div>
+                    <div>
+                        <span class="alt-font fw-500 fs-19 text-dark-gray d-block mb-10px">Filter by tags</span>
+                        <div class="shop-filter tag-cloud fs-16">
+                            <a href="#">Coats</a>
+                            <a href="#">Cotton</a>
+                            <a href="#">Dresses</a>
+                            <a href="#">Jackets</a>
+                            <a href="#">Polyester</a>
+                            <a href="#">Printed</a>
+                            <a href="#">Shirts</a>
+                            <a href="#">Shorts</a>
+                            <a href="#">Tops</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- end section -->
+    {% include "components/footer.html" %}
+    <!-- javascript libraries -->
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/vendors.min.js"></script>
+    <script type="text/javascript" src="/static/js/main.js"></script>
+</body>
+
+</html>

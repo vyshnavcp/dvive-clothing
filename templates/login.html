@@ -1,0 +1,105 @@
+﻿<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <title>Crafto - The Multipurpose HTML5 Template</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="author" content="ThemeZaa">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <meta name="description" content="Elevate your online presence with Crafto - a modern, versatile, multipurpose Bootstrap 5 responsive HTML5, SCSS template using highly creative 52+ ready demos.">
+        <!-- favicon icon -->
+        <link rel="shortcut icon" href="/static/images/favicon.png">
+        <link rel="apple-touch-icon" href="/static/images/apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+        <!-- google fonts preconnect -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <!-- style sheets and font icons  -->
+        <link rel="stylesheet" href="/static/css/vendors.min.css"/>
+        <link rel="stylesheet" href="/static/css/icon.min.css"/>
+        <link rel="stylesheet" href="/static/css/style.css"/>
+        <link rel="stylesheet" href="/static/css/responsive.css"/>
+        <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+    </head>
+    <body data-mobile-nav-style="classic">
+        <!-- start header -->
+        {% include "components/navbar.html" %}
+        <!-- start section -->
+        <section class="top-space-margin half-section bg-gradient-very-light-gray">
+            <div class="container">
+                <div class="row align-items-center justify-content-center" data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 200, "easing": "easeOutQuad" }'>
+                    <div class="col-12 col-xl-8 col-lg-10 text-center position-relative page-title-extra-large">
+                        <h1 class="alt-font fw-600 text-dark-gray mb-10px">My account</h1> 
+                    </div>
+                    <div class="col-12 breadcrumb breadcrumb-style-01 d-flex justify-content-center">
+                        <ul>
+                            <li><a href="{% url 'home' %}">Home</a></li> 
+                            <li>My account</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section -->
+       <!-- start section -->
+        <section class="pt-0">
+            <div class="container">
+                <div class="row g-0 justify-content-center">
+                    <div class="col-xl-4 col-lg-5 col-md-10 contact-form-style-04 md-mb-50px" data-anime='{ "translateY": [0, 0], "opacity": [0,1], "duration": 600, "delay":100, "staggervalue": 150, "easing": "easeOutQuad" }'>
+                        <span class="fs-26 xs-fs-24 alt-font fw-600 text-dark-gray mb-20px d-block">Member login</span>
+                        <form action="{% url 'login_post' %}" method="post">
+                             {% csrf_token %}
+                            <label class="text-dark-gray mb-10px fw-500">Username or email address<span class="text-red">*</span></label> 
+                            <input class="mb-20px bg-very-light-gray form-control required" type="text" name="name" placeholder="Enter your username" />
+                            <label class="text-dark-gray mb-10px fw-500">Password<span class="text-red" >*</span></label> 
+                            <input class="mb-20px bg-very-light-gray form-control required" type="password" name="password" placeholder="Enter your password" id="password" />
+                            <div id="password_error" class="text-danger fs-12"></div>
+                            <div class="text-center mb-20px">
+                                <a href="{% url 'password_reset' %}" class="fs-14 text-dark-gray fw-500 text-decoration-line-bottom">
+                                    Forget your password?
+                                </a>
+                            </div>
+                            <input type="hidden" name="redirect" value="">
+                            <button class="btn btn-medium btn-round-edge btn-dark-gray btn-box-shadow w-100" type="submit">Login</button>
+                            <div class="text-center mt-25px">
+                                <span class="fs-14 text-medium-gray d-block mb-5px">
+                                    Don’t have an account?
+                                </span>
+                                <a href="{% url 'register' %}" 
+                                class="fs-15 fw-600 text-dark-gray text-decoration-line-bottom">
+                                    Create a new account
+                                </a>
+                            </div>
+                            <div class="form-results mt-20px d-none"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section -->
+        {% include "components/footer.html" %}
+        <!-- javascript libraries -->
+        <script type="text/javascript" src="/static/js/jquery.js"></script>
+        <script type="text/javascript" src="/static/js/vendors.min.js"></script>
+        <script type="text/javascript" src="/static/js/main.js"></script>
+        <script>
+const passwordInput = document.getElementById("password");
+const passwordError = document.getElementById("password_error");
+
+passwordInput.addEventListener("input", function(){
+    const pwd = passwordInput.value;
+
+    if (!pwd) {
+        passwordError.innerText = "Password is required";
+    } else if (pwd.length < 6) {
+        passwordError.innerText = "Password must be at least 6 characters";
+    } else if (/^\d+$/.test(pwd)) {
+        passwordError.innerText = "Password cannot be only numbers";
+    } else {
+        passwordError.innerText = "";
+    }
+});
+</script>
+    </body>
+</html>

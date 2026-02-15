@@ -1,0 +1,275 @@
+    <!-- start header -->
+    <header class="header-with-topbar">
+        <style>
+            .new{
+                    position: relative;
+                    right: 5px;
+                }
+            .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* spacing between items */
+        }
+
+        .user-name {
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .logout-icon i,
+        .user-info i {
+            vertical-align: middle;
+            width: 18px;
+            height: 18px;
+        }
+        #headericon{position: relative;
+        left: 15px;}
+        #icons{
+            position: relative;
+            right: 10px;
+        }
+        .bg-grad{
+            background: #22C1C3;
+            background: linear-gradient(0deg,rgba(34, 193, 195, 1) 0%, rgba(253, 187, 45, 1) 100%);
+        }
+        .user-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.user-dropdown i {
+    font-size: 18px;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 110%; /* below the icon */
+    left: 0;
+    background-color: #fff;
+    min-width: 140px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    z-index: 1000;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f5f5f5;
+}
+           
+        </style>
+        <!-- start navigation -->
+        <nav class="navbar navbar-expand-lg header-light bg-grad disable-fixed center-logo">
+            <div class="container-fluid">
+                <div class="col-auto col-xxl-3 col-lg-2 menu-logo">
+                    <div class="header-icon d-none d-lg-flex">
+
+                    </div>
+                    <a class="navbar-brand" href="{% url 'home' %}">
+                        <img src="/static/images/dvive-new.png" data-at2x="/static/images/dvive-new.png" alt=""
+                            class="default-logo">
+                        <img src="/static/images/dvive-new.png" data-at2x="/static/images/dvive-new.png" alt=""
+                            class="alt-logo">
+                        <img src="/static/images/dvive-new.png" data-at2x="/static/images/dvive-new.png" alt=""
+                            class="mobile-logo">
+                    </a>
+                </div>
+                <div class="col-auto col-xxl-6 col-lg-8 menu-order">
+                    <button class="navbar-toggler float-end" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-line"></span>
+                        <span class="navbar-toggler-line"></span>
+                        <span class="navbar-toggler-line"></span>
+                        <span class="navbar-toggler-line"></span>
+                    </button>
+                    <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                        <ul class="navbar-nav alt-font navbar-left justify-content-end">
+                            <li class="nav-item">
+                                <a href="{% url 'home' %}" class="nav-link">Home</a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a href="{% url 'about' %}" class="nav-link">About</a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav alt-font navbar-right justify-content-start">
+                            <li class="nav-item dropdown submenu">
+                                <a href="{% url 'product' %}" class="nav-link">Shop</a>
+                                <i class="fa-solid fa-angle-down dropdown-toggle" id="navbarDropdownMenuLink1"
+                                    role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
+                                <div class="dropdown-menu submenu-content" aria-labelledby="navbarDropdownMenuLink1">
+                                    <div class="d-lg-flex mega-menu m-auto flex-column">
+                                        <div
+                                            class="row row-cols-1 row-cols-lg-5 row-cols-md-3 row-cols-sm-3 mb-50px md-mb-25px xs-mb-15px">
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Men</li>
+                                                    <li><a href="#">Jeans</a></li>
+                                                    <li><a href="#">Trousers</a></li>
+                                                    <li><a href="#">Swimwear</a></li>
+                                                    <li><a href="#">Casual shirts</a></li>
+                                                    <li><a href="#">Rain jackets</a></li>
+                                                    <li><a href="#">Loungewear</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Women</li>
+                                                    <li><a href="#">Dupattas</a></li>
+                                                    <li><a href="#">Leggings</a></li>
+                                                    <li><a href="#">Ethnic wear</a></li>
+                                                    <li><a href="#">Kurtas & suits</a></li>
+                                                    <li><a href="#">Western wear</a></li>
+                                                    <li><a href="#">Dress materials</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Kids</li>
+                                                    <li><a href="#">Dresses</a></li>
+                                                    <li><a href="#">Jumpsuits</a></li>
+                                                    <li><a href="#">Track pants</a></li>
+                                                    <li><a href="#">Ethnic wear</a></li>
+                                                    <li><a href="#">Value packs</a></li>
+                                                    <li><a href="#">Loungewear</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Divided</li>
+                                                    <li><a href="#">Tops</a></li>
+                                                    <li><a href="#">Dresses</a></li>
+                                                    <li><a href="#">Shorts</a></li>
+                                                    <li><a href="#">Swimwear</a></li>
+                                                    <li><a href="#">Jeans</a></li>
+                                                    <li><a href="#">Jackets</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Accessories</li>
+                                                    <li><a href="#">Shoes</a></li>
+                                                    <li><a href="#">Scarves</a></li>
+                                                    <li><a href="#">Watches</a></li>
+                                                    <li><a href="#">Wristwear</a></li>
+                                                    <li><a href="#">Backpacks</a></li>
+                                                    <li><a href="#">Sunglasses</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="row row-cols-1 row-cols-sm-2">
+                                            <div class="col">
+                                                <a href="demo-fashion-store-shop.html"><img
+                                                        src="/static/images/shop1.png" alt=""></a>
+                                            </div>
+                                            <div class="col">
+                                                <a href="demo-fashion-store-shop.html"><img
+                                                        src="/static/images/shop2.png" alt=""></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'blog' %}" class="nav-link">Blog</a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-auto col-xxl-3 col-lg-2 text-end">
+                    <div class="header-icon">
+                        <div class="header-search-icon icon alt-font ">
+                            <a href="javascript:void(0)" class="search-form-icon header-search-form new"><i
+                                    class="feather icon-feather-search me-5px"></i><span
+                                    class="d-none d-xxl-inline-block">Search</span></a>
+                            <div class="search-form-wrapper">
+                                <button title="Close" type="button" class="search-close alt-font">×</button>
+                                 <form id="search-form" role="search" method="get" class="search-form text-left" action="{% url 'product' %}">
+                                    <div class="search-form-box">
+                                        <h2 class="text-dark-gray text-center mb-4 fw-600 alt-font ls-minus-1px">
+                                            What are you looking for?
+                                        </h2>
+
+                                        <input class="search-input alt-font"
+                                            placeholder="Enter your keywords..."
+                                            name="q"
+                                            type="text"
+                                            autocomplete="off">
+
+                                        <button type="submit" class="search-button">
+                                            <i class="feather icon-feather-search"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="header-cart-icon icon">
+                            <div class="header-cart dropdown">
+                                <a href="{% url 'cart_page' %}"><i class="feather icon-feather-shopping-bag"></i><span
+                                        class="cart-count alt-font text-white bg-dark-gray">{{ cart_item_count }}</span></a>
+                               
+                            </div>
+                        </div>
+                      <div id="headericon" class="widget-text icon alt-font user-info">
+                            {% if request.user.is_authenticated %}
+                                <div class="user-dropdown">
+                                    <i class="feather icon-feather-user"></i>
+                                    <span class="user-name">Account</span>
+
+                                    <!-- Only dropdown for View Profile -->
+                                    <div class="dropdown-menu">
+                                        <a href="{% url 'profile' %}">View Profile</a>
+                                        <a href="{% url 'my_orders' %}">My Orders</a>
+                                    </div>
+                                    <!-- Logout stays separate -->
+                                    <a href="{% url 'user_logout' %}" class="logout-icon" id="icons">
+                                        <i class="feather icon-feather-log-out"></i>
+                                    </a>
+                                </div>
+                            {% else %}
+                                <a href="{% url 'user_login' %}">
+                                    <i class="feather icon-feather-user"></i>
+                                    <span class="user-name">Login</span>
+                                </a>
+                            {% endif %}
+                        </div>
+
+
+                        
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const dropdown = document.querySelector(".user-dropdown");
+    const menu = dropdown.querySelector(".dropdown-menu");
+
+    dropdown.addEventListener("click", function(e) {
+        e.stopPropagation();
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+
+    document.addEventListener("click", function() {
+        menu.style.display = "none";
+    });
+});
+</script>
+    </header>
+    <!-- end header -->

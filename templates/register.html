@@ -1,0 +1,129 @@
+<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <title>Crafto - The Multipurpose HTML5 Template</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="author" content="ThemeZaa">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <meta name="description" content="Elevate your online presence with Crafto - a modern, versatile, multipurpose Bootstrap 5 responsive HTML5, SCSS template using highly creative 52+ ready demos.">
+        <!-- favicon icon -->
+        <link rel="shortcut icon" href="/static/images/favicon.png">
+        <link rel="apple-touch-icon" href="/static/images/apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+        <!-- google fonts preconnect -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <!-- style sheets and font icons  -->
+        <link rel="stylesheet" href="/static/css/vendors.min.css"/>
+        <link rel="stylesheet" href="/static/css/icon.min.css"/>
+        <link rel="stylesheet" href="/static/css/style.css"/>
+        <link rel="stylesheet" href="/static/css/responsive.css"/>
+        <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+    </head>
+    <body data-mobile-nav-style="classic">
+        <!-- start header -->
+        {% include "components/navbar.html" %}
+        <!-- start section -->
+        <section class="top-space-margin half-section bg-gradient-very-light-gray">
+            <div class="container">
+                <div class="row align-items-center justify-content-center" data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 200, "easing": "easeOutQuad" }'>
+                    <div class="col-12 col-xl-8 col-lg-10 text-center position-relative page-title-extra-large">
+                        <h1 class="alt-font fw-600 text-dark-gray mb-10px">My account</h1> 
+                    </div>
+                    <div class="col-12 breadcrumb breadcrumb-style-01 d-flex justify-content-center">
+                        <ul>
+                            <li><a href="{% url 'home' %}">Home</a></li> 
+                            <li>My account</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section -->
+       <!-- start section -->
+        <section class="pt-0">
+            <div class="container">
+                <div class="row g-0 justify-content-center">
+                    <div class="col-lg-6 col-md-10  p-6 box-shadow-extra-large border-radius-6px" data-anime='{ "translateY": [0, 0], "opacity": [0,1], "duration": 600, "delay":150, "staggervalue": 150, "easing": "easeOutQuad" }'>
+                        <span class="fs-26 xs-fs-24 alt-font fw-600 text-dark-gray mb-20px d-block">Create an account</span>
+                        <form id="regForm" action="{% url 'reg_post' %}" method="post">
+                            {% csrf_token %}
+
+                            <label>Username<span class="text-red">*</span></label>
+                            <input name="name" id="name" type="text" placeholder="Enter your username" style="border-radius: 10px;">
+                            <div id="name_error" class="text-danger fs-12 mb-2"></div>
+
+                            <label>Email address<span class="text-red">*</span></label>
+                            <input type="email" name="email" id="email" placeholder="Enter your email"style="border-radius: 10px;" >
+                            <div id="email_error" class="text-danger fs-12 mb-2"></div>
+
+                            <label>Phone<span class="text-red">*</span></label>
+                            <input type="text" name="phone" id="phone" placeholder="Enter your phone number" style="border-radius: 10px;">
+                            <div id="phone_error" class="text-danger fs-12 mb-2"></div>
+
+                            <label>Password<span class="text-red">*</span></label>
+                            <input type="password" name="password" id="password" placeholder="Enter your password" style="border-radius: 10px;">
+                            <div id="password_error" class="text-danger fs-12 mb-2"></div>
+
+                            <button style="border-radius: 10px; padding: 12px;" class="btn btn-dark-gray w-100" type="submit">Register</button>
+                            <a href="{% url 'user_login' %}" class="btn btn-outline-dark-gray w-100 mt-3">Already have an account?</a>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section -->
+        {% include "components/footer.html" %}
+        <!-- javascript libraries -->
+        <script type="text/javascript" src="/static/js/jquery.js"></script>
+        <script type="text/javascript" src="/static/js/vendors.min.js"></script>
+        <script type="text/javascript" src="/static/js/main.js"></script>
+        <script>
+const nameField = document.getElementById("name");
+const emailField = document.getElementById("email");
+const phoneField = document.getElementById("phone");
+const passwordField = document.getElementById("password");
+
+const nameErr = document.getElementById("name_error");
+const emailErr = document.getElementById("email_error");
+const phoneErr = document.getElementById("phone_error");
+const passErr = document.getElementById("password_error");
+
+let validName = false;
+let validEmail = false;
+let validPhone = false;
+let validPassword = false;
+
+function validateForm() {
+    fetch(`/ajax/validate-register/?name=${nameField.value}&email=${emailField.value}&phone=${phoneField.value}&password=${passwordField.value}`)
+        .then(res => res.json())
+        .then(data => {
+            nameErr.innerText = data.name_error;
+            emailErr.innerText = data.email_error;
+            phoneErr.innerText = data.phone_error;
+            passErr.innerText = data.password_error;
+
+            validName = !data.name_error;
+            validEmail = !data.email_error;
+            validPhone = !data.phone_error;
+            validPassword = !data.password_error;
+        });
+}
+
+nameField.addEventListener("input", validateForm);
+emailField.addEventListener("input", validateForm);
+phoneField.addEventListener("input", validateForm);
+passwordField.addEventListener("input", validateForm);
+
+document.getElementById("regForm").addEventListener("submit", function(e){
+    if (!validName || !validEmail || !validPhone || !validPassword) {
+        e.preventDefault();
+        alert("Please fix the errors before submitting");
+    }
+});
+</script>
+    </body>
+</html>

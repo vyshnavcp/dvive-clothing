@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body { background: #f4f6fb; }
+        .page-header {
+            background: linear-gradient(135deg,#111827,#1f2933);
+            color:#fff;
+            padding:20px;
+            border-radius:12px;
+            margin-bottom:20px;
+        }
+        .status-badge {
+            padding:6px 12px;
+            border-radius:30px;
+            font-size:13px;
+        }
+        .completed { background:#dcfce7; color:#166534; }
+        .pending { background:#fef3c7; color:#92400e; }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid px-4 mt-4">
+
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <h4>{{ title }}</h4>
+        <i class="bi bi-receipt fs-2"></i>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Shipping</th>
+                        <th>Total</th>
+                        <th>Payment</th>   <!-- ✅ ADD THIS -->
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+
+                        <td>
+                            <a href="{% url 'order_detail' order.id %}" class="fw-semibold text-decoration-none">
+                                {{ order.first_name }}
+                            </a>
+                        </td>
+
+                        <td>
+                            {{ order.email }} <br>
+                            {{ order.phone }}
+                        </td>
+
+                        <td>
+                            {{ order.address }} <br>
+                            {{ order.town }}, {{ order.state }} - {{ order.pincode }}
+                        </td>
+
+                        <td>₹ {{ order.total }}</td>
+                        <td>
+                            {% if order.payment_method == "Razorpay" %}
+                                <span style="color: green; font-weight: 600;">
+                                    Razorpay
+                                </span>
+                            {% else %}
+                                <span style="color: #ff9800; font-weight: 600;">
+                                    Cash on Delivery
+                                </span>
+                            {% endif %}
+                        </td>
+
+
+                        <td>
+                            {% if order.is_cancelled %}
+                                <span class="status-badge" style="background:#fee2e2; color:#991b1b;">
+                                    Cancelled
+                                </span>
+
+                            {% elif order.is_delivered %}
+                                <span class="status-badge completed">
+                                    Delivered
+                                </span>
+
+                            {% else %}
+                                <span class="status-badge pending">
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </td>
+
+
+                        <td>{{ order.created_at|date:"d M Y" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            No orders found
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

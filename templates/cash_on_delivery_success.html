@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cash on Delivery</title>
+    <style>
+        body {
+            font-family: Poppins;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .success-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .success-box h1 {
+            color: #ff9800;
+            margin-bottom: 10px;
+        }
+        .success-box p {
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="success-box">
+    <h1>📦 Order Placed (Cash on Delivery)</h1>
+    <p><strong>Order ID:</strong> {{ order.id }}</p>
+    <p><strong>Total Amount:</strong> ₹{{ order.total }}</p>
+    <p><strong>Payment Method:</strong> Cash on Delivery</p>
+
+    <p>Please keep the cash ready when your order is delivered.</p>
+
+    <br>
+    <a href="{% url 'home' %}">Continue Shopping</a>
+</div>
+
+</body>
+</html>

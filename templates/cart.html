@@ -1,0 +1,286 @@
+﻿<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <title>Crafto - The Multipurpose HTML5 Template</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="author" content="ThemeZaa">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <meta name="description" content="Elevate your online presence with Crafto - a modern, versatile, multipurpose Bootstrap 5 responsive HTML5, SCSS template using highly creative 52+ ready demos.">
+        <!-- favicon icon -->
+        <link rel="shortcut icon" href="/static/images/favicon.png">
+        <link rel="apple-touch-icon" href="/static/images/apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+        <!-- google fonts preconnect -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <!-- style sheets and font icons  -->
+        <link rel="stylesheet" href="/static/css/vendors.min.css"/>
+        <link rel="stylesheet" href="/static/css/icon.min.css"/>
+        <link rel="stylesheet" href="/static/css/style.css"/>
+        <link rel="stylesheet" href="/static/css/responsive.css"/>
+        <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+        <style>
+            .coupon-remove-btn {
+    position: absolute;
+    right: 0px;
+    top: 27.5%;
+    transform: translateY(-50%);
+    background: #000;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: .4px;
+    transition: .2s;
+}
+
+.coupon-remove-btn:hover {
+    background: #111;
+}
+.stock-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9a6a00;                 /* warm yellow-brown text */
+    background: #fff6d6;            /* soft pastel yellow */
+    border: 1px solid #ffe08a;
+    border-radius: 6px;
+    line-height: 1.4;
+}
+
+/* optional subtle icon */
+.stock-warning::before {
+    content: "⚠";
+    font-size: 13px;
+}
+
+        </style>
+        
+    </head>
+    <body data-mobile-nav-style="classic">
+        <!-- start header -->
+        {% include "components/navbar.html" %}
+        <!-- end header --> 
+        <!-- start section -->
+        <section class="top-space-margin half-section bg-gradient-very-light-gray">
+            <div class="container">
+                <div class="row align-items-center justify-content-center" data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 200, "easing": "easeOutQuad" }'>
+                    <div class="col-12 col-xl-8 col-lg-10 text-center position-relative page-title-extra-large">
+                        <h1 class="alt-font fw-600 text-dark-gray mb-10px">Shopping cart</h1> 
+                    </div>
+                    <div class="col-12 breadcrumb breadcrumb-style-01 d-flex justify-content-center">
+                        <ul>
+                            <li><a href="{% url 'home' %}">Home</a></li> 
+                            <li>Shopping cart</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section -->
+       <!-- start section -->
+        <section class="pt-0">
+            <div class="container">
+                <div class="row align-items-start">
+                    <div class="col-lg-8 pe-50px md-pe-15px md-mb-50px xs-mb-35px">
+                        <div class="row align-items-center">
+                            <div class="col-12">
+                                <table class="table cart-products">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"></th>
+                                            <th scope="col" class="alt-font fw-600">Product</th>
+                                            <th scope="col"></th>
+                                            <th scope="col" class="alt-font fw-600">Price</th>
+                                            <th scope="col" class="alt-font fw-600">Quantity</th>
+                                            <th scope="col" class="alt-font fw-600">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for item in items %}
+                                        <tr> 
+                                            <!-- Remove item -->
+                                            <td class="product-remove">
+                                                <form method="POST" action="{% url 'remove_cart_item' item.id %}" style="display:inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="fs-20 fw-500" style="background:none; border:none; padding:0; cursor:pointer;">×</button>
+                                                </form>
+                                            </td>
+
+                                            <!-- Product thumbnail -->
+                                            <td class="product-thumbnail">
+                                                <a href="demo-jewellery-store-single-product.html">
+                                                    <img class="cart-product-image" src="{{ item.product.image1.url }}" alt="">
+                                                </a>
+                                            </td>
+
+                                            <!-- Product name + color -->
+                                            <td class="product-name">
+                                                <a href="demo-jewellery-store-single-product.html" class="text-dark-gray fw-500 d-block lh-initial">
+                                                    {{ item.product.name }}
+                                                </a> 
+                                                <span class="fs-14">Color: {{ item.color.name }}</span>
+                                            </td>
+
+                                            <!-- Price -->
+                                            <td class="product-price" data-title="Price"> ₹{{ item.price }}</td>
+
+                                            <!-- Quantity with plus/minus buttons -->
+                                            <td class="product-quantity" data-title="Quantity">
+                                                <div class="quantity">
+                                                    <form method="POST" action="{% url 'change_cart_quantity' item.id %}" style="display:inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" name="action" value="minus" class="qty-minus">-</button>
+                                                    </form>
+
+                                                    <input class="qty-text" type="text" value="{{ item.quantity }}" readonly>
+
+                                                    <form method="POST" action="{% url 'change_cart_quantity' item.id %}" style="display:inline;">
+                                                        {% csrf_token %}
+                                                        <button
+                                                            type="submit"
+                                                            name="action"
+                                                            value="plus"
+                                                            class="qty-plus"
+                                                            {% if item.quantity >= item.product.stock %}disabled{% endif %}
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </form>
+                                                </div>
+
+                                                {% if item.quantity >= item.product.stock %}
+                                                    <small class="stock-warning d-block mt-5px">
+                                                        Only {{ item.product.stock }} items available
+                                                    </small>
+
+                                                {% endif %}
+                                            </td>
+ 
+
+                                            <!-- Subtotal -->
+                                            <td class="product-subtotal" data-title="Total"> ₹{{ item.total_price }}</td> 
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                        <div class="row mt-20px">
+                           <div class="col-xl-6 col-xxl-7 col-md-6"> 
+                                    <div class="coupon-code-panel">
+
+                                        {% if coupon_code %}
+                                            <form method="POST" action="{% url 'cart_page' %}" class="coupon-container">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="remove_coupon" value="1">
+
+                                                <div class="coupon-input-wrapper">
+                                                    <input type="text" class="coupon-input bg-white border-radius-4px" value="{{ coupon_code }}" disabled>
+                                                    <button type="submit" class="coupon-remove-btn">Remove</button>
+                                                </div>
+                                            </form>
+
+                                            <p class="fs-14 text-success mt-2">Coupon applied: ₹{{ coupon_discount }}</p>
+
+                                        {% else %}
+                                            <form method="POST" action="{% url 'cart_page' %}" style="display:flex; flex-direction:column; gap:5px;">
+                                                {% csrf_token %}
+                                                <input type="text" name="coupon_code" class="bg-white border-radius-4px" placeholder="Coupon code">
+                                                <button type="submit" class="btn apply-coupon-btn fs-13 fw-600 text-uppercase" style="margin-left:10px;">
+                                                    Apply
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+
+                            <div class="col-xl-6 col-xxl-5 col-md-6 text-center text-md-end sm-mt-15px">
+                                <!-- Empty Cart Button -->
+                                <a href="{% url 'empty_cart' %}" class="btn btn-small border-1 btn-round-edge btn-transparent-light-gray text-transform-none me-15px lg-me-5px">
+                                    Empty cart
+                                </a>
+
+                                <!-- Update Cart Button -->
+                                <!-- <a href="{% url 'cart_page' %}" class="btn btn-small border-1 btn-round-edge btn-transparent-light-gray text-transform-none">
+                                    Update cart
+                                </a> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="bg-very-light-gray border-radius-6px p-50px xl-p-30px lg-p-25px">
+                            <span class="fs-26 alt-font fw-600 text-dark-gray mb-5px d-block">Cart totals</span>
+                            <table class="w-100 total-price-table">
+                                <tbody>
+                                    <tr>
+                                        <th class="w-45 fw-600 text-dark-gray alt-font">Subtotal</th>
+                                        <td class="text-dark-gray fw-600"> ₹{{ subtotal }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="w-45 fw-600 text-dark-gray alt-font">Subtotal</th>
+                                        <td class="text-dark-gray fw-600"> ₹{{ subtotal }}</td>
+                                    </tr>
+                                    
+                                    <!-- <tr class="shipping">
+                                        <th class="fw-600 text-dark-gray alt-font">Shipping</th>
+                                        <td data-title="Shipping">
+                                            <ul class="p-0 m-0">
+                                                <li class="d-flex align-items-center">
+                                                    <input id="free_shipping" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0" checked="checked">
+                                                    <label class="md-line-height-18px" for="free_shipping">Free shipping</label>
+                                                </li>
+                                                <li class="d-flex align-items-center">
+                                                    <input id="flat" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0">
+                                                    <label class="md-line-height-18px" for="flat">Flat:  ₹12.00</label>
+                                                </li>
+                                                <li class="d-flex align-items-center">
+                                                    <input id="local_pickup" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0">
+                                                    <label class="md-line-height-18px" for="local_pickup">Local pickup</label>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                   --><tr class="coupon-discount">
+                                            <th class="fw-600 text-dark-gray alt-font">Discount</th>
+                                            <td class="text-dark-gray fw-600">- ₹{{ coupon_discount }}</td>
+                                        </tr>
+                                    <tr class="total-amount">
+                                        <th class="fw-600 text-dark-gray alt-font pb-0">Total</th>
+                                        <td class="pb-0" data-title="Total">
+                                            <h6 class="d-block fw-700 mb-0 text-dark-gray alt-font">  ₹{{ total }}</h6>
+                                            <!-- <span class="fs-14">(Includes  ₹19.29 tax)</span> -->
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <a href="{% url 'checkout'  %}" class="btn btn-dark-gray btn-large btn-switch-text btn-round-edge btn-box-shadow w-100 mt-25px">
+                                <span>
+                                    <span class="btn-double-text" data-text="Proceed to checkout">Proceed to checkout</span>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- end section --> 
+        {% include "components/footer.html" %}
+        <!-- end scroll progress -->
+        <!-- javascript libraries -->
+        <script type="text/javascript" src="/static/js/jquery.js"></script>
+        <script type="text/javascript" src="/static/js/vendors.min.js"></script>
+        <script type="text/javascript" src="/static/js/main.js"></script>
+    </body>
+</html>

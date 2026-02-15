@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border: #e5e7eb;
+            --bg: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+        }
+
+        .checkout-wrapper {
+            width: 100%;
+            max-width: 460px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+            animation: fadeUp 0.5s ease;
+        }
+
+        .checkout-header {
+            padding: 26px 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .checkout-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .checkout-header p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .checkout-body {
+            padding: 30px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            font-size: 15px;
+        }
+
+        .summary-row span {
+            color: var(--text-muted);
+        }
+
+        .summary-row strong {
+            font-weight: 600;
+        }
+
+        .total {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px dashed var(--border);
+            font-size: 18px;
+        }
+
+        .total strong {
+            font-weight: 700;
+        }
+
+        .pay-btn {
+            margin-top: 30px;
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .pay-btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 16px;
+        }
+
+        .secure {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="checkout-wrapper">
+
+    <div class="checkout-header">
+        <h2>Secure Checkout</h2>
+        <p>Complete your payment securely</p>
+    </div>
+
+    <div class="checkout-body">
+        <div class="summary-row">
+            <span>Customer</span>
+            <strong>{{ order.first_name }} {{ order.last_name }}</strong>
+        </div>
+
+        <div class="summary-row">
+            <span>Email</span>
+            <strong>{{ order.email }}</strong>
+        </div>
+
+        <div class="summary-row total">
+            <span>Total Amount</span>
+            <strong>₹{{ order.total }}</strong>
+        </div>
+
+        <form id="razorpay-form">
+            {% csrf_token %}
+            <button type="submit" class="pay-btn">
+                Pay ₹{{ order.total }}
+            </button>
+        </form>
+
+        <div class="secure">
+            🔒 256-bit SSL • Powered by Razorpay
+        </div>
+
+        <div class="footer-note">
+            You’ll be redirected to our secure payment partner
+        </div>
+    </div>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ amount }}",
+        "currency": "{{ currency }}",
+        "name": "My eCommerce Store",
+        "description": "Secure Payment",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response){
+            fetch("{% url 'payment_success_post' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: JSON.stringify(response)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success){
+                    window.location.href = "{% url 'order_success' %}";
+                } else {
+                    alert("Payment failed. Please try again.");
+                    window.location.href = "{% url 'checkout' %}";
+                }
+            });
+        },
+        "prefill": {
+            "name": "{{ order.first_name }} {{ order.last_name }}",
+            "email": "{{ order.email }}"
+        },
+        "theme": {
+            "color": "#2563eb"
+        }
+    };
+
+    var rzp1 = new Razorpay(options);
+
+    document.getElementById('razorpay-form').addEventListener('submit', function(e){
+        e.preventDefault();
+        rzp1.open();
+    });
+</script>
+
+</body>
+</html>

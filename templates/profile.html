@@ -1,0 +1,296 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <title>My Profile</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="author" content="ThemeZaa">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta name="description" content="User profile page for managing your details.">
+
+    <!-- favicon icon -->
+    <link rel="shortcut icon" href="/static/images/favicon.png">
+    <link rel="apple-touch-icon" href="/static/images/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/static/images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/static/images/apple-touch-icon-114x114.png">
+
+    <!-- google fonts preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- style sheets and font icons -->
+    <link rel="stylesheet" href="/static/css/vendors.min.css" />
+    <link rel="stylesheet" href="/static/css/icon.min.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/responsive.css" />
+    <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+
+    <style>
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .profile-wrapper {
+            display: flex;
+            max-width: 1100px;
+            margin: 120px auto 40px;
+            gap: 30px;
+        }
+
+        /* Sidebar */
+        .profile-sidebar {
+            width: 250px;
+            background: #111;
+            color: #fff;
+            border-radius: 15px;
+            padding: 30px 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-sidebar h3 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .profile-sidebar p {
+            font-size: 14px;
+            opacity: 0.8;
+            color: #fff;
+        }
+
+        /* Content */
+        .profile-content {
+            flex: 1;
+            background: #fff;
+            border-radius: 15px;
+            padding: 40px 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Profile Header */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+        }
+
+        .profile-avatar-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #444;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-user-info h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        .profile-user-info p {
+            margin: 4px 0 0 0;
+            font-size: 14px;
+            color: #555;
+            opacity: 0.8;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Form Fields */
+        .profile-form label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .profile-form input,
+        .profile-form textarea {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .profile-form input:focus,
+        .profile-form textarea:focus {
+            border-color: #444;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        .profile-form textarea {
+            resize: none;
+            height: 100px;
+        }
+
+        /* Save Button */
+        .btn-save {
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+        .btn-save:hover {
+            background: #222;
+            transform: translateY(-2px);
+        }
+
+        /* Success Message */
+        .alert-success {
+            background: #e6ffed;
+            color: #2e7d32;
+            border-left: 5px solid #2e7d32;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .profile-wrapper {
+                flex-direction: column;
+                margin: 80px 20px 20px;
+            }
+
+            .profile-header {
+                justify-content: center;
+            }
+
+            .profile-avatar-wrapper {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-user-info h3 {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body data-mobile-nav-style="classic">
+    {% include "components/navbar.html" %}
+
+    <div class="profile-wrapper">
+
+        <!-- Sidebar -->
+        <div class="profile-sidebar">
+            <h3>Hello, {{ request.user.first_name }} 👋</h3>
+            <p>Welcome to your profile! Update your info below.</p>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+
+            <!-- Success Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Profile Form -->
+            <form method="POST" enctype="multipart/form-data" class="profile-form">
+                {% csrf_token %}
+
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="profile-avatar-wrapper">
+                        <div class="profile-avatar" onclick="document.getElementById('imageInput').click()">
+                            {% if profile.image %}
+                                <img id="avatarPreview" src="{{ profile.image.url }}">
+                            {% else %}
+                                <img id="avatarPreview" src="/static/images/default-profile.png">
+                            {% endif %}
+                        </div>
+                        <!-- User Name and Email -->
+                        <div class="profile-user-info">
+                            <h3>{{ request.user.first_name }}</h3>
+                            <p>{{ request.user.email }}</p>
+                        </div>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" name="image">
+                </div>
+
+                <!-- Form Fields -->
+                <label>Mobile Number</label>
+                <input type="text" name="phone" value="{{ profile.phone }}">
+
+                <label>Address</label>
+                <textarea name="address">{{ profile.address }}</textarea>
+
+                <!-- Submit Button -->
+                <button class="btn-save" type="submit">Save Details</button>
+            </form>
+        </div>
+    </div>
+
+    {% include "components/footer.html" %}
+
+    <!-- Avatar Preview Script -->
+    <script>
+        const input = document.getElementById('imageInput');
+        const preview = document.getElementById('avatarPreview');
+
+        input.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                preview.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/vendors.min.js"></script>
+    <script type="text/javascript" src="/static/js/main.js"></script>
+</body>
+
+</html>
