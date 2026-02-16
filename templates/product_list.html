@@ -127,7 +127,7 @@ body{
             <i class="bi bi-speedometer2 fs-2"></i>
             <div>
                 <h4 class="mb-0">Admin Dashboard</h4>
-                <small>Manage Products</small>
+                <small>Overview of store performance</small>
             </div>
         </div>
 
@@ -141,12 +141,29 @@ body{
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'product_list' %}">Products</a>
+                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a>
+                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
+                        Logout
+                    </a>
+                </li>
+
             </ul>
         </div>
 

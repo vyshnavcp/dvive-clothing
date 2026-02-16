@@ -21,7 +21,9 @@ from django.utils.timezone import now
 from django.contrib.auth.models import User
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.db.models import F
+from django.db.models import F, Avg, Count
+from django.template.loader import render_to_string
+
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
@@ -458,22 +460,66 @@ def delete_coupon(request, id):
 
 
 
+
+
+
 def product_detail(request, slug):
-    product = Product.objects.filter(slug=slug).first()  # Using filter()
-    
+    product = Product.objects.filter(slug=slug).first()
+
     if product:
         colors = product.colors.all()
-        sizes = product.sizes.all().order_by('order')  # ✅ Only product-specific sizes
+        sizes = product.sizes.all().order_by('order')
+
+        # All reviews
+        reviews = Review.objects.filter(product=product).order_by('-id')
+
+        # First 3 reviews
+        first_three_reviews = reviews[:3]
+
+        # Remaining reviews
+        remaining_reviews = reviews[3:]
+
+        # Average rating
+        average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+        total_reviews = reviews.count()
+
+        # Rating breakdown
+        rating_counts = reviews.values('rating').annotate(count=Count('rating'))
+
+        rating_dict = {i: 0 for i in range(1, 6)}
+        for item in rating_counts:
+            rating_dict[item['rating']] = item['count']
+
+        rating_percent = {}
+        for i in range(1, 6):
+            if total_reviews > 0:
+                rating_percent[i] = round((rating_dict[i] / total_reviews) * 100)
+            else:
+                rating_percent[i] = 0
+
     else:
         colors = []
         sizes = []
+        reviews = []
+        first_three_reviews = []
+        remaining_reviews = []
+        average_rating = 0
+        total_reviews = 0
+        rating_percent = {i: 0 for i in range(1, 6)}
 
     return render(request, 'product_detail.html', {
         'product': product,
         'colors': colors,
         'sizes': sizes,
-    })
 
+        'reviews': reviews,
+        'first_three_reviews': first_three_reviews,
+        'remaining_reviews': remaining_reviews,
+
+        'average_rating': round(average_rating, 1),
+        'total_reviews': total_reviews,
+        'rating_percent': rating_percent,
+    })
 
 def register(request):
     return render(request,'register.html')
@@ -595,50 +641,27 @@ def user_logout(request):
 @login_required
 def review_post(request, slug):
     if request.method == 'POST':
-        # 1️⃣ Check if user is logged in
-        if not request.user.is_authenticated:
-            return JsonResponse({
-                'status': 'error',
-                'message': '⚠ You must be logged in to submit a review.'
-            })
 
         user = request.user
         product = get_object_or_404(Product, slug=slug)
 
-        name = request.POST.get('name')
-        email = request.POST.get('email')
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
-        terms = request.POST.get('terms_condition')
+        
 
-        #  Check email matches logged-in user
-        if email != user.email:
-            return JsonResponse({
-                'status': 'error',
-                'message': '⚠ The email does not match your account email.'
-            })
-
-        # Check rating selected
+        # Validate rating
         if not rating:
             return JsonResponse({
                 'status': 'error',
-                'message': '⚠ Please select a rating before submitting.'
+                'message': '⚠ Please select a rating.'
             })
 
-        #  Check terms checkbox
-        if not terms:
-            return JsonResponse({
-                'status': 'error',
-                'message': '⚠ You must accept the terms and conditions.'
-            })
-
-        #  Save review
         registration, created = Registration.objects.get_or_create(authuser=user)
 
         Review.objects.create(
-            name=name,
-            email=email,
-            rating=rating,
+            name=user.get_full_name() if user.get_full_name() else user.username,
+            email=user.email,
+            rating=int(rating),
             message=comment,
             product=product,
             registration=registration
@@ -649,7 +672,6 @@ def review_post(request, slug):
             'message': '✅ Thank you for your review!'
         })
 
-    # Invalid request method
     return JsonResponse({
         'status': 'error',
         'message': '⚠ Invalid request method.'
@@ -1227,9 +1249,7 @@ def mark_order_completed(request, order_id):
     order.save()
 
     return redirect('dashboard')
-from django.shortcuts import get_object_or_404, redirect
 
-from django.contrib import messages
 
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -1266,3 +1286,51 @@ def shipping_address_list(request):
         'orders': orders
     }
     return render(request, 'shipping_address_list.html', context)
+
+
+
+def article_list(request):
+    articles = Article.objects.all().order_by('-posted_on')
+    return render(request, 'article_list.html', {'articles': articles})
+
+
+def add_article(request):
+    if request.method == "POST":
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        image = request.FILES.get('image')
+
+        Article.objects.create(
+            title=title,
+            content=content,
+            image=image
+        )
+
+        messages.success(request, "Article Added Successfully")
+        return redirect('article_list')
+
+    return render(request, 'add_article.html')
+
+
+def edit_article(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+
+    if request.method == "POST":
+        article.title = request.POST.get('title')
+        article.content = request.POST.get('content')
+
+        if request.FILES.get('image'):
+            article.image = request.FILES.get('image')
+
+        article.save()
+        messages.success(request, "Article Updated Successfully")
+        return redirect('article_list')
+
+    return render(request, 'edit_article.html', {'article': article})
+
+
+def delete_article(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    article.delete()
+    messages.success(request, "Article Deleted Successfully")
+    return redirect('article_list')

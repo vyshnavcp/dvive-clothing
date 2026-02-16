@@ -20,20 +20,21 @@ class Registration(models.Model):
     def __str__(self):
         return self.user_name
 
+
 class Article(models.Model):
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=255, unique=True, editable=False)
-    image = models.ImageField(upload_to='article/', blank=True, null=True)
-    content = CKEditor5Field('Content', config_name='default')
-    posted_on = models.DateField(auto_now_add=True)
+    slug = models.SlugField(unique=True, blank=True, max_length=255)
+    content = models.TextField()
+    image = models.ImageField(upload_to='articles/')
+    posted_on = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # Always regenerate slug when saving
+        self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=120, unique=True, blank=True)

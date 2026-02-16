@@ -477,68 +477,93 @@ input[type="radio"]:checked + .size-circle {
                                     </div>
                                 </div>
                                 <div class="row g-0 mb-4 md-mb-35px">
+
+                                    <!-- FIRST 3 REVIEWS -->
+                                    {% for review in first_three_reviews %}
                                     <div class="col-12 border-bottom border-color-extra-medium-gray pb-40px mb-40px xs-pb-30px xs-mb-30px">
                                         <div class="d-block d-md-flex w-100 align-items-center">
+                                            
                                             <div class="w-300px md-w-250px sm-w-100 sm-mb-10px text-center">
-                                                <img src="https://placehold.co/200x200" class="rounded-circle w-90px mb-10px" alt="">
-                                                <span class="text-dark-gray fw-600 d-block">Herman miller</span>
-                                                <div class="fs-14 lh-18">06 April 2023</div>
+                                                <!-- <img src="https://placehold.co/200x200" class="rounded-circle w-90px mb-10px" alt=""> -->
+                                                <span class="text-dark-gray fw-600 d-block">{{ review.name }}</span>
+                                                <div class="fs-14 lh-18">{{ review.created_at|date:"d F Y" }}</div>
                                             </div>  
+
                                             <div class="w-100 last-paragraph-no-margin sm-ps-0 position-relative text-center text-md-start">
+                                                
                                                 <span class="text-golden-yellow ls-minus-1px mb-5px sm-me-10px sm-mb-0 d-inline-block d-md-block">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
+                                                    {% for i in "12345" %}
+                                                        {% if forloop.counter <= review.rating|default:0 %}
+                                                            <i class="bi bi-star-fill"></i>
+                                                        {% else %}
+                                                            <i class="bi bi-star"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
                                                 </span>
-                                                <a href="#" class="w-65px bg-light-red border-radius-15px fs-13 text-dark-gray fw-600 text-center position-absolute sm-position-relative d-inline-block d-md-block right-0px top-0px"><i class="fa-solid fa-heart text-red me-5px"></i><span>08</span></a>
-                                                <p class="w-85 sm-w-100 sm-mt-15px">Lorem ipsum dolor sit sed do eiusmod tempor incididunt labore enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
+
+                                                <a href="#" class="w-65px bg-light-red border-radius-15px fs-13 text-dark-gray fw-600 text-center position-absolute sm-position-relative d-inline-block d-md-block right-0px top-0px">
+                                                    <i class="fa-solid fa-heart text-red me-5px"></i>
+                                                    <span>{{ review.likes|default:0 }}</span>
+                                                </a>
+
+                                                <p class="w-85 sm-w-100 sm-mt-15px">
+                                                    {{ review.message }}
+                                                </p>
+
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- <div class="col-12 border-bottom border-color-extra-medium-gray pb-40px mb-40px xs-pb-30px xs-mb-30px">
-                                        <div class="d-block d-md-flex w-100 align-items-center">
-                                            <div class="w-300px md-w-250px sm-w-100 sm-mb-10px text-center">
-                                                <img src="https://placehold.co/200x200" class="rounded-circle w-90px mb-10px" alt="">
-                                                <span class="text-dark-gray fw-600 d-block">Wilbur haddock</span>
-                                                <div class="fs-14 lh-18">26 April 2023</div>
-                                            </div>  
-                                            <div class="w-100 last-paragraph-no-margin sm-ps-0 position-relative text-center text-md-start">
-                                                <span class="text-golden-yellow ls-minus-1px mb-5px sm-me-10px sm-mb-0 d-inline-block d-md-block">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                </span>
-                                                <a href="#" class="w-65px bg-light-red border-radius-15px fs-13 text-dark-gray fw-600 text-center position-absolute sm-position-relative d-inline-block d-md-block right-0px top-0px"><i class="fa-solid fa-heart text-red me-5px"></i><span>06</span></a>
-                                                <p class="w-85 sm-w-100 sm-mt-15px">Lorem ipsum dolor sit sed do eiusmod tempor incididunt labore enim ad minim veniamnisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
+                                    {% empty %}
+                                        <div class="text-center py-4">
+                                            <p>No reviews yet. Be the first to review!</p>
+                                        </div>
+                                    {% endfor %}
+
+
+                                    <!-- HIDDEN REVIEWS -->
+                                    <div id="hidden-reviews" class="d-none">
+                                        {% for review in remaining_reviews %}
+                                        <div class="col-12 border-bottom border-color-extra-medium-gray pb-40px mb-40px xs-pb-30px xs-mb-30px">
+                                            <div class="d-block d-md-flex w-100 align-items-center">
+                                                
+                                                <div class="w-300px md-w-250px sm-w-100 sm-mb-10px text-center">
+                                                    <img src="https://placehold.co/200x200" class="rounded-circle w-90px mb-10px" alt="">
+                                                    <span class="text-dark-gray fw-600 d-block">{{ review.name }}</span>
+                                                    <div class="fs-14 lh-18">{{ review.created_at|date:"d F Y" }}</div>
+                                                </div>  
+
+                                                <div class="w-100 last-paragraph-no-margin sm-ps-0 position-relative text-center text-md-start">
+                                                    
+                                                    <span class="text-golden-yellow ls-minus-1px mb-5px sm-me-10px sm-mb-0 d-inline-block d-md-block">
+                                                        {% for i in "12345" %}
+                                                            {% if forloop.counter <= review.rating|default:0 %}
+                                                                <i class="bi bi-star-fill"></i>
+                                                            {% else %}
+                                                                <i class="bi bi-star"></i>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </span>
+
+                                                    <a href="#" class="w-65px bg-light-red border-radius-15px fs-13 text-dark-gray fw-600 text-center position-absolute sm-position-relative d-inline-block d-md-block right-0px top-0px">
+                                                        <i class="fa-solid fa-heart text-red me-5px"></i>
+                                                        <span>{{ review.likes|default:0 }}</span>
+                                                    </a>
+
+                                                    <p class="w-85 sm-w-100 sm-mt-15px">
+                                                        {{ review.message }}
+                                                    </p>
+
+                                                </div>
                                             </div>
                                         </div>
-                                    </div> -->
-                                    <!-- <div class="col-12 border-bottom border-color-extra-medium-gray pb-40px mb-40px xs-pb-30px md-mb-25px">
-                                        <div class="d-block d-md-flex w-100 align-items-center">
-                                            <div class="w-300px md-w-250px sm-w-100 sm-mb-10px text-center">
-                                                <img src="https://placehold.co/200x200" class="rounded-circle w-90px mb-10px" alt="">
-                                                <span class="text-dark-gray fw-600 d-block">Colene landin</span>
-                                                <div class="fs-14 lh-18">28 April 2023</div>
-                                            </div>  
-                                            <div class="w-100 last-paragraph-no-margin sm-ps-0 position-relative text-center text-md-start">
-                                                <span class="text-golden-yellow ls-minus-1px mb-5px sm-me-10px sm-mb-0 d-inline-block d-md-block">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                </span>
-                                                <a href="#" class="w-65px bg-light-red border-radius-15px fs-13 text-dark-gray fw-600 text-center position-absolute sm-position-relative d-inline-block d-md-block right-0px top-0px"><i class="fa-regular fa-heart text-red me-5px"></i><span>00</span></a>
-                                                <p class="w-85 sm-w-100 sm-mt-15px">Lorem ipsum dolor sit sed do eiusmod tempor incididunt labore enim adquis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
-                                            </div>
-                                        </div>
-                                    </div> -->
+                                        {% endfor %}
+                                    </div>
+
+
+                                    <!-- SHOW BUTTON ONLY IF MORE THAN 3 -->
+                                    {% if reviews|length > 3 %}
                                     <div class="col-12 last-paragraph-no-margin text-center">
-                                        <a href="#" class="btn btn-link btn-hover-animation-switch btn-extra-large text-dark-gray">
+                                        <a href="#" class="btn btn-link btn-hover-animation-switch btn-extra-large text-dark-gray show-toggle">
                                             <span>
                                                 <span class="btn-text">Show more reviews</span>
                                                 <span class="btn-icon"><i class="fa-solid fa-chevron-down"></i></span>
@@ -546,7 +571,10 @@ input[type="radio"]:checked + .size-circle {
                                             </span> 
                                         </a>
                                     </div>
+                                    {% endif %}
+
                                 </div>
+
                                 <div class="row justify-content-center">
                                     <div class="col-12">
                                         <div class="p-7 lg-p-5 sm-p-7 bg-very-light-gray">
@@ -559,11 +587,12 @@ input[type="radio"]:checked + .size-circle {
                                                 {% csrf_token %}
                                                 <div class="col-lg-5 col-md-6 mb-20px">
                                                     <label class="form-label mb-15px">Your name*</label>
-                                                    <input class="input-name border-radius-4px form-control required" type="text" name="name" placeholder="Enter your name">
+                                                    <input class="input-name border-radius-4px form-control"type="text" name="name" value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
                                                 </div> 
                                                 <div class="col-lg-5 col-md-6 mb-20px">
                                                     <label class="form-label mb-15px">Your email address*</label>
-                                                    <input class="border-radius-4px form-control required" type="email" name="email" placeholder="Enter your email address">
+                                                    <input class="border-radius-4px form-control" type="email" name="email" value="{{ request.user.email }}" readonly>
+
                                                 </div> 
                                                 <div class="col-lg-2 mb-20px">
                                                     <label class="form-label">Your rating*</label>
@@ -582,14 +611,7 @@ input[type="radio"]:checked + .size-circle {
                                                     <label class="form-label mb-15px">Your review</label>
                                                     <textarea class="border-radius-4px form-control" cols="40" rows="4" name="comment" placeholder="Your message"></textarea>
                                                 </div> 
-                                                <div class="col-lg-9 md-mb-25px">
-                                                    <div class="position-relative terms-condition-box text-start is-invalid mt-10px">
-                                                        <label class="d-inline-block">
-                                                            <input type="checkbox" name="terms_condition" id="terms_condition" value="1" class="terms-condition check-box align-middle required">
-                                                            
-                                                        </label>
-                                                    </div>
-                                                </div>
+                                                
                                                 <div class="col-lg-3 text-start text-lg-end">
                                                       <button class="btn btn-medium btn-round-edge btn-dark-gray btn-box-shadow w-100" type="submit">Submit review</button>
                                                 </div>
@@ -851,6 +873,22 @@ $(document).ready(function() {
         e.preventDefault();
         var form = $(this);
         var url = form.attr('action');
+        var rating = $('#rating').val();
+        var comment = $('textarea[name="comment"]').val().trim();
+        var resultDiv = $('#form-results');
+
+        // Client-side validation
+        if (!rating) {
+            resultDiv.removeClass('d-none').html('<div class="alert alert-danger">⚠ Please select a rating before submitting.</div>');
+            return;
+        }
+
+        if (!comment) {
+            resultDiv.removeClass('d-none').html('<div class="alert alert-danger">⚠ Please write a review before submitting.</div>');
+            return;
+        }
+
+        // Submit via AJAX
         var formData = form.serialize();
 
         $.ajax({
@@ -858,55 +896,20 @@ $(document).ready(function() {
             url: url,
             data: formData,
             success: function(response) {
-                var resultDiv = $('#form-results');
-                resultDiv.removeClass('d-none');
-
                 if(response.status === 'error') {
-                    resultDiv.html('<div class="alert alert-danger">' + response.message + '</div>');
+                    resultDiv.removeClass('d-none').html('<div class="alert alert-danger">' + response.message + '</div>');
                 } else {
-                    resultDiv.html('<div class="alert alert-success">' + response.message + '</div>');
-                    form[0].reset();
-                    $('#rating').val('');
-                    $('.rating-stars i').removeClass('filled');
+                    // Optional: show success message for 1s before reload
+                    resultDiv.removeClass('d-none').html('<div class="alert alert-success">' + response.message + '</div>');
+
+                    setTimeout(function() {
+                        location.reload(); // Refresh the page
+                    }, 1000);
                 }
             },
             error: function(xhr, status, error) {
-                $('#form-results').removeClass('d-none').html('<div class="alert alert-danger">⚠ Something went wrong. Please try again.</div>');
+                resultDiv.removeClass('d-none').html('<div class="alert alert-danger">⚠ Something went wrong. Please try again.</div>');
             }
-        });
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const minusBtns = document.querySelectorAll(".qty-minus");
-    const plusBtns = document.querySelectorAll(".qty-plus");
-
-    minusBtns.forEach(btn => {
-        // Remove existing listeners first to avoid double firing
-        btn.replaceWith(btn.cloneNode(true));
-    });
-
-    plusBtns.forEach(btn => {
-        btn.replaceWith(btn.cloneNode(true));
-    });
-
-    // Re-select after cloning
-    const minusBtnsClean = document.querySelectorAll(".qty-minus");
-    const plusBtnsClean = document.querySelectorAll(".qty-plus");
-
-    minusBtnsClean.forEach(btn => {
-        btn.addEventListener("click", function () {
-            const input = this.parentElement.querySelector(".qty-text");
-            let value = parseInt(input.value);
-            if (value > 1) input.value = value - 1;
-        });
-    });
-
-    plusBtnsClean.forEach(btn => {
-        btn.addEventListener("click", function () {
-            const input = this.parentElement.querySelector(".qty-text");
-            let value = parseInt(input.value);
-            input.value = value + 1;
         });
     });
 });
@@ -956,6 +959,31 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    const btn = document.querySelector(".show-toggle");
+    const text = document.querySelector(".btn-text");
+    const hidden = document.getElementById("hidden-reviews");
+
+    if (btn && hidden) {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            hidden.classList.toggle("d-none");
+
+            if (hidden.classList.contains("d-none")) {
+                text.innerText = "Show more reviews";
+            } else {
+                text.innerText = "Show less reviews";
+            }
+        });
+    }
+
+});
+
+
 
 
 

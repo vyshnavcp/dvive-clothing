@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edit Article</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+    background:#f6f6f6;
+    font-family:'Poppins',sans-serif;
+    margin:0;
+}
+
+/* NAVBAR */
+.header-with-topbar{
+    background:#000;
+    box-shadow:0 4px 20px rgba(0,0,0,0.35);
+}
+.dashboard-header{
+    padding:18px 24px;
+}
+.dashboard-header h4,
+.dashboard-header small,
+.dashboard-header i{
+    color:#fff;
+}
+.dashboard-header .nav-link{
+    color:#fff !important;
+    font-weight:500;
+    transition:0.3s;
+}
+.dashboard-header .nav-link:hover{
+    color:#bdbdbd !important;
+}
+.navbar-toggler{border:0;}
+.navbar-toggler-icon{filter:invert(1);}
+
+/* PAGE */
+.page-wrapper{padding:40px 20px;}
+.card{
+    border:none;
+    border-radius:16px;
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+}
+.form-control{
+    border-radius:10px;
+    padding:12px;
+}
+.section-title{
+    font-weight:600;
+    margin-bottom:10px;
+    border-left:4px solid #000;
+    padding-left:10px;
+}
+.preview-img{
+    height:130px;
+    object-fit:cover;
+    border-radius:10px;
+    border:1px solid #ddd;
+}
+.btn-black{
+    background:#111;
+    color:#fff;
+    border-radius:12px;
+    padding:14px;
+    font-weight:600;
+    width:100%;
+}
+.btn-black:hover{
+    background:linear-gradient(135deg,#333,#000);
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<header class="header-with-topbar">
+<nav class="navbar dashboard-header navbar-expand-lg">
+    <div class="container-fluid px-0">
+
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-speedometer2 fs-2"></i>
+            <div>
+                <h4 class="mb-0">Admin Dashboard</h4>
+                <small>Overview of store performance</small>
+            </div>
+        </div>
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</nav>
+</header>
+
+<!-- ================= PAGE CONTENT ================= -->
+
+<div class="page-wrapper">
+<div class="container">
+<div class="row justify-content-center">
+<div class="col-lg-9">
+
+<div class="card p-4">
+<h4 class="fw-bold mb-4">Edit Article</h4>
+
+<form method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+
+<div class="section-title">Basic Information</div>
+
+<div class="mb-3">
+<label>Article Title</label>
+<input type="text" name="title"
+value="{{ article.title }}"
+class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label>Current Image</label><br>
+{% if article.image %}
+<img src="{{ article.image.url }}" class="preview-img mb-2">
+{% endif %}
+<input type="file" name="image" class="form-control">
+</div>
+
+<div class="mb-4">
+<label>Content</label>
+<textarea name="content" rows="6"
+class="form-control">{{ article.content }}</textarea>
+</div>
+
+<button class="btn-black">Update Article</button>
+
+</form>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
