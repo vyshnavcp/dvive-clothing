@@ -462,6 +462,9 @@ def delete_coupon(request, id):
 
 
 
+from django.shortcuts import render
+from django.db.models import Avg, Count
+from .models import Product, Review
 
 def product_detail(request, slug):
     product = Product.objects.filter(slug=slug).first()
@@ -485,7 +488,6 @@ def product_detail(request, slug):
 
         # Rating breakdown
         rating_counts = reviews.values('rating').annotate(count=Count('rating'))
-
         rating_dict = {i: 0 for i in range(1, 6)}
         for item in rating_counts:
             rating_dict[item['rating']] = item['count']
@@ -497,6 +499,11 @@ def product_detail(request, slug):
             else:
                 rating_percent[i] = 0
 
+        # Related products using subcategory
+        related_products = Product.objects.filter(
+            subcategory=product.subcategory
+        ).exclude(id=product.id)[:4]
+
     else:
         colors = []
         sizes = []
@@ -506,20 +513,21 @@ def product_detail(request, slug):
         average_rating = 0
         total_reviews = 0
         rating_percent = {i: 0 for i in range(1, 6)}
+        related_products = []
 
     return render(request, 'product_detail.html', {
         'product': product,
         'colors': colors,
         'sizes': sizes,
-
         'reviews': reviews,
         'first_three_reviews': first_three_reviews,
         'remaining_reviews': remaining_reviews,
-
         'average_rating': round(average_rating, 1),
         'total_reviews': total_reviews,
         'rating_percent': rating_percent,
+        'related_products': related_products,
     })
+
 
 def register(request):
     return render(request,'register.html')

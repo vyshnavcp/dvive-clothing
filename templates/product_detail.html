@@ -717,134 +717,58 @@ input[type="radio"]:checked + .size-circle {
                 </div>
                 <div class="row">
                     <div class="col-12">
-                        <ul class="shop-modern shop-wrapper grid grid-4col md-grid-3col sm-grid-2col xs-grid-1col gutter-extra-large text-center">
+                       <ul class="shop-modern shop-wrapper grid grid-4col md-grid-3col sm-grid-2col xs-grid-1col gutter-extra-large text-center">
                             <li class="grid-sizer"></li>
+
+                            {% for related in related_products %}
                             <!-- start shop item -->
                             <li class="grid-item">
                                 <div class="shop-box mb-10px">
                                     <div class="shop-image mb-20px">
-                                        <a href="demo-fashion-store-single-product.html">
-                                            <img src="https://placehold.co/600x765" alt=""> 
+                                        <a href="{% url 'product_detail' related.slug %}">
+                                            <img src="{{ related.image1.url }}" alt="{{ related.name }}"> 
+                                            {% if related.is_new %}
                                             <span class="lable new">New</span>
+                                            {% endif %}
                                             <div class="shop-overlay bg-gradient-gray-light-dark-transparent"></div>
                                         </a>
                                         <div class="shop-buttons-wrap">
-                                            <a href="demo-fashion-store-single-product.html" class="alt-font btn btn-small btn-box-shadow btn-white btn-round-edge left-icon add-to-cart">
-                                                <i class="feather icon-feather-shopping-bag"></i><span class="quick-view-text button-text">Add to cart</span>
+                                            <a href="{% url 'product_detail' related.slug %}" class="alt-font btn btn-small btn-box-shadow btn-white btn-round-edge left-icon add-to-cart">
+                                                <i class="feather icon-feather-shopping-bag"></i>
+                                                <span class="quick-view-text button-text">Add to cart</span>
                                             </a>
                                         </div>
                                         <div class="shop-hover d-flex justify-content-center"> 
                                             <ul>
                                                 <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to wishlist"><i class="feather icon-feather-heart fs-16"></i></a>
+                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to wishlist">
+                                                        <i class="feather icon-feather-heart fs-16"></i>
+                                                    </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Quick shop"><i class="feather icon-feather-eye fs-16"></i></a>
+                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Quick shop">
+                                                        <i class="feather icon-feather-eye fs-16"></i>
+                                                    </a>
                                                 </li>
                                             </ul> 
                                         </div>
                                     </div>
                                     <div class="shop-footer text-center">
-                                        <a href="demo-fashion-store-single-product.html" class="alt-font text-dark-gray fs-19 fw-500">Textured sweater</a>
-                                        <div class="price lh-22 fs-16"><del>$200.00</del>$189.00</div>
+                                        <a href="{% url 'product_detail' related.slug %}" class="alt-font text-dark-gray fs-19 fw-500">{{ related.name }}</a>
+                                        <div class="price lh-22 fs-16">
+                                            {% if related.discount_price %}
+                                                <del>${{ related.price }}</del>${{ related.discount_price }}
+                                            {% else %}
+                                                ${{ related.price }}
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </li>
-                            <!-- end shop item -->
-                            <!-- start shop item -->
-                            <li class="grid-item">
-                                <div class="shop-box mb-10px">
-                                    <div class="shop-image mb-20px">
-                                        <a href="demo-fashion-store-single-product.html">
-                                            <img src="https://placehold.co/600x765" alt=""> 
-                                            <div class="shop-overlay bg-gradient-gray-light-dark-transparent"></div>
-                                        </a>
-                                        <div class="shop-buttons-wrap">
-                                            <a href="demo-fashion-store-single-product.html" class="alt-font btn btn-small btn-box-shadow btn-white btn-round-edge left-icon add-to-cart">
-                                                <i class="feather icon-feather-shopping-bag"></i><span class="quick-view-text button-text">Add to cart</span>
-                                            </a>
-                                        </div>
-                                        <div class="shop-hover d-flex justify-content-center"> 
-                                            <ul>
-                                                <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to wishlist"><i class="feather icon-feather-heart fs-16"></i></a>
-                                                </li>
-                                                <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Quick shop"><i class="feather icon-feather-eye fs-16"></i></a>
-                                                </li>
-                                            </ul> 
-                                        </div>
-                                    </div>
-                                    <div class="shop-footer text-center">
-                                        <a href="demo-fashion-store-single-product.html" class="alt-font text-dark-gray fs-19 fw-500">Traveller shirt</a>
-                                        <div class="price lh-22 fs-16"><del>$350.00</del>$289.00</div>
-                                    </div>
-                                </div>
-                            </li>
-                            <!-- end shop item -->
-                            <!-- start shop item -->
-                            <li class="grid-item">
-                                <div class="shop-box mb-10px">
-                                    <div class="shop-image mb-20px">
-                                        <a href="demo-fashion-store-single-product.html">
-                                            <img src="https://placehold.co/600x765" alt=""> 
-                                            <div class="shop-overlay bg-gradient-gray-light-dark-transparent"></div>
-                                        </a>
-                                        <div class="shop-buttons-wrap">
-                                            <a href="demo-fashion-store-single-product.html" class="alt-font btn btn-small btn-box-shadow btn-white btn-round-edge left-icon add-to-cart">
-                                                <i class="feather icon-feather-shopping-bag"></i><span class="quick-view-text button-text">Add to cart</span>
-                                            </a>
-                                        </div>
-                                        <div class="shop-hover d-flex justify-content-center"> 
-                                            <ul>
-                                                <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to wishlist"><i class="feather icon-feather-heart fs-16"></i></a>
-                                                </li>
-                                                <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Quick shop"><i class="feather icon-feather-eye fs-16"></i></a>
-                                                </li>
-                                            </ul> 
-                                        </div>
-                                    </div>
-                                    <div class="shop-footer text-center">
-                                        <a href="demo-fashion-store-single-product.html" class="alt-font text-dark-gray fs-19 fw-500">Crewneck sweatshirt</a>
-                                        <div class="price lh-22 fs-16"><del>$220.00</del>$199.00</div>
-                                    </div>
-                                </div>
-                            </li>
-                            <!-- end shop item -->
-                            <!-- start shop item -->
-                            <li class="grid-item">
-                                <div class="shop-box mb-10px">
-                                    <div class="shop-image mb-20px">
-                                        <a href="demo-fashion-store-single-product.html">
-                                            <img src="https://placehold.co/600x765" alt=""> 
-                                            <div class="shop-overlay bg-gradient-gray-light-dark-transparent"></div>
-                                        </a>
-                                        <div class="shop-buttons-wrap">
-                                            <a href="demo-fashion-store-single-product.html" class="alt-font btn btn-small btn-box-shadow btn-white btn-round-edge left-icon add-to-cart">
-                                                <i class="feather icon-feather-shopping-bag"></i><span class="quick-view-text button-text">Add to cart</span>
-                                            </a>
-                                        </div>
-                                        <div class="shop-hover d-flex justify-content-center"> 
-                                            <ul>
-                                                <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Add to wishlist"><i class="feather icon-feather-heart fs-16"></i></a>
-                                                </li>
-                                                <li>
-                                                    <a href="#" class="w-40px h-40px bg-white text-dark-gray d-flex align-items-center justify-content-center rounded-circle ms-5px me-5px" data-bs-toggle="tooltip" data-bs-placement="left" title="Quick shop"><i class="feather icon-feather-eye fs-16"></i></a>
-                                                </li>
-                                            </ul> 
-                                        </div>
-                                    </div>
-                                    <div class="shop-footer text-center">
-                                        <a href="demo-fashion-store-single-product.html" class="alt-font text-dark-gray fs-19 fw-500">Skinny trousers</a>
-                                        <div class="price lh-22 fs-16"><del>$300.00</del>$259.00</div>
-                                    </div>
-                                </div>
-                            </li>
-                            <!-- end shop item -->
+                            {% endfor %}
+
                         </ul>
+
                     </div> 
                 </div>
             </div>
