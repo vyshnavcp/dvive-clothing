@@ -150,14 +150,30 @@ class Size(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
 class Review(models.Model):
-    registration=models.ForeignKey(Registration,on_delete=models.CASCADE)
-    product=models.ForeignKey(Product,on_delete=models.CASCADE)
-    name=models.CharField(max_length=200)
-    email=models.CharField(max_length=200)
+    registration = models.ForeignKey(Registration, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    email = models.CharField(max_length=200)
     rating = models.PositiveSmallIntegerField(
-    validators=[MinValueValidator(1), MaxValueValidator(5)]) 
-    message=models.CharField(max_length=200)
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    message = models.CharField(max_length=200)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['product', 'email'],
+                name='unique_review_per_email_product'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.product} - {self.email}"
+
 
 
 class Cart(models.Model):

@@ -585,15 +585,25 @@ input[type="radio"]:checked + .size-circle {
                                             </div>
                                             <form id="review-form" action="{% url 'submit_review' product.slug %}" method="post" class="row contact-form-style-02">
                                                 {% csrf_token %}
+
                                                 <div class="col-lg-5 col-md-6 mb-20px">
                                                     <label class="form-label mb-15px">Your name*</label>
-                                                    <input class="input-name border-radius-4px form-control"type="text" name="name" value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
-                                                </div> 
+                                                    <input class="input-name border-radius-4px form-control"
+                                                        type="text"
+                                                        name="name"
+                                                        value="{{ request.user.get_full_name|default:request.user.username }}"
+                                                        readonly>
+                                                </div>
+
                                                 <div class="col-lg-5 col-md-6 mb-20px">
                                                     <label class="form-label mb-15px">Your email address*</label>
-                                                    <input class="border-radius-4px form-control" type="email" name="email" value="{{ request.user.email }}" readonly>
+                                                    <input class="border-radius-4px form-control"
+                                                        type="email"
+                                                        name="email"
+                                                        value="{{ request.user.email }}"
+                                                        readonly>
+                                                </div>
 
-                                                </div> 
                                                 <div class="col-lg-2 mb-20px">
                                                     <label class="form-label">Your rating*</label>
                                                     <div>
@@ -607,16 +617,26 @@ input[type="radio"]:checked + .size-circle {
                                                     </div>
                                                     <input type="hidden" name="rating" id="rating">
                                                 </div>
+
                                                 <div class="col-md-12 mb-20px">
                                                     <label class="form-label mb-15px">Your review</label>
-                                                    <textarea class="border-radius-4px form-control" cols="40" rows="4" name="comment" placeholder="Your message"></textarea>
-                                                </div> 
-                                                
-                                                <div class="col-lg-3 text-start text-lg-end">
-                                                      <button class="btn btn-medium btn-round-edge btn-dark-gray btn-box-shadow w-100" type="submit">Submit review</button>
+                                                    <textarea class="border-radius-4px form-control"
+                                                            cols="40"
+                                                            rows="4"
+                                                            name="comment"
+                                                            placeholder="Your message"></textarea>
                                                 </div>
-                                                <div class="col-12"><div id="form-results" class="form-results mt-20px d-none"></div></div>
+
+                                                <div class="col-lg-3 text-start text-lg-end">
+                                                    <button class="btn btn-medium btn-round-edge btn-dark-gray btn-box-shadow w-100"
+                                                            type="submit">Submit review</button>
+                                                </div>
+
+                                                <div class="col-12">
+                                                    <div id="form-results" class="form-results mt-20px d-none"></div>
+                                                </div>
                                             </form>
+
                                         </div>
                                     </div>
                                 </div>
@@ -781,62 +801,71 @@ input[type="radio"]:checked + .size-circle {
         <script type="text/javascript" src="/static/js/main.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Rating stars click
-    $('.rating-stars i').click(function() {
-        var rating = $(this).data('value');
-        $('#rating').val(rating);
-        $('.rating-stars i').removeClass('filled');
-        for (let i = 0; i < rating; i++) {
-            $('.rating-stars i').eq(i).addClass('filled');
-        }
+$(document).ready(function () {
+
+    // Star rating click
+    $('.rating-stars i').on('click', function () {
+        var value = $(this).data('value');
+        $('#rating').val(value);
+
+        $('.rating-stars i').removeClass('text-warning');
+        $('.rating-stars i').each(function () {
+            if ($(this).data('value') <= value) {
+                $(this).addClass('text-warning');
+            }
+        });
     });
 
     // AJAX form submit
-    $('#review-form').submit(function(e) {
+    $('#review-form').submit(function (e) {
         e.preventDefault();
+
         var form = $(this);
         var url = form.attr('action');
         var rating = $('#rating').val();
         var comment = $('textarea[name="comment"]').val().trim();
         var resultDiv = $('#form-results');
 
-        // Client-side validation
         if (!rating) {
-            resultDiv.removeClass('d-none').html('<div class="alert alert-danger">⚠ Please select a rating before submitting.</div>');
+            resultDiv.removeClass('d-none')
+                .html('<div class="alert alert-danger">⚠ Please select a rating before submitting.</div>');
             return;
         }
 
         if (!comment) {
-            resultDiv.removeClass('d-none').html('<div class="alert alert-danger">⚠ Please write a review before submitting.</div>');
+            resultDiv.removeClass('d-none')
+                .html('<div class="alert alert-danger">⚠ Please write a review before submitting.</div>');
             return;
         }
-
-        // Submit via AJAX
-        var formData = form.serialize();
 
         $.ajax({
             type: 'POST',
             url: url,
-            data: formData,
-            success: function(response) {
-                if(response.status === 'error') {
-                    resultDiv.removeClass('d-none').html('<div class="alert alert-danger">' + response.message + '</div>');
-                } else {
-                    // Optional: show success message for 1s before reload
-                    resultDiv.removeClass('d-none').html('<div class="alert alert-success">' + response.message + '</div>');
+            data: form.serialize(),
+            success: function (response) {
 
-                    setTimeout(function() {
-                        location.reload(); // Refresh the page
+                if (response.status === 'error') {
+                    resultDiv.removeClass('d-none')
+                        .html('<div class="alert alert-danger">' + response.message + '</div>');
+                } else {
+                    resultDiv.removeClass('d-none')
+                        .html('<div class="alert alert-success">' + response.message + '</div>');
+
+                    setTimeout(function () {
+                        location.reload();
                     }, 1000);
                 }
             },
-            error: function(xhr, status, error) {
-                resultDiv.removeClass('d-none').html('<div class="alert alert-danger">⚠ Something went wrong. Please try again.</div>');
+            error: function () {
+                resultDiv.removeClass('d-none')
+                    .html('<div class="alert alert-danger">⚠ Something went wrong. Please try again.</div>');
             }
         });
+
     });
+
 });
+
 
 
 document.addEventListener("DOMContentLoaded", function () {

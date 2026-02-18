@@ -23,6 +23,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import F, Avg, Count
 from django.template.loader import render_to_string
+from django.db import IntegrityError
 
 
 def home(request):
@@ -462,9 +463,7 @@ def delete_coupon(request, id):
 
 
 
-from django.shortcuts import render
-from django.db.models import Avg, Count
-from .models import Product, Review
+
 
 def product_detail(request, slug):
     product = Product.objects.filter(slug=slug).first()
@@ -646,6 +645,9 @@ def login_post(request):
 def user_logout(request):
     logout(request)
     return redirect('user_login')
+
+
+
 @login_required
 def review_post(request, slug):
     if request.method == 'POST':
@@ -655,25 +657,36 @@ def review_post(request, slug):
 
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
-        
 
-        # Validate rating
         if not rating:
             return JsonResponse({
                 'status': 'error',
                 'message': '⚠ Please select a rating.'
             })
 
+        if not comment:
+            return JsonResponse({
+                'status': 'error',
+                'message': '⚠ Please write a review.'
+            })
+
         registration, created = Registration.objects.get_or_create(authuser=user)
 
-        Review.objects.create(
-            name=user.get_full_name() if user.get_full_name() else user.username,
-            email=user.email,
-            rating=int(rating),
-            message=comment,
-            product=product,
-            registration=registration
-        )
+        try:
+            Review.objects.create(
+                registration=registration,
+                product=product,
+                name=user.get_full_name() if user.get_full_name() else user.username,
+                email=user.email,
+                rating=int(rating),
+                message=comment
+            )
+
+        except IntegrityError:
+            return JsonResponse({
+                'status': 'error',
+                'message': '⚠ You have already submitted a review for this product.'
+            })
 
         return JsonResponse({
             'status': 'success',
