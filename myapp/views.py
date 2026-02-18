@@ -531,10 +531,10 @@ from django.views.decorators.http import require_POST
 @login_required
 @require_POST
 def delete_review(request, id):
-
     review = get_object_or_404(Review, id=id)
 
-    if review.email != request.user.email:
+    # allow owner OR admin
+    if review.email != request.user.email and not request.user.is_staff:
         return JsonResponse({
             "status": "error",
             "message": "Not allowed"
