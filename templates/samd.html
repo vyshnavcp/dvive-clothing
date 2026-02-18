@@ -1,0 +1,158 @@
+<!-- PREMIUM REVIEW SECTION (UPDATED HTML + CSS) -->
+<style>
+.review-card {
+    background: linear-gradient(145deg,#ffffff,#fafafa);
+    border-radius: 18px;
+    padding: 26px 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+    transition: all .35s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.review-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+.review-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#000,#444);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 18px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+}
+.review-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+    letter-spacing: .2px;
+}
+.review-date {
+    font-size: 12px;
+    color: #9a9a9a;
+}
+.review-stars i {
+    color: #ffb400;
+    font-size: 15px;
+    margin-right: 2px;
+}
+.review-text {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #444;
+}
+.delete-review {
+    opacity: .4;
+    transition: .25s;
+}
+.delete-review:hover {
+    opacity: 1;
+    color: #e11d48 !important;
+}
+.show-more-btn {
+    font-weight: 500;
+    letter-spacing: .3px;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    padding-bottom: 3px;
+}
+.show-more-btn:hover {
+    border-color: #000;
+}
+</style>
+
+<div class="row g-3 mb-4">
+
+    {% for review in first_three_reviews %}
+    <div class="col-12">
+        <div class="review-card d-flex gap-3 align-items-start">
+            
+            <div class="review-avatar">
+                {{ review.name|slice:":1"|upper }}
+            </div>
+
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="review-name">{{ review.name }}</div>
+                        <div class="review-date">
+                            {{ review.created_at|date:"d M Y" }} · {{ review.created_at|date:"h:i A" }}
+                        </div>
+                    </div>
+
+                    {% if user.is_authenticated and user.email == review.email %}
+                    <button class="btn btn-sm delete-review" data-id="{{ review.id }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div class="review-stars mt-1">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating|default:0 %}
+                            <i class="bi bi-star-fill"></i>
+                        {% else %}
+                            <i class="bi bi-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="review-text mt-2">
+                    {{ review.message }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+        No reviews yet. Be the first to review!
+    </div>
+    {% endfor %}
+
+    <div id="hidden-reviews" class="d-none">
+        {% for review in remaining_reviews %}
+        <div class="col-12">
+            <div class="review-card d-flex gap-3 align-items-start">
+                
+                <div class="review-avatar">
+                    {{ review.name|slice:":1"|upper }}
+                </div>
+
+                <div class="flex-grow-1">
+                    <div class="review-name">{{ review.name }}</div>
+                    <div class="review-date">
+                        {{ review.created_at|date:"d M Y" }} · {{ review.created_at|date:"h:i A" }}
+                    </div>
+
+                    <div class="review-stars mt-1">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating|default:0 %}
+                                <i class="bi bi-star-fill"></i>
+                            {% else %}
+                                <i class="bi bi-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="review-text mt-2">
+                        {{ review.message }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if reviews|length > 3 %}
+    <div class="col-12 text-center mt-2">
+        <a href="#" class="show-more-btn show-toggle">
+            Show more reviews ↓
+        </a>
+    </div>
+    {% endif %}
+
+</div>

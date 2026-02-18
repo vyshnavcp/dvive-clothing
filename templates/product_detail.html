@@ -85,19 +85,108 @@ input[type="radio"]:checked + .size-circle {
     color: #fff;
     border-color: #000;
 }
+/* ===============================
+   PREMIUM COMPACT REVIEW STYLE
+   =============================== */
 
+/* review card */
+.review-item,
+#hidden-reviews .col-12 {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px 18px !important;
+    margin-bottom: 14px !important;
+    border: 1px solid #eee !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: .25s ease;
+}
 
+.review-item:hover,
+#hidden-reviews .col-12:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+/* remove old borders */
+.border-color-extra-medium-gray {
+    border-color: transparent !important;
+}
+
+/* REMOVE ANY AVATAR / CIRCLE */
+.review-item .w-300px::before {
+    display: none !important;
+    content: none !important;
+}
+
+/* tighten left column */
+.review-item .w-300px {
+    padding: 0 !important;
+}
+
+/* layout alignment */
+.review-item .d-md-flex,
+#hidden-reviews .d-md-flex {
+    align-items: flex-start !important;
+    gap: 14px;
+}
+
+/* reviewer name */
+.review-item .text-dark-gray.fw-600,
+#hidden-reviews .text-dark-gray.fw-600 {
+    font-size: 15px;
+    color: #222 !important;
+    letter-spacing: .2px;
+}
+
+/* date & time */
+.review-item .fs-13.text-muted,
+#hidden-reviews .fs-14 {
+    font-size: 11px !important;
+    color: #9aa3ad !important;
+}
+
+/* stars */
+.text-golden-yellow i {
+    color: #f4a100 !important;
+    font-size: 14px;
+    margin-right: 2px;
+}
+
+/* review text */
+.review-item p,
+#hidden-reviews p {
+    font-size: 14px;
+    color: #444;
+    margin-top: 4px;
+    line-height: 1.6;
+}
+
+/* delete icon */
 .delete-review {
-    transition: 0.2s ease;
+    opacity: .35;
+    font-size: 14px;
+    transition: .2s;
 }
-
 .delete-review:hover {
-    color: #dc3545;
-    transform: scale(1.1);
+    opacity: 1;
+    color: #e11d48 !important;
 }
 
+/* show more link */
+.show-toggle {
+    font-weight: 500;
+    letter-spacing: .2px;
+    text-decoration: none !important;
+}
 
+.show-toggle .btn-text {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 2px;
+}
 
+.show-toggle:hover .btn-text {
+    border-color: #000;
+}
 
         </style>
     </head>
