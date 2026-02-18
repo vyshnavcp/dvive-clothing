@@ -12,6 +12,7 @@ urlpatterns = [
     path('product/<slug:slug>/', views.product_detail, name='product_detail'),
     path('product/subcategory/<slug:slug>/', views.product, name='filter_by_subcategory'),
     path('product/<slug:slug>/review/',views.review_post,name='submit_review'),
+    path('delete-review/<int:id>/', views.delete_review, name='delete_review'),
     path('blog/',views.blog,name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('register/',views.register,name='register'),

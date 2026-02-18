@@ -86,6 +86,19 @@ input[type="radio"]:checked + .size-circle {
     border-color: #000;
 }
 
+
+.delete-review {
+    transition: 0.2s ease;
+}
+
+.delete-review:hover {
+    color: #dc3545;
+    transform: scale(1.1);
+}
+
+
+
+
         </style>
     </head>
     <body data-mobile-nav-style="classic">
@@ -480,14 +493,29 @@ input[type="radio"]:checked + .size-circle {
 
                                     <!-- FIRST 3 REVIEWS -->
                                     {% for review in first_three_reviews %}
-                                    <div class="col-12 border-bottom border-color-extra-medium-gray pb-40px mb-40px xs-pb-30px xs-mb-30px">
+                                    <div class="col-12 review-item border-bottom border-color-extra-medium-gray pb-40px mb-40px xs-pb-30px xs-mb-30px">
+
                                         <div class="d-block d-md-flex w-100 align-items-center">
                                             
                                             <div class="w-300px md-w-250px sm-w-100 sm-mb-10px text-center">
-                                                <!-- <img src="https://placehold.co/200x200" class="rounded-circle w-90px mb-10px" alt=""> -->
-                                                <span class="text-dark-gray fw-600 d-block">{{ review.name }}</span>
-                                                <div class="fs-14 lh-18">{{ review.created_at|date:"d F Y" }}</div>
-                                            </div>  
+                                                <span class="text-dark-gray fw-600 d-block fs-16">
+                                                    {{ review.name }}
+                                                </span>
+
+                                                <div class="fs-13 text-muted">
+                                                    {{ review.created_at|date:"d F Y" }} 
+                                                    <br>
+                                                    <small>{{ review.created_at|date:"h:i A" }}</small>
+                                                </div>
+
+                                                {% if user.is_authenticated and user.email == review.email %}
+                                                <button class="btn btn-sm text-danger border-0 delete-review"
+                                                        data-id="{{ review.id }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                {% endif %}
+
+                                            </div>
 
                                             <div class="w-100 last-paragraph-no-margin sm-ps-0 position-relative text-center text-md-start">
                                                 
@@ -501,10 +529,6 @@ input[type="radio"]:checked + .size-circle {
                                                     {% endfor %}
                                                 </span>
 
-                                                <a href="#" class="w-65px bg-light-red border-radius-15px fs-13 text-dark-gray fw-600 text-center position-absolute sm-position-relative d-inline-block d-md-block right-0px top-0px">
-                                                    <i class="fa-solid fa-heart text-red me-5px"></i>
-                                                    <span>{{ review.likes|default:0 }}</span>
-                                                </a>
 
                                                 <p class="w-85 sm-w-100 sm-mt-15px">
                                                     {{ review.message }}
@@ -544,10 +568,7 @@ input[type="radio"]:checked + .size-circle {
                                                         {% endfor %}
                                                     </span>
 
-                                                    <a href="#" class="w-65px bg-light-red border-radius-15px fs-13 text-dark-gray fw-600 text-center position-absolute sm-position-relative d-inline-block d-md-block right-0px top-0px">
-                                                        <i class="fa-solid fa-heart text-red me-5px"></i>
-                                                        <span>{{ review.likes|default:0 }}</span>
-                                                    </a>
+                                                    
 
                                                     <p class="w-85 sm-w-100 sm-mt-15px">
                                                         {{ review.message }}
@@ -935,6 +956,53 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 });
+
+
+document.addEventListener("click", function(e){
+
+    if (e.target.closest(".delete-review")) {
+
+        const button = e.target.closest(".delete-review");
+        const reviewItem = button.closest(".review-item");
+        const reviewId = button.dataset.id;
+
+        // Disable button instantly
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        button.disabled = true;
+
+        fetch(`/delete-review/${reviewId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+
+            if (data.status === "success") {
+
+                // Smooth fade out animation
+                reviewItem.style.transition = "all 0.4s ease";
+                reviewItem.style.opacity = "0";
+                reviewItem.style.transform = "translateY(-10px)";
+
+                setTimeout(() => {
+                    reviewItem.remove();
+                }, 400);
+
+            } else {
+                button.innerHTML = '<i class="bi bi-trash"></i>';
+                button.disabled = false;
+            }
+
+        });
+
+    }
+
+});
+
+
+
 
 
 

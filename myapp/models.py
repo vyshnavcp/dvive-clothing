@@ -158,10 +158,14 @@ class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     email = models.CharField(max_length=200)
+
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
+
     message = models.CharField(max_length=200)
+
+    created_at = models.DateTimeField(auto_now_add=True)  # ✅ ADD THIS
 
     class Meta:
         constraints = [

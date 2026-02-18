@@ -526,6 +526,25 @@ def product_detail(request, slug):
         'rating_percent': rating_percent,
         'related_products': related_products,
     })
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def delete_review(request, id):
+
+    review = get_object_or_404(Review, id=id)
+
+    if review.email != request.user.email:
+        return JsonResponse({
+            "status": "error",
+            "message": "Not allowed"
+        })
+
+    review.delete()
+
+    return JsonResponse({
+        "status": "success"
+    })
 
 
 def register(request):
