@@ -96,7 +96,7 @@ def product(request, slug=None):
     # size filter
     size_filter = request.GET.get('size')
     if size_filter:
-        products = products.filter(sizes__name=size_filter)
+        products = products.filter(sizes__name=size_filter).distinct()
     if request.GET.get('signature') == '1':
         products = products.filter(
             is_signature_collection=True,
@@ -1475,3 +1475,4 @@ def delete_privacy(request, pk):
 def privacy_page(request):
     privacy = PrivacyPolicy.objects.first()
     return render(request, "privacy_page.html", {"privacy": privacy})
+

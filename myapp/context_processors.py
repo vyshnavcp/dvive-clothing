@@ -1,4 +1,5 @@
-from .models import Cart
+from .models import Cart,SubCategory
+
 
 def cart_count(request):
     # if user is logged in
@@ -15,4 +16,12 @@ def cart_count(request):
 
     return {
         'cart_item_count': count
+    }
+def footer_categories(request):
+    """
+    Adds categories to all templates for the footer
+    """
+    categories = SubCategory.objects.all()
+    return {
+        'footer_categories': categories
     }
