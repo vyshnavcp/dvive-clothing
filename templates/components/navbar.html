@@ -221,8 +221,10 @@
                         </div>
                         <div class="header-cart-icon icon">
                             <div class="header-cart dropdown">
-                                <a href="{% url 'cart_page' %}"><i class="feather icon-feather-shopping-bag"></i><span
-                                        class="cart-count alt-font text-white bg-dark-gray">{{ cart_item_count }}</span></a>
+                                <a href="{% url 'cart_page' %}"><i class="feather icon-feather-shopping-bag"></i><span id="cart-count"
+                                    class="cart-count alt-font text-white bg-dark-gray">
+                                    {{ cart_item_count }}
+                                </span></a>
                                
                             </div>
                         </div>

@@ -899,29 +899,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const formData = new FormData(form);
 
-        fetch(form.action, {
-            method: "POST",
-            headers: { "X-Requested-With": "XMLHttpRequest" },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            messageBox.style.display = "block";
-            if (data.success) {
-                messageBox.innerHTML = "✅ " + data.message;
-                messageBox.style.color = "#28a745"; // green
-            } else {
-                messageBox.innerHTML = "⚠️ " + data.message;
-                messageBox.style.color = "#ffc107"; // yellow
-            }
-            messageBox.style.fontWeight = "500";
-        })
-        .catch(() => {
-            messageBox.style.display = "block";
-            messageBox.innerHTML = "⚠️ Something went wrong!";
-            messageBox.style.color = "#ffc107";
-            messageBox.style.fontWeight = "500";
-        });
+fetch(form.action, {
+    method: "POST",
+    headers: { "X-Requested-With": "XMLHttpRequest" },
+    body: formData
+})
+.then(response => response.json())
+.then(data => {
+    messageBox.style.display = "block";
+
+    if (data.success) {
+        messageBox.innerHTML = "✅ " + data.message;
+        messageBox.style.color = "#28a745";
+
+        // ⭐ NAVBAR CART COUNT UPDATE
+        const cartCountEl = document.getElementById("cart-count");
+        if (cartCountEl && data.cart_count !== undefined) {
+            cartCountEl.textContent = data.cart_count;
+        }
+
+    } else {
+        messageBox.innerHTML = "⚠️ " + data.message;
+        messageBox.style.color = "#ffc107";
+    }
+
+    messageBox.style.fontWeight = "500";
+})
+.catch(() => {
+    messageBox.style.display = "block";
+    messageBox.innerHTML = "⚠️ Something went wrong!";
+    messageBox.style.color = "#ffc107";
+});
+
     });
 });
 

@@ -13,6 +13,7 @@ from django.contrib.auth import authenticate,login,logout
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 import razorpay
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 from django.utils.text import slugify
@@ -763,7 +764,6 @@ def review_post(request, slug):
         'message': '⚠ Invalid request method.'
     })
 
-
 def add_to_cart(request, product_id):
     if not request.user.is_authenticated:
         return JsonResponse({"success": False, "message": "Please login to add items to your cart."})
@@ -773,7 +773,6 @@ def add_to_cart(request, product_id):
     color_id = request.POST.get("color")
     quantity = int(request.POST.get("quantity", 1))
 
-    #  COLOR validation
     if product.colors.exists():
         if not color_id:
             return JsonResponse({"success": False, "message": "Please select a color."})
@@ -781,7 +780,6 @@ def add_to_cart(request, product_id):
     else:
         color = None
 
-    #  SIZE validation
     if product.sizes.exists():
         if not size_id:
             return JsonResponse({"success": False, "message": "Please select a size."})
@@ -789,7 +787,6 @@ def add_to_cart(request, product_id):
     else:
         size = None
 
-    #  Stock validation
     if quantity > product.stock:
         return JsonResponse({"success": False, "message": f"Only {product.stock} item(s) available."})
 
@@ -810,7 +807,14 @@ def add_to_cart(request, product_id):
         item.quantity += quantity
         item.save()
 
-    return JsonResponse({"success": True, "message": "Product added to cart!"})
+    # ✅ UNIQUE PRODUCT COUNT (navbar)
+    cart_count = CartItem.objects.filter(cart=cart).count()
+
+    return JsonResponse({
+        "success": True,
+        "message": "Product added to cart!",
+        "cart_count": cart_count
+    })
 
 
 @login_required(login_url='user_login')
@@ -945,7 +949,7 @@ def checkout(request):
     })
 
 
-from django.db import transaction
+
 
 @login_required
 @transaction.atomic
