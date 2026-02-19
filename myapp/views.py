@@ -461,6 +461,52 @@ def delete_coupon(request, id):
 
 
 
+def article_list(request):
+    articles = Article.objects.all().order_by('-posted_on')
+    return render(request, 'article_list.html', {'articles': articles})
+
+from .forms import ArticleForm
+def add_article(request):
+    form = ArticleForm(request.POST or None, request.FILES or None)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Article Added Successfully")
+        return redirect('article_list')
+
+    return render(request, 'add_article.html', {'form': form})
+
+
+def edit_article(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+
+    if request.method == "POST":
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+
+        if not title or not content:
+            messages.error(request, "Title and content required")
+            return redirect('edit_article', slug=slug)
+
+        article.title = title
+        article.content = content
+
+        if request.FILES.get('image'):
+            article.image = request.FILES.get('image')
+
+        article.save()
+        messages.success(request, "Article Updated Successfully")
+        return redirect('article_list')
+
+    return render(request, 'edit_article.html', {'article': article})
+
+
+
+def delete_article(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    article.delete()
+    messages.success(request, "Article Deleted Successfully")
+    return redirect('article_list')
 
 
 
@@ -1329,48 +1375,3 @@ def shipping_address_list(request):
 
 
 
-def article_list(request):
-    articles = Article.objects.all().order_by('-posted_on')
-    return render(request, 'article_list.html', {'articles': articles})
-
-
-def add_article(request):
-    if request.method == "POST":
-        title = request.POST.get('title')
-        content = request.POST.get('content')
-        image = request.FILES.get('image')
-
-        Article.objects.create(
-            title=title,
-            content=content,
-            image=image
-        )
-
-        messages.success(request, "Article Added Successfully")
-        return redirect('article_list')
-
-    return render(request, 'add_article.html')
-
-
-def edit_article(request, slug):
-    article = get_object_or_404(Article, slug=slug)
-
-    if request.method == "POST":
-        article.title = request.POST.get('title')
-        article.content = request.POST.get('content')
-
-        if request.FILES.get('image'):
-            article.image = request.FILES.get('image')
-
-        article.save()
-        messages.success(request, "Article Updated Successfully")
-        return redirect('article_list')
-
-    return render(request, 'edit_article.html', {'article': article})
-
-
-def delete_article(request, slug):
-    article = get_object_or_404(Article, slug=slug)
-    article.delete()
-    messages.success(request, "Article Deleted Successfully")
-    return redirect('article_list')
