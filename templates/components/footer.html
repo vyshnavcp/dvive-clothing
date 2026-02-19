@@ -31,12 +31,17 @@
                 <div class="col-6 col-lg-2 col-sm-4 xs-mb-30px order-sm-3 order-lg-2">
                     <span class="fw-500 d-block text-white mb-5px fs-17">Categories</span>
                     <ul>
-                        <li><a href="demo-fashion-store-shop.html">Men</a></li>
-                        <li><a href="demo-fashion-store-shop.html">Women</a></li>
-                        <li><a href="demo-fashion-store-shop.html">Accessories</a></li>
-                        <li><a href="demo-fashion-store-shop.html">Shoes</a></li>
-                        <li><a href="demo-fashion-store-shop.html">Dresses</a></li>
+                        {% for cat in footer_categories %}
+                            <li>
+                                <a href="{% url 'product' %}?category={{ cat.slug }}">
+                                    {{ cat.name }}
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li>No categories</li>
+                        {% endfor %}
                     </ul>
+
                 </div>
                 <!-- end footer column -->
                 <!-- start footer column -->
