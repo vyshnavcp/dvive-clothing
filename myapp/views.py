@@ -25,6 +25,7 @@ from django.contrib import messages
 from django.db.models import F, Avg, Count
 from django.template.loader import render_to_string
 from django.db import IntegrityError
+from .forms import PrivacyForm,TermsForm
 
 
 def home(request):
@@ -466,7 +467,7 @@ def article_list(request):
     articles = Article.objects.all().order_by('-posted_on')
     return render(request, 'article_list.html', {'articles': articles})
 
-from .forms import ArticleForm
+from .forms import ArticleForm, TermsForm
 def add_article(request):
     form = ArticleForm(request.POST or None, request.FILES or None)
 
@@ -1377,5 +1378,100 @@ def shipping_address_list(request):
     }
     return render(request, 'shipping_address_list.html', context)
 
+@login_required(login_url='user_login')
+def add_terms(request):
+    terms = TermsCondition.objects.first()
+
+    if request.method == "POST":
+        form = TermsForm(request.POST, instance=terms)
+        if form.is_valid():
+            form.save()
+            return redirect("terms_list")
+    else:
+        form = TermsForm(instance=terms)
+
+    return render(request, "add_terms.html", {"form": form, "terms": terms})
 
 
+
+
+@login_required(login_url='user_login')
+def terms_list(request):
+    terms = TermsCondition.objects.all().order_by("-updated_at")
+    return render(request, "terms_list.html", {"terms": terms})
+
+
+@login_required(login_url='user_login')
+def edit_terms(request, pk):
+    terms = get_object_or_404(TermsCondition, pk=pk)
+
+    if request.method == "POST":
+        form = TermsForm(request.POST, instance=terms)
+        if form.is_valid():
+            form.save()
+            return redirect("terms_list")
+    else:
+        form = TermsForm(instance=terms)
+
+    return render(request, "add_terms.html", {"form": form, "terms": terms})
+
+
+
+@login_required(login_url='user_login')
+def delete_terms(request, pk):
+    terms = get_object_or_404(TermsCondition, pk=pk)
+    terms.delete()
+    return redirect("terms_list")
+def terms_page(request):
+    terms = TermsCondition.objects.first()
+    return render(request, "terms_page.html", {"terms": terms})
+
+
+
+
+@login_required(login_url='user_login')
+def add_privacy(request):
+    privacy = PrivacyPolicy.objects.first()
+
+    if request.method == "POST":
+        form = PrivacyForm(request.POST, instance=privacy)
+        if form.is_valid():
+            form.save()
+            return redirect("privacy_list")
+    else:
+        form = PrivacyForm(instance=privacy)
+
+    return render(request, "add_privacy.html", {"form": form, "privacy": privacy})
+
+
+@login_required(login_url='user_login')
+def privacy_list(request):
+    privacy = PrivacyPolicy.objects.all().order_by("-updated_at")
+    return render(request, "privacy_list.html", {"privacy": privacy})
+
+
+@login_required(login_url='user_login')
+def edit_privacy(request, pk):
+    privacy = get_object_or_404(PrivacyPolicy, pk=pk)
+
+    if request.method == "POST":
+        form = PrivacyForm(request.POST, instance=privacy)
+        if form.is_valid():
+            form.save()
+            return redirect("privacy_list")
+    else:
+        form = PrivacyForm(instance=privacy)
+
+    return render(request, "add_privacy.html", {"form": form, "privacy": privacy})
+
+
+@login_required(login_url='user_login')
+def delete_privacy(request, pk):
+    privacy = get_object_or_404(PrivacyPolicy, pk=pk)
+    privacy.delete()
+    return redirect("privacy_list")
+
+
+def privacy_page(request):
+    privacy = PrivacyPolicy.objects.first()
+    return render(request, "privacy_page.html", {"privacy": privacy})

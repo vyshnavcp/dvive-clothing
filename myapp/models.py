@@ -34,6 +34,18 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+class TermsCondition(models.Model):
+    content = CKEditor5Field('Content', config_name='default')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Terms & Conditions"
+class PrivacyPolicy(models.Model):
+    content = CKEditor5Field('Content', config_name='default')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Privacy Policy"
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=120, unique=True, blank=True)
