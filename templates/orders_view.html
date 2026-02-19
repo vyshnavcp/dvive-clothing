@@ -1,89 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{{ title }}</title>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
 
-    <!-- Bootstrap + Icons + Font -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Bootstrap + Icons + Font -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <style>
-        body {
-            background: #f4f6fb;
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-        }
+<style>
+body {
+    background: #f4f6fb;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+}
 
-        /* ================= NAVBAR ================= */
+/* Navbar */
+.header-with-topbar {
+    background: #000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+}
 
-        .header-with-topbar {
-            background: #000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-        }
+.dashboard-header {
+    padding: 18px 24px;
+}
 
-        .dashboard-header {
-            padding: 18px 24px;
-        }
+.dashboard-header h4,
+.dashboard-header small,
+.dashboard-header i {
+    color: #fff;
+}
 
-        .dashboard-header h4,
-        .dashboard-header small,
-        .dashboard-header i {
-            color: #fff;
-        }
+/* Table styles */
+.container-fluid {
+    padding: 30px 40px;
+}
 
-        .dashboard-header .nav-link {
-            color: #fff !important;
-            font-weight: 500;
-            transition: 0.3s;
-        }
+.page-header {
+    background: linear-gradient(135deg,#111827,#1f2933);
+    color:#fff;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
 
-        .dashboard-header .nav-link:hover {
-            color: #bdbdbd !important;
-        }
+.status-badge {
+    padding:6px 12px;
+    border-radius:30px;
+    font-size:13px;
+}
 
-        .navbar-toggler {
-            border: 0;
-        }
+.completed { background:#dcfce7; color:#166534; }
+.pending { background:#fef3c7; color:#92400e; }
+.cancelled { background:#fee2e2; color:#991b1b; }
 
-        .navbar-toggler-icon {
-            filter: invert(1);
-        }
+/* Print slip styles */
+#printArea {
+    display: none;
+}
 
-        /* ================= PAGE ================= */
+.print-slip {
+    width: 400px;
+    font-family: 'Poppins', sans-serif;
+    padding: 20px;
+    border: 1px solid #000;
+}
 
-        .container-fluid {
-            padding: 30px 40px;
-        }
+.print-slip h3 {
+    text-align: center;
+    margin-bottom: 15px;
+}
 
-        .page-header {
-            background: linear-gradient(135deg,#111827,#1f2933);
-            color:#fff;
-            padding:20px;
-            border-radius:12px;
-            margin-bottom:20px;
-        }
+.print-slip .section-title {
+    font-weight: 600;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
 
-        .status-badge {
-            padding:6px 12px;
-            border-radius:30px;
-            font-size:13px;
-        }
+.print-slip table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
 
-        .completed { background:#dcfce7; color:#166534; }
-        .pending { background:#fef3c7; color:#92400e; }
-    </style>
+.print-slip table th,
+.print-slip table td {
+    border: 1px solid #000;
+    padding: 6px 8px;
+    font-size: 14px;
+    text-align: left;
+}
+
+.print-slip table th {
+    background: #f2f2f2;
+}
+
+.print-slip hr {
+    margin: 15px 0;
+}
+/* Premium white navbar links */
+.nav-white {
+    color: #ffffff !important;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: 0.25s ease;
+}
+
+.nav-white:hover {
+    color: #d1d5db !important; /* soft gray hover */
+}
+
+</style>
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
-
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
     <div class="container-fluid px-0">
-
         <div class="d-flex align-items-center gap-3">
             <i class="bi bi-speedometer2 fs-2"></i>
             <div>
@@ -99,136 +134,189 @@
 
         <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
             <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+                <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link nav-white" href="{% url 'dashboard' %}">Home</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-white" href="{% url 'order_list' %}">Orders</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-white" href="{% url 'paid_orders' %}">Paid</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-white" href="{% url 'pending_orders' %}">Pending</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-white" href="{% url 'customer_list' %}">Customers</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
-                        Logout
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-white" href="{% url 'user_logout' %}">Logout</a>
+                    </li>
+                </ul>
 
             </ul>
         </div>
-
     </div>
 </nav>
 </header>
 
-<!-- ================= PAGE CONTENT ================= -->
-
 <div class="container-fluid mt-4">
 
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4>{{ title }}</h4>
-        <i class="bi bi-receipt fs-2"></i>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h4>{{ title }}</h4>
+    <i class="bi bi-receipt fs-2"></i>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Customer</th>
+                    <th>Contact</th>
+                    <th>Shipping</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Print</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for order in orders %}
+                <tr data-order-id="{{ order.id }}">
+                    <td>{{ order.first_name }}</td>
+                    <td>{{ order.email }}<br>{{ order.phone }}</td>
+                    <td>{{ order.address }}<br>{{ order.town }}, {{ order.state }} - {{ order.pincode }}</td>
+                    <td>₹ {{ order.total }}</td>
+                    <td>
+                        {% if order.payment_method == "Razorpay" %}
+                            <span style="color: green; font-weight: 600;">Razorpay</span>
+                        {% else %}
+                            <span style="color: #ff9800; font-weight: 600;">Cash on Delivery</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if order.is_cancelled %}
+                            <span class="status-badge cancelled">Cancelled</span>
+                        {% elif order.is_delivered %}
+                            <span class="status-badge completed">Delivered</span>
+                        {% else %}
+                            <span class="status-badge pending">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="printOrder({{ order.id }})">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4">No orders found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
     </div>
+</div>
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <table class="table mb-0 align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Customer</th>
-                        <th>Contact</th>
-                        <th>Shipping</th>
-                        <th>Total</th>
-                        <th>Payment</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
+<!-- ================= PRINT SLIP ================= -->
+<div id="printArea">
+    <div class="print-slip">
+        <h3>Divive Clothing Markaz</h3>
 
-                <tbody>
-                {% for order in orders %}
-                    <tr>
-                        <td>#{{ order.id }}</td>
+        <div class="from-to">
+            <div class="section-title">From:</div>
+            <p>
+                Divive Clothing Markaz<br>
+                Shop No 12, Market Road<br>
+                City, State - 123456<br>
+                Phone: 9876543210
+            </p>
 
-                        <td>
-                            <a href="{% url 'order_detail' order.id %}" class="fw-semibold text-decoration-none">
-                                {{ order.first_name }}
-                            </a>
-                        </td>
-
-                        <td>
-                            {{ order.email }} <br>
-                            {{ order.phone }}
-                        </td>
-
-                        <td>
-                            {{ order.address }} <br>
-                            {{ order.town }}, {{ order.state }} - {{ order.pincode }}
-                        </td>
-
-                        <td>₹ {{ order.total }}</td>
-
-                        <td>
-                            {% if order.payment_method == "Razorpay" %}
-                                <span style="color: green; font-weight: 600;">
-                                    Razorpay
-                                </span>
-                            {% else %}
-                                <span style="color: #ff9800; font-weight: 600;">
-                                    Cash on Delivery
-                                </span>
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            {% if order.is_cancelled %}
-                                <span class="status-badge" style="background:#fee2e2; color:#991b1b;">
-                                    Cancelled
-                                </span>
-
-                            {% elif order.is_delivered %}
-                                <span class="status-badge completed">
-                                    Delivered
-                                </span>
-
-                            {% else %}
-                                <span class="status-badge pending">
-                                    Pending
-                                </span>
-                            {% endif %}
-                        </td>
-
-                        <td>{{ order.created_at|date:"d M Y" }}</td>
-                    </tr>
-
-                {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center py-4">
-                            No orders found
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
+            <div class="section-title">To:</div>
+            <p id="printShipping"></p>
+            <p id="printCustomer"></p>
         </div>
-    </div>
 
+        <div class="section-title">Items:</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody id="printItems"></tbody>
+        </table>
+
+        <hr>
+        <p><strong>Total:</strong> ₹<span id="printTotal"></span></p>
+        <p><strong>Payment Method:</strong> <span id="printPayment"></span></p>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const ordersData = {
+    {% for order in orders %}
+    {{ order.id }}: [
+        {% for item in order.items.all %}
+        { "name": "{{ item.product.name }}", "qty": "{{ item.quantity }}", "price": "{{ item.price }}" },
+        {% endfor %}
+    ],
+    {% endfor %}
+};
+
+function printOrder(orderId) {
+    const row = document.querySelector('tr[data-order-id="'+orderId+'"]');
+    if (!row) return alert("Order not found!");
+
+    const shipping = row.children[2].innerText.trim();
+    const customer = row.children[0].innerText.trim();
+    const total = row.children[3].innerText.replace('₹','').trim();
+    const payment = row.children[4].innerText.trim();
+
+    document.getElementById('printShipping').innerText = shipping;
+    document.getElementById('printCustomer').innerText = customer;
+    document.getElementById('printTotal').innerText = total;
+    document.getElementById('printPayment').innerText = payment;
+
+    let itemsHtml = '';
+    if (ordersData[orderId]) {
+        ordersData[orderId].forEach(item => {
+            itemsHtml += `<tr>
+                <td>${item.name}</td>
+                <td>${item.qty}</td>
+                <td>₹${item.price}</td>
+            </tr>`;
+        });
+    } else {
+        itemsHtml = '<tr><td colspan="3" style="text-align:center;">No items found</td></tr>';
+    }
+    document.getElementById('printItems').innerHTML = itemsHtml;
+
+    const printContents = document.getElementById('printArea').innerHTML;
+    const originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+    location.reload();
+}
+</script>
+
 </body>
 </html>

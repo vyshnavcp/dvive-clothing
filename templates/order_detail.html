@@ -6,11 +6,54 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
         body {
             background: #f4f6fb;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+        }
+
+        /* ===== NAVBAR SAME STYLE ===== */
+
+        .header-with-topbar {
+            background: #000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+        }
+
+        .dashboard-header {
+            padding: 18px 24px;
+        }
+
+        .dashboard-header h4,
+        .dashboard-header small,
+        .dashboard-header i {
+            color: #fff;
+        }
+
+        .dashboard-header .nav-link {
+            color: #fff !important;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .dashboard-header .nav-link:hover {
+            color: #bdbdbd !important;
+        }
+
+        .navbar-toggler {
+            border: 0;
+        }
+
+        .navbar-toggler-icon {
+            filter: invert(1);
+        }
+
+        /* ===== PAGE ===== */
+
+        .page-container {
+            padding: 30px 40px;
         }
 
         .header-box {
@@ -51,7 +94,64 @@
 
 <body>
 
-<div class="container mt-4">
+<!-- ===== ADMIN NAVBAR ===== -->
+
+<header class="header-with-topbar">
+<nav class="navbar dashboard-header navbar-expand-lg">
+    <div class="container-fluid px-0">
+
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-speedometer2 fs-2"></i>
+            <div>
+                <h4 class="mb-0">Admin Dashboard</h4>
+                <small>Overview of store performance</small>
+            </div>
+        </div>
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
+                        Logout
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+    </div>
+</nav>
+</header>
+
+<!-- ===== PAGE CONTENT ===== -->
+
+<div class="page-container">
 
     {% if messages %}
         {% for message in messages %}
@@ -84,7 +184,7 @@
 
     <div class="row">
 
-        <!-- LEFT SIDE -->
+        <!-- LEFT -->
         <div class="col-md-8">
 
             <div class="card shadow-sm p-4 mb-4">
@@ -109,7 +209,7 @@
 
         </div>
 
-        <!-- RIGHT SIDE -->
+        <!-- RIGHT -->
         <div class="col-md-4">
 
             <div class="card shadow-sm p-4 mb-4">
@@ -127,10 +227,7 @@
 
                 <hr>
 
-                <p>
-                    <strong>Payment Method:</strong>
-                    {{ order.get_payment_method_display }}
-                </p>
+                <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
 
                 <p>
                     <strong>Delivery Status:</strong>
@@ -147,7 +244,6 @@
 
                 {% if not order.is_delivered and not order.is_cancelled %}
 
-                    <!-- Mark Completed -->
                     <form method="POST" action="{% url 'mark_order_completed' order.id %}" class="mb-2">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-success w-100">
@@ -155,7 +251,6 @@
                         </button>
                     </form>
 
-                    <!-- Cancel Order -->
                     <form method="POST" action="{% url 'cancel_order' order.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger w-100">
@@ -182,5 +277,6 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
