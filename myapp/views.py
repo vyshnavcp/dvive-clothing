@@ -820,7 +820,19 @@ def add_to_cart(request, product_id):
 
 @login_required(login_url='user_login')
 def cart_page(request):
-    registration = get_object_or_404(Registration, authuser=request.user)
+
+    # ✅ If admin user → show message and redirect
+    if request.user.is_staff:
+    
+        return redirect("home")  # change to your homepage url name
+
+    # ✅ If no Registration object → show message
+    try:
+        registration = Registration.objects.get(authuser=request.user)
+    except Registration.DoesNotExist:
+        messages.warning(request, "Only customers can access cart.")
+        return redirect("home")
+
     cart, _ = Cart.objects.get_or_create(registration=registration)
 
     items = cart.items.all()
@@ -856,22 +868,16 @@ def cart_page(request):
 
                 cart.save()
 
-    # ✅ THIS LINE STORES VALUES IN DB
     cart.update_totals()
 
     return render(request, "cart.html", {
         "cart": cart,
         "items": items,
         "has_items": has_items,
-
-        # existing variables (no break)
         "subtotal": cart.subtotal(),
         "total": cart.total(),
-
-        # DB values (optional)
         "db_subtotal": cart.subtotal_amount,
         "db_total": cart.total_amount,
-
         "coupon_discount": cart.coupon_discount,
         "coupon_code": cart.coupon_code,
         "message": message,
