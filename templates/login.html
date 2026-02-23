@@ -53,7 +53,7 @@
                             <label class="text-dark-gray mb-10px fw-500">Username or email address<span class="text-red">*</span></label> 
                             <input class="mb-20px bg-very-light-gray form-control required" type="text" name="name" placeholder="Enter your username" />
                             <label class="text-dark-gray mb-10px fw-500">Password<span class="text-red" >*</span></label> 
-                            <input class="mb-20px bg-very-light-gray form-control required" type="password" name="password" placeholder="Enter your password" id="password" />
+                            <input class="mb-20px bg-very-light-gray form-control required" type="password" name="password" placeholder="Enter your password" id="password" minlength="6" required pattern="^(?=.*[A-Za-z]).{6,}$"/>
                             <div id="password_error" class="text-danger fs-12"></div>
                             <div class="text-center mb-20px">
                                 <a href="{% url 'password_reset' %}" class="fs-14 text-dark-gray fw-500 text-decoration-line-bottom">
@@ -83,20 +83,29 @@
         <script type="text/javascript" src="/static/js/jquery.js"></script>
         <script type="text/javascript" src="/static/js/vendors.min.js"></script>
         <script type="text/javascript" src="/static/js/main.js"></script>
-        <script>
+       <script>
 const passwordInput = document.getElementById("password");
 const passwordError = document.getElementById("password_error");
 
-passwordInput.addEventListener("input", function(){
+passwordInput.addEventListener("input", function() {
     const pwd = passwordInput.value;
 
     if (!pwd) {
         passwordError.innerText = "Password is required";
-    } else if (pwd.length < 6) {
-        passwordError.innerText = "Password must be at least 6 characters";
-    } else if (/^\d+$/.test(pwd)) {
-        passwordError.innerText = "Password cannot be only numbers";
-    } else {
+    }
+    else if (pwd.length < 8) {
+        passwordError.innerText = "Minimum 8 characters required";
+    }
+    else if (!/[A-Z]/.test(pwd)) {
+        passwordError.innerText = "Must contain at least 1 uppercase letter";
+    }
+    else if (!/[0-9]/.test(pwd)) {
+        passwordError.innerText = "Must contain at least 1 number";
+    }
+    else if (!/[!@#$%^&*]/.test(pwd)) {
+        passwordError.innerText = "Must contain at least 1 special character (!@#$%^&*)";
+    }
+    else {
         passwordError.innerText = "";
     }
 });

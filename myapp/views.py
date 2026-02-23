@@ -669,24 +669,50 @@ def ajax_validate_register(request):
 
 def user_login(request):
     return render(request,'login.html')
+import re
+
+import re
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+
 def login_post(request):
     login_input = request.POST.get('name', '').strip()
     password = request.POST.get('password', '').strip()
 
-    # Password validation
+    # ✅ Username validation
+    if not login_input:
+        messages.error(request, "Username or Email is required")
+        return redirect('user_login')
+
+    if len(login_input) < 3:
+        messages.error(request, "Username must be at least 3 characters")
+        return redirect('user_login')
+
+    # ✅ Password validation (UPDATED — no lowercase required)
     if not password:
         messages.error(request, "Password is required")
         return redirect('user_login')
 
-    if len(password) < 6:
-        messages.error(request, "Password must be at least 6 characters")
+    if len(password) < 8:
+        messages.error(request, "Password must be at least 8 characters")
         return redirect('user_login')
 
-    if password.isdigit():
-        messages.error(request, "Password cannot be only numbers")
+    if not re.search(r'[A-Z]', password):
+        messages.error(request, "Password must contain at least 1 uppercase letter")
         return redirect('user_login')
 
-    # Identify user by email or username
+    if not re.search(r'[0-9]', password):
+        messages.error(request, "Password must contain at least 1 number")
+        return redirect('user_login')
+
+    if not re.search(r'[!@#$%^&*]', password):
+        messages.error(request, "Password must contain at least 1 special character")
+        return redirect('user_login')
+
+    # ---- YOUR ORIGINAL CODE CONTINUES BELOW (UNCHANGED) ----
+
     try:
         user_obj = User.objects.get(email=login_input)
         username = user_obj.username
@@ -699,7 +725,7 @@ def login_post(request):
         login(request, user)
 
         if user.is_staff or user.is_superuser:
-         return redirect("dashboard")
+            return redirect("dashboard")
 
         elif user.groups.filter(name='registration').exists():
             return redirect('home')
@@ -708,7 +734,7 @@ def login_post(request):
     else:
         messages.error(request, "Invalid username or password")
         return redirect('user_login')
-
+    
 def user_logout(request):
     logout(request)
     return redirect('user_login')
