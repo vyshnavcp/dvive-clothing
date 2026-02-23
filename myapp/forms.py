@@ -14,3 +14,7 @@ class PrivacyForm(forms.ModelForm):
     class Meta:
         model = PrivacyPolicy
         fields = ['content']
+class FAQForm(forms.ModelForm):
+    class Meta:
+        model = FAQ
+        fields = ['question', 'answer']

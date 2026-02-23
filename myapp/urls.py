@@ -123,6 +123,11 @@ urlpatterns = [
     path("dashboard/coupon/delete/<int:id>/", views.delete_coupon, name="delete_coupon"),
     path('dashboard/reviews/', views.review_list, name='review_list'),
     path('dashboard/review/delete/<int:id>/', views.delete_review, name='delete_review'),
+    path('dashboard/faq/', views.faq_list, name='faq_list'),
+    path('dashboard/faq/add/', views.add_faq, name='add_faq'),
+    path('dashboard/faq/edit/<int:pk>/', views.edit_faq, name='edit_faq'),
+    path('dashboard/faq/delete/<int:pk>/', views.delete_faq, name='delete_faq'),
+    path('faq/', views.faq_page, name='faq_page'),
     
     
 

@@ -25,7 +25,7 @@ from django.contrib import messages
 from django.db.models import F, Avg, Count
 from django.template.loader import render_to_string
 from django.db import IntegrityError
-from .forms import PrivacyForm,TermsForm
+from .forms import FAQForm, PrivacyForm,TermsForm
 
 
 def home(request):
@@ -1492,3 +1492,47 @@ def delete_review(request, id):
         return redirect('review_list')
 
     return render(request, 'delete_review.html', {'review': review})
+def faq_list(request):
+    faqs = FAQ.objects.all().order_by("-created_at")
+    return render(request, "faq_list.html", {"faqs": faqs})
+
+
+@login_required(login_url='user_login')
+def add_faq(request):
+    if request.method == "POST":
+        form = FAQForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("faq_list")
+    else:
+        form = FAQForm()
+
+    return render(request, "add_faq.html", {"form": form})
+
+
+@login_required(login_url='user_login')
+def edit_faq(request, pk):
+    faq = get_object_or_404(FAQ, pk=pk)
+
+    if request.method == "POST":
+        form = FAQForm(request.POST, instance=faq)
+        if form.is_valid():
+            form.save()
+            return redirect("faq_list")
+    else:
+        form = FAQForm(instance=faq)
+
+    return render(request, "add_faq.html", {"form": form, "faq": faq})
+
+
+@login_required(login_url='user_login')
+def delete_faq(request, pk):
+    faq = get_object_or_404(FAQ, pk=pk)
+    faq.delete()
+    return redirect("faq_list")
+
+
+# Public FAQ page
+def faq_page(request):
+    faqs = FAQ.objects.all().order_by("created_at")
+    return render(request, "faq_page.html", {"faqs": faqs})
