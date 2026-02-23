@@ -53,16 +53,63 @@ def blog(request):
 def blog_detail(request, slug):
     blog_detail = get_object_or_404(Article, slug=slug)
     return render(request, 'blog_detail.html', {'blog': blog_detail})
+import re
+from django.http import JsonResponse
+from django.shortcuts import render
+from .models import Contact
+
 def contact(request):
     if request.method == "POST":
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('comment', '').strip()
+
+        # ---------------- VALIDATION ----------------
+
+        if not name:
+            return JsonResponse({"status": "error", "message": "Name is required"})
+
+        if len(name) < 3:
+            return JsonResponse({"status": "error", "message": "Name must be at least 3 characters"})
+
+        if not re.match(r'^[A-Za-z ]+$', name):
+            return JsonResponse({"status": "error", "message": "Name must contain only letters"})
+
+        email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+        if not email:
+            return JsonResponse({"status": "error", "message": "Email is required"})
+
+        if not re.match(email_regex, email):
+            return JsonResponse({"status": "error", "message": "Enter a valid email address"})
+
+        if not phone:
+            return JsonResponse({"status": "error", "message": "Phone number is required"})
+
+        if not phone.isdigit():
+            return JsonResponse({"status": "error", "message": "Phone must contain only numbers"})
+
+        if len(phone) != 10:
+            return JsonResponse({"status": "error", "message": "Phone must be exactly 10 digits"})
+
+        if not message:
+            return JsonResponse({"status": "error", "message": "Message cannot be empty"})
+
+        # ---------------- SAVE DATA ----------------
+
         Contact.objects.create(
-            name=request.POST.get('name'),
-            email=request.POST.get('email'),
-            phone=request.POST.get('phone'),
-            subject=request.POST.get('subject'),
-            message=request.POST.get('comment'),
+            name=name,
+            email=email,
+            phone=phone,
+            subject=subject,
+            message=message,
         )
-        return JsonResponse({"status": "success", "message": "Message sent successfully!"})
+
+        return JsonResponse({
+            "status": "success",
+            "message": "Message sent successfully!"
+        })
 
     return render(request, "contact.html")
 
