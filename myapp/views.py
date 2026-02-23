@@ -26,6 +26,7 @@ from django.db.models import F, Avg, Count
 from django.template.loader import render_to_string
 from django.db import IntegrityError
 from .forms import FAQForm, PrivacyForm,TermsForm
+import re
 
 
 def home(request):
@@ -627,6 +628,8 @@ def reg_post(request):
     database.authuser=user
     database.save()
     return redirect('user_login')
+import re
+
 def ajax_validate_register(request):
     email = request.GET.get('email', '').strip()
     phone = request.GET.get('phone', '').strip()
@@ -640,42 +643,49 @@ def ajax_validate_register(request):
         'name_error': '',
     }
 
-    # Name validation
-    if name and (len(name) < 3 or not name.replace(" ", "").isalpha()):
-        data['name_error'] = 'Name must be at least 3 letters and contain only alphabetic characters'
+    # ---------------- NAME VALIDATION ----------------
+    if name:
+        if len(name) < 3:
+            data['name_error'] = 'Name must be at least 3 characters'
+        elif not re.match(r'^[A-Za-z ]+$', name):
+            data['name_error'] = 'Name must contain only letters and spaces'
 
-    # Email validation
-    if email and User.objects.filter(username=email).exists():
-        data['email_error'] = 'Email already exists'
+    # ---------------- EMAIL VALIDATION ----------------
+    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    if email:
+        if not re.match(email_regex, email):
+            data['email_error'] = 'Enter a valid email address'
+        elif User.objects.filter(username=email).exists():
+            data['email_error'] = 'Email already exists'
 
-    # Phone validation
+    # ---------------- PHONE VALIDATION ----------------
     if phone:
         if not phone.isdigit():
             data['phone_error'] = 'Phone must contain only numbers'
         elif len(phone) != 10:
-            data['phone_error'] = 'Phone must be 10 digits'
+            data['phone_error'] = 'Phone must be exactly 10 digits'
         elif Registration.objects.filter(phone=phone).exists():
             data['phone_error'] = 'Phone number already registered'
 
-    # Password validation
+    # ---------------- PASSWORD VALIDATION (UPGRADED) ----------------
     if password:
-        if len(password) < 6:
-            data['password_error'] = 'Password must be at least 6 characters'
-        elif password.isdigit():
-            data['password_error'] = 'Password cannot be only numbers'
+        if len(password) < 8:
+            data['password_error'] = 'Minimum 8 characters required'
+        elif not re.search(r'[A-Z]', password):
+            data['password_error'] = 'Must contain at least 1 uppercase letter'
+        elif not re.search(r'[0-9]', password):
+            data['password_error'] = 'Must contain at least 1 number'
+        elif not re.search(r'[!@#$%^&*]', password):
+            data['password_error'] = 'Must contain at least 1 special character (!@#$%^&*)'
 
     return JsonResponse(data)
 
-
 def user_login(request):
     return render(request,'login.html')
-import re
 
-import re
-from django.contrib import messages
-from django.shortcuts import redirect
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
+
+
+
 
 def login_post(request):
     login_input = request.POST.get('name', '').strip()
