@@ -46,6 +46,14 @@ class PrivacyPolicy(models.Model):
 
     def __str__(self):
         return "Privacy Policy"
+
+class FAQ(models.Model):
+    question = models.CharField(max_length=300)
+    answer = CKEditor5Field('Answer', config_name='default')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.question
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=120, unique=True, blank=True)

@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Delete Review</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+body {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.glass-card {
+    backdrop-filter: blur(25px);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 25px;
+    padding: 45px;
+    width: 100%;
+    max-width: 650px;
+    color: #f8fafc;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.review-info {
+    background: rgba(255,255,255,0.05);
+    padding: 25px;
+    border-radius: 18px;
+    margin-bottom: 30px;
+    font-size: 15px;
+}
+
+.review-info p {
+    margin-bottom: 8px;
+}
+
+.rating-badge {
+    background: #22c55e;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-danger {
+    border-radius: 50px;
+    padding: 10px 28px;
+    font-weight: 600;
+    background: linear-gradient(45deg, #dc2626, #ef4444);
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-danger:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(239,68,68,0.5);
+}
+
+.btn-secondary {
+    border-radius: 50px;
+    padding: 10px 28px;
+    font-weight: 600;
+    background: #334155;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
+</style>
+</head>
+
+<body>
+
+<div class="glass-card text-center">
+
+    <h3 class="mb-3 text-danger fw-bold">
+        <i class="bi bi-exclamation-triangle-fill"></i> Confirm Delete
+    </h3>
+
+    <p class="mb-4 text-light opacity-75">
+        You are about to permanently delete this review.
+    </p>
+
+    <div class="review-info text-start">
+        <p><strong>Product:</strong> {{ review.product }}</p>
+        <p><strong>Customer:</strong> {{ review.name }}</p>
+        <p><strong>Email:</strong> {{ review.email }}</p>
+        <p>
+            <strong>Rating:</strong> 
+            <span class="rating-badge">{{ review.rating }} ★</span>
+        </p>
+        <p><strong>Message:</strong><br> {{ review.message }}</p>
+        <p><strong>Date:</strong> {{ review.created_at|date:"d M Y" }}</p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger me-3">
+            <i class="bi bi-trash-fill"></i> Yes, Delete Review
+        </button>
+
+        <a href="{% url 'review_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Cancel
+        </a>
+    </form>
+
+</div>
+
+</body>
+</html>

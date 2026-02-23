@@ -1476,3 +1476,19 @@ def privacy_page(request):
     privacy = PrivacyPolicy.objects.first()
     return render(request, "privacy_page.html", {"privacy": privacy})
 
+
+@staff_member_required
+def review_list(request):
+    reviews = Review.objects.select_related('product').order_by('-created_at')
+    return render(request, 'review_list.html', {'reviews': reviews})
+
+
+@staff_member_required
+def delete_review(request, id):
+    review = get_object_or_404(Review, id=id)
+
+    if request.method == "POST":
+        review.delete()
+        return redirect('review_list')
+
+    return render(request, 'delete_review.html', {'review': review})
