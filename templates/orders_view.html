@@ -1,4 +1,3 @@
-<!-- ONLY CHANGED PARTS ARE MARKED WITH FIX COMMENT -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-/* ====== YOUR ORIGINAL STYLE (UNCHANGED) ====== */
 body {
     background: #f4f6fb;
     font-family: 'Poppins', sans-serif;
@@ -76,12 +74,20 @@ body {
 .slip-title h2 { letter-spacing: 4px; font-weight: 700; }
 .slip-title .sub { letter-spacing: 6px; margin-top: -8px; }
 
+/* ✅ FIX: prevent alignment break on long text */
 .slip-row {
     display: flex;
     justify-content: space-between;
     margin-top: 15px;
+    align-items: flex-start;
 }
-.slip-col { width: 48%; font-size: 14px; }
+.slip-col {
+    width: 48%;
+    font-size: 14px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
 
 hr { border: 1px solid #000; margin: 15px 0; }
 
@@ -186,7 +192,6 @@ onclick="window.location.href='{% url 'order_detail' order.id %}'">
 
 <td>{{ order.created_at|date:"d M Y" }}</td>
 
-<!-- ✅ FIX: print allowed for all non-cancelled orders -->
 <td>
 {% if not order.is_cancelled %}
 <button class="btn btn-sm btn-dark"
@@ -274,7 +279,6 @@ items: [
 };
 
 function printOrder(orderId) {
-
 const order = ordersData[orderId];
 if (!order) return;
 
@@ -286,7 +290,6 @@ document.getElementById("printOrderId").innerText = order.id;
 document.getElementById("printTotal").innerText = order.total;
 document.getElementById("printDate").innerText = order.date;
 
-/* ✅ FIX: show COD / Razorpay correctly */
 if (order.payment === "cod") {
     document.getElementById("printPayment").innerText = "COD";
 } else if (order.payment === "razorpay") {
