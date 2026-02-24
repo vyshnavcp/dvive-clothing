@@ -15,7 +15,6 @@ class Registration(models.Model):
     user_name=models.CharField(max_length=200)
     email=models.EmailField(max_length=80,unique=True)
     phone=models.CharField(max_length=20)
-    password=models.CharField(max_length=25)
     authuser=models.ForeignKey(User,on_delete=models.CASCADE)
     def __str__(self):
         return self.user_name

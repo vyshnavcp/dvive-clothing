@@ -647,33 +647,49 @@ def register(request):
     return render(request,'register.html')
 
 def reg_post(request):
-    name=request.POST['name']
-    email=request.POST['email']
-    password=request.POST['password']
-    phone=request.POST['phone']
-    user=User.objects.create_user(  username=email,email=email,password=password,first_name=name )
-    gp=Group.objects.get(name='registration')
+    name = request.POST['name']
+    email = request.POST['email']
+    password = request.POST['password']
+    phone = request.POST['phone']
+
+    # Create Django User (password automatically hashed)
+    user = User.objects.create_user(
+        username=email,
+        email=email,
+        password=password,
+        first_name=name
+    )
+
+    # Add to registration group
+    gp = Group.objects.get(name='registration')
     user.groups.add(gp)
     user.save()
+
+    # Send welcome email
     send_mail(
-    subject="Account Created Successfully",
-    message=(
-        "Dear Customer,\n\n"
-        "Welcome to our eCommerce platform!\n\n"
-        "Your account has been created successfully and you can now start shopping with us.\n\n"
-        "Use your registered email address to log in and explore our wide range of products, exclusive offers, and fast checkout experience.\n\n"
-        "If you need any assistance, feel free to contact our support team.\n\n"
-        "Happy Shopping!\n"
-        "Regards,\n"
-        "eCommerce Support Team"
-    ),from_email=settings.EMAIL_HOST_USER,recipient_list=[email],)
-    database=Registration()
-    database.user_name=name
-    database.email=email
-    database.phone=phone
-    database.password=password
-    database.authuser=user
-    database.save()
+        subject="Account Created Successfully",
+        message=(
+            "Dear Customer,\n\n"
+            "Welcome to our eCommerce platform!\n\n"
+            "Your account has been created successfully and you can now start shopping with us.\n\n"
+            "Use your registered email address to log in and explore our wide range of products.\n\n"
+            "If you need any assistance, feel free to contact our support team.\n\n"
+            "Happy Shopping!\n"
+            "Regards,\n"
+            "eCommerce Support Team"
+        ),
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[email],
+    )
+
+    # Save extra details in Registration model
+    Registration.objects.create(
+        user_name=name,
+        email=email,
+        phone=phone,
+        authuser=user
+    )
+
     return redirect('user_login')
 import re
 
@@ -732,62 +748,39 @@ def user_login(request):
 
 
 
-
-
 def login_post(request):
     login_input = request.POST.get('name', '').strip()
     password = request.POST.get('password', '').strip()
 
-    # ✅ Username validation
+    # Basic validation only
     if not login_input:
         messages.error(request, "Username or Email is required")
         return redirect('user_login')
 
-    if len(login_input) < 3:
-        messages.error(request, "Username must be at least 3 characters")
-        return redirect('user_login')
-
-    # ✅ Password validation (UPDATED — no lowercase required)
     if not password:
         messages.error(request, "Password is required")
         return redirect('user_login')
 
-    if len(password) < 8:
-        messages.error(request, "Password must be at least 8 characters")
-        return redirect('user_login')
-
-    if not re.search(r'[A-Z]', password):
-        messages.error(request, "Password must contain at least 1 uppercase letter")
-        return redirect('user_login')
-
-    if not re.search(r'[0-9]', password):
-        messages.error(request, "Password must contain at least 1 number")
-        return redirect('user_login')
-
-    if not re.search(r'[!@#$%^&*]', password):
-        messages.error(request, "Password must contain at least 1 special character")
-        return redirect('user_login')
-
-    # ---- YOUR ORIGINAL CODE CONTINUES BELOW (UNCHANGED) ----
-
+    # Case-insensitive email check
     try:
-        user_obj = User.objects.get(email=login_input)
+        user_obj = User.objects.get(email__iexact=login_input)
         username = user_obj.username
     except User.DoesNotExist:
         username = login_input
 
+    # Authenticate
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
         login(request, user)
 
+        # Admin
         if user.is_staff or user.is_superuser:
             return redirect("dashboard")
 
-        elif user.groups.filter(name='registration').exists():
-            return redirect('home')
-        else:
-            return redirect('user_login')
+        # Normal users
+        return redirect("home")
+
     else:
         messages.error(request, "Invalid username or password")
         return redirect('user_login')
