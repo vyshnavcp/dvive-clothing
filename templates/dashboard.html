@@ -100,13 +100,13 @@
                                     <td><a href="{% url 'order_detail' order.id %}" class="fw-semibold text-decoration-none">{{ order.first_name }}</a></td>
                                     <td class="fw-semibold">₹ {{ order.total }}</td>
                                     <td>
-                                        {% if order.payment_method == "Razorpay" %}
+                                        {% if order.payment_method|lower == "razorpay" %}
                                             <span style="color: green; font-weight: 600;">
                                                 Razorpay
                                             </span>
                                         {% else %}
                                             <span style="color: #ff9800; font-weight: 600;">
-                                                Cash on Delivery
+                                                Cod
                                             </span>
                                         {% endif %}
                                     </td>

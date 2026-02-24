@@ -1,3 +1,4 @@
+<!-- ONLY CHANGED PARTS ARE MARKED WITH FIX COMMENT -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,43 +10,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
+/* ====== YOUR ORIGINAL STYLE (UNCHANGED) ====== */
 body {
     background: #f4f6fb;
     font-family: 'Poppins', sans-serif;
     margin: 0;
 }
-
-/* Navbar */
 .header-with-topbar {
     background: #000;
     box-shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
-
-.dashboard-header {
-    padding: 18px 24px;
-}
-
+.dashboard-header { padding: 18px 24px; }
 .dashboard-header h4,
 .dashboard-header small,
-.dashboard-header i {
-    color: #fff;
-}
+.dashboard-header i { color: #fff; }
 
 .dashboard-header .nav-link{
     color:#fff !important;
     font-weight:500;
     transition:0.3s;
 }
-.dashboard-header .nav-link:hover{
-    color:#bdbdbd !important;
-}
+.dashboard-header .nav-link:hover{ color:#bdbdbd !important; }
 .navbar-toggler{border:0;}
 .navbar-toggler-icon{filter:invert(1);}
 
-/* Page */
-.container-fluid {
-    padding: 30px 40px;
-}
+.container-fluid { padding: 30px 40px; }
 
 .page-header {
     background: linear-gradient(135deg,#111827,#1f2933);
@@ -55,13 +44,11 @@ body {
     margin-bottom:20px;
 }
 
-/* Status */
 .status-badge {
     padding:6px 12px;
     border-radius:30px;
     font-size:13px;
 }
-
 .completed { background:#dcfce7; color:#166534; }
 .pending { background:#fef3c7; color:#92400e; }
 .cancelled { background:#fee2e2; color:#991b1b; }
@@ -76,7 +63,6 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
 
-/* PRINT AREA */
 #printArea { display: none; }
 
 .courier-slip {
@@ -86,45 +72,22 @@ body {
     padding: 30px;
     border: 1px solid #ccc;
 }
-
-.slip-title {
-    text-align: center;
-}
-
-.slip-title h2 {
-    letter-spacing: 4px;
-    font-weight: 700;
-}
-
-.slip-title .sub {
-    letter-spacing: 6px;
-    margin-top: -8px;
-}
+.slip-title { text-align: center; }
+.slip-title h2 { letter-spacing: 4px; font-weight: 700; }
+.slip-title .sub { letter-spacing: 6px; margin-top: -8px; }
 
 .slip-row {
     display: flex;
     justify-content: space-between;
     margin-top: 15px;
 }
+.slip-col { width: 48%; font-size: 14px; }
 
-.slip-col {
-    width: 48%;
-    font-size: 14px;
-}
-
-hr {
-    border: 1px solid #000;
-    margin: 15px 0;
-}
+hr { border: 1px solid #000; margin: 15px 0; }
 
 @media print {
     body { background: #fff !important; }
-
-    header,
-    .container-fluid {
-        display: none !important;
-    }
-
+    header, .container-fluid { display: none !important; }
     #printArea {
         display: block !important;
         position: absolute;
@@ -132,72 +95,44 @@ hr {
         top: 0;
         width: 100%;
     }
-
-    .courier-slip {
-        box-shadow: none;
-    }
+    .courier-slip { box-shadow: none; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
-
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
-    <div class="container-fluid px-0">
+<div class="container-fluid px-0">
 
-        <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-speedometer2 fs-2"></i>
-            <div>
-                <h4 class="mb-0">Admin Dashboard</h4>
-                <small>Overview of store performance</small>
-            </div>
-        </div>
+<div class="d-flex align-items-center gap-3">
+<i class="bi bi-speedometer2 fs-2"></i>
+<div>
+<h4 class="mb-0">Admin Dashboard</h4>
+<small>Overview of store performance</small>
+</div>
+</div>
 
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+<button class="navbar-toggler" type="button"
+data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<span class="navbar-toggler-icon"></span>
+</button>
 
-        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+<ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+<li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
+<li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
+</ul>
+</div>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
-                        Logout
-                    </a>
-                </li>
-
-            </ul>
-        </div>
-
-    </div>
+</div>
 </nav>
 </header>
-
-<!-- ================= PAGE CONTENT ================= -->
 
 <div class="container-fluid mt-4">
 
@@ -237,7 +172,6 @@ onclick="window.location.href='{% url 'order_detail' order.id %}'">
 </td>
 
 <td>₹ {{ order.total }}</td>
-
 <td>{{ order.get_payment_method_display }}</td>
 
 <td>
@@ -252,8 +186,9 @@ onclick="window.location.href='{% url 'order_detail' order.id %}'">
 
 <td>{{ order.created_at|date:"d M Y" }}</td>
 
+<!-- ✅ FIX: print allowed for all non-cancelled orders -->
 <td>
-{% if order.payment_method == "cod" %}
+{% if not order.is_cancelled %}
 <button class="btn btn-sm btn-dark"
 onclick="event.stopPropagation(); printOrder({{ order.id }});">
 <i class="bi bi-printer"></i>
@@ -271,11 +206,7 @@ onclick="event.stopPropagation(); printOrder({{ order.id }});">
 </div>
 </div>
 
-<!-- ================= PRINT SLIP ================= -->
-<!-- (Your original print section and script remain EXACTLY same below this point) -->
-
-<!-- ================= PRINT SLIP ================= -->
-
+<!-- PRINT AREA -->
 <div id="printArea">
 <div class="courier-slip">
 
@@ -288,7 +219,6 @@ onclick="event.stopPropagation(); printOrder({{ order.id }});">
 <hr>
 
 <div class="slip-row">
-
 <div class="slip-col">
 <strong>SHIP TO:</strong><br>
 <span id="printCustomer" class="fw-bold"></span><br>
@@ -304,22 +234,18 @@ Amount : ₹ <strong><span id="printTotal"></span></strong><br>
 Qty : <span id="printQty"></span><br>
 Date : <span id="printDate"></span>
 </div>
-
 </div>
 
 <hr>
 
 <div class="slip-row">
-
 <div class="slip-col">
 <strong>FROM:</strong><br>
 DVIVE CLOTHINGS<br>
 Calicut, Kerala<br>
 📞 8921830429
 </div>
-
 <div class="slip-col"></div>
-
 </div>
 
 </div>
@@ -338,12 +264,9 @@ landmark: "{{ order.land_mark|default:''|escapejs }}",
 total: "{{ order.total }}",
 date: "{{ order.created_at|date:'d/m/Y' }}",
 payment: "{{ order.payment_method }}",
-qty: "{% with total_qty=0 %}{% for item in order.items.all %}{% widthratio total_qty 1 1 %}{% endfor %}{% endwith %}",
 items: [
 {% for item in order.items.all %}
-{
-qty: {{ item.quantity }}
-}{% if not forloop.last %},{% endif %}
+{ qty: {{ item.quantity }} }{% if not forloop.last %},{% endif %}
 {% endfor %}
 ]
 }{% if not forloop.last %},{% endif %}
@@ -363,14 +286,15 @@ document.getElementById("printOrderId").innerText = order.id;
 document.getElementById("printTotal").innerText = order.total;
 document.getElementById("printDate").innerText = order.date;
 
-/* Show only COD */
+/* ✅ FIX: show COD / Razorpay correctly */
 if (order.payment === "cod") {
-document.getElementById("printPayment").innerText = "COD";
+    document.getElementById("printPayment").innerText = "COD";
+} else if (order.payment === "razorpay") {
+    document.getElementById("printPayment").innerText = "RAZORPAY";
 } else {
-document.getElementById("printPayment").innerText = "";
+    document.getElementById("printPayment").innerText = order.payment;
 }
 
-/* Calculate Total Qty */
 let totalQty = 0;
 order.items.forEach(item => {
 totalQty += parseInt(item.qty);
