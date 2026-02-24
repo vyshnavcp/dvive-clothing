@@ -31,6 +31,17 @@ body {
     color: #fff;
 }
 
+.dashboard-header .nav-link{
+    color:#fff !important;
+    font-weight:500;
+    transition:0.3s;
+}
+.dashboard-header .nav-link:hover{
+    color:#bdbdbd !important;
+}
+.navbar-toggler{border:0;}
+.navbar-toggler-icon{filter:invert(1);}
+
 /* Page */
 .container-fluid {
     padding: 30px 40px;
@@ -68,7 +79,6 @@ body {
 /* PRINT AREA */
 #printArea { display: none; }
 
-/* Courier Slip */
 .courier-slip {
     width: 600px;
     margin: auto;
@@ -107,9 +117,7 @@ hr {
     margin: 15px 0;
 }
 
-/* PRINT FIX */
 @media print {
-
     body { background: #fff !important; }
 
     header,
@@ -134,19 +142,62 @@ hr {
 
 <body>
 
+<!-- ================= NAVBAR ================= -->
+
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
-<div class="container-fluid px-0">
-<div class="d-flex align-items-center gap-3">
-<i class="bi bi-speedometer2 fs-2"></i>
-<div>
-<h4 class="mb-0">Admin Dashboard</h4>
-<small>Overview of store performance</small>
-</div>
-</div>
-</div>
+    <div class="container-fluid px-0">
+
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-speedometer2 fs-2"></i>
+            <div>
+                <h4 class="mb-0">Admin Dashboard</h4>
+                <small>Overview of store performance</small>
+            </div>
+        </div>
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
+                        Logout
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+    </div>
 </nav>
 </header>
+
+<!-- ================= PAGE CONTENT ================= -->
 
 <div class="container-fluid mt-4">
 
@@ -219,6 +270,9 @@ onclick="event.stopPropagation(); printOrder({{ order.id }});">
 </div>
 </div>
 </div>
+
+<!-- ================= PRINT SLIP ================= -->
+<!-- (Your original print section and script remain EXACTLY same below this point) -->
 
 <!-- ================= PRINT SLIP ================= -->
 
