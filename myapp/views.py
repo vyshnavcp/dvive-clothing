@@ -1383,7 +1383,7 @@ def dashboard(request):
 
     return render(request, "dashboard.html", context)
 
-    return render(request, "dashboard.html", context)
+
 def order_list(request):
     orders = Order.objects.all().order_by('-created_at')
 
