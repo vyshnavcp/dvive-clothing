@@ -12,22 +12,26 @@
 body {
     background: #f4f6fb;
     font-family: 'Poppins', sans-serif;
+    margin: 0;
 }
 
-/* Header */
+/* Navbar */
 .header-with-topbar {
     background: #000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 
 .dashboard-header {
     padding: 18px 24px;
 }
 
-.nav-white {
-    color: #fff !important;
+.dashboard-header h4,
+.dashboard-header small,
+.dashboard-header i {
+    color: #fff;
 }
 
-/* Table */
+/* Table section */
 .container-fluid {
     padding: 30px 40px;
 }
@@ -40,86 +44,136 @@ body {
     margin-bottom:20px;
 }
 
-/* Row clickable */
+/* Status badge */
+.status-badge {
+    padding:6px 12px;
+    border-radius:30px;
+    font-size:13px;
+}
+
+.completed { background:#dcfce7; color:#166534; }
+.pending { background:#fef3c7; color:#92400e; }
+.cancelled { background:#fee2e2; color:#991b1b; }
+
+/* ===============================
+   Stylish Hover Effects
+================================ */
+
 .order-row {
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .order-row:hover {
-    background-color: #f3f4f6;
+    background: #ffffff;
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 
-/* Print Area */
-#printArea {
-    display: none;
+.order-row td {
+    transition: all 0.3s ease;
 }
 
-@media print {
-    body * {
-        visibility: hidden;
-    }
-
-    #printArea, #printArea * {
-        visibility: visible;
-    }
-
-    #printArea {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
+.order-row:hover td {
+    color: #111827;
 }
 
-/* Premium Slip */
+/* Customer name highlight */
+.order-row td:first-child {
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.order-row:hover td:first-child {
+    color: #000;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ===============================
+   Print Slip
+================================ */
+
+#printArea { display:none; }
+
 .print-slip {
-    width: 700px;
-    margin: auto;
-    padding: 30px;
+    width: 400px;
     font-family: 'Poppins', sans-serif;
+    padding: 20px;
+    border: 1px solid #000;
 }
 
 .print-slip h3 {
     text-align: center;
-    font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .print-slip table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
 }
 
 .print-slip table th,
 .print-slip table td {
     border: 1px solid #000;
-    padding: 8px;
+    padding: 6px 8px;
     font-size: 14px;
+}
+
+.nav-white {
+    color: #ffffff !important;
+    font-weight: 500;
 }
 </style>
 </head>
 
 <body>
 
+<header class="header-with-topbar">
+<nav class="navbar dashboard-header navbar-expand-lg">
+<div class="container-fluid px-0">
+<div class="d-flex align-items-center gap-3">
+<i class="bi bi-speedometer2 fs-2"></i>
+<div>
+<h4 class="mb-0">Admin Dashboard</h4>
+<small>Overview of store performance</small>
+</div>
+</div>
+
+<div class="collapse navbar-collapse justify-content-end">
+<ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+<li class="nav-item"><a class="nav-link nav-white" href="{% url 'dashboard' %}">Home</a></li>
+<li class="nav-item"><a class="nav-link nav-white" href="{% url 'order_list' %}">Orders</a></li>
+<li class="nav-item"><a class="nav-link nav-white" href="{% url 'paid_orders' %}">Paid</a></li>
+<li class="nav-item"><a class="nav-link nav-white" href="{% url 'pending_orders' %}">Pending</a></li>
+<li class="nav-item"><a class="nav-link nav-white" href="{% url 'customer_list' %}">Customers</a></li>
+<li class="nav-item"><a class="nav-link nav-white" href="{% url 'user_logout' %}">Logout</a></li>
+</ul>
+</div>
+</div>
+</nav>
+</header>
+
 <div class="container-fluid mt-4">
 
 <div class="page-header d-flex justify-content-between align-items-center">
-    <h4>{{ title }}</h4>
-    <i class="bi bi-receipt fs-2"></i>
+<h4>{{ title }}</h4>
+<i class="bi bi-receipt fs-2"></i>
 </div>
 
 <div class="card shadow-sm">
 <div class="card-body p-0">
-
 <table class="table mb-0 align-middle">
 <thead class="table-light">
 <tr>
-    <th>Customer</th>
-    <th>Total</th>
-    <th>Payment</th>
-    <th>Status</th>
-    <th>Date</th>
-    <th>Print</th>
+<th>Customer</th>
+<th>Contact</th>
+<th>Address</th>
+<th>Total</th>
+<th>Payment</th>
+<th>Status</th>
+<th>Date</th>
+<th>Print</th>
 </tr>
 </thead>
 
@@ -128,55 +182,67 @@ body {
 <tr class="order-row"
     onclick="window.location.href='{% url 'order_detail' order.id %}'">
 
-    <td>{{ order.first_name }}</td>
-    <td>₹ {{ order.total }}</td>
-    <td>{{ order.get_payment_method_display }}</td>
+<td>{{ order.first_name }}</td>
 
-    <td>
-        {% if order.is_cancelled %}
-            Cancelled
-        {% elif order.is_delivered %}
-            Delivered
-        {% else %}
-            Pending
-        {% endif %}
-    </td>
+<td>{{ order.email }}<br>{{ order.phone }}</td>
 
-    <td>{{ order.created_at|date:"d M Y" }}</td>
+<td>
+{{ order.address }}<br>
+{{ order.town }}, {{ order.state }} - {{ order.pincode }}<br>
+{% if order.land_mark %}
+<small><strong>Landmark:</strong> {{ order.land_mark }}</small>
+{% endif %}
+</td>
 
-    <td>
-        <button class="btn btn-sm btn-dark"
-                onclick="printOrder(event, {{ order.id }})">
-            <i class="bi bi-printer"></i>
-        </button>
-    </td>
+<td>₹ {{ order.total }}</td>
 
+<td>
+{% if order.payment_method == "razorpay" %}
+<span style="color: green; font-weight: 600;">Razorpay</span>
+{% else %}
+<span style="color: #ff9800; font-weight: 600;">Cod</span>
+{% endif %}
+</td>
+
+<td>
+{% if order.is_cancelled %}
+<span class="status-badge cancelled">Cancelled</span>
+{% elif order.is_delivered %}
+<span class="status-badge completed">Delivered</span>
+{% else %}
+<span class="status-badge pending">Pending</span>
+{% endif %}
+</td>
+
+<td>{{ order.created_at|date:"d M Y" }}</td>
+
+<td>
+<button class="btn btn-sm btn-primary"
+        onclick="event.stopPropagation(); printOrder({{ order.id }});">
+<i class="bi bi-printer"></i> Print
+</button>
+</td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="8" class="text-center py-4">No orders found</td>
 </tr>
 {% endfor %}
 </tbody>
-
 </table>
 </div>
 </div>
 </div>
 
-
-<!-- PRINT AREA -->
+<!-- PRINT -->
 <div id="printArea">
 <div class="print-slip">
+<h3>Dvive Clothing Calicut</h3>
 
-<h3>DVIVE CLOTHING - PACKING SLIP</h3>
-
-<p><strong>Order ID:</strong> <span id="printOrderId"></span></p>
 <p><strong>Customer:</strong> <span id="printCustomer"></span></p>
-<p><strong>Phone:</strong> <span id="printPhone"></span></p>
-
-<p><strong>Shipping Address:</strong><br>
-<span id="printShipping"></span><br>
-<strong>Landmark:</strong> <span id="printLandmark"></span>
-</p>
-
-<hr>
+<p><strong>Delivery Address:</strong><br><span id="printShipping"></span></p>
+<p><strong>Landmark:</strong> <span id="printLandmark"></span></p>
 
 <table>
 <thead>
@@ -190,76 +256,57 @@ body {
 </table>
 
 <hr>
-
 <p><strong>Total:</strong> ₹<span id="printTotal"></span></p>
 <p><strong>Payment:</strong> <span id="printPayment"></span></p>
-
 </div>
 </div>
-
 
 <script>
 const ordersData = {
 {% for order in orders %}
 {{ order.id }}: {
-    customer: "{{ order.first_name|escapejs }}",
-    phone: "{{ order.phone|escapejs }}",
-    address: "{{ order.address|escapejs }}",
-    town: "{{ order.town|escapejs }}",
-    state: "{{ order.state|escapejs }}",
-    pincode: "{{ order.pincode|escapejs }}",
-    landmark: "{{ order.land_mark|default:''|escapejs }}",
-    total: "{{ order.total }}",
-    payment: "{{ order.get_payment_method_display|escapejs }}",
-    items: [
-        {% for item in order.items.all %}
-        {
-            name: "{{ item.product.name|escapejs }}",
-            qty: "{{ item.quantity }}",
-            price: "{{ item.price }}"
-        },
-        {% endfor %}
-    ]
+shipping: `{{ order.address|escapejs }}
+{{ order.town|escapejs }}, {{ order.state|escapejs }} - {{ order.pincode|escapejs }}`,
+landmark: "{{ order.land_mark|default:''|escapejs }}",
+customer: "{{ order.first_name|escapejs }}",
+total: "{{ order.total }}",
+payment: "{{ order.get_payment_method_display|escapejs }}",
+items: [
+{% for item in order.items.all %}
+{ name: "{{ item.product.name|escapejs }}", qty: "{{ item.quantity }}", price: "{{ item.price }}" },
+{% endfor %}
+]
 },
 {% endfor %}
 };
 
-function printOrder(event, orderId) {
+function printOrder(orderId) {
+const order = ordersData[orderId];
+if (!order) return;
 
-    event.stopPropagation();  // ✅ Prevent redirect
+document.getElementById("printCustomer").innerText = order.customer;
+document.getElementById("printShipping").innerText = order.shipping;
+document.getElementById("printLandmark").innerText = order.landmark || "N/A";
+document.getElementById("printTotal").innerText = order.total;
+document.getElementById("printPayment").innerText = order.payment;
 
-    const order = ordersData[orderId];
-    if (!order) return;
+let itemsHtml = "";
+order.items.forEach(item => {
+itemsHtml += `
+<tr>
+<td>${item.name}</td>
+<td>${item.qty}</td>
+<td>₹${item.price}</td>
+</tr>`;
+});
+document.getElementById("printItems").innerHTML = itemsHtml;
 
-    document.getElementById("printOrderId").innerText = orderId;
-    document.getElementById("printCustomer").innerText = order.customer;
-    document.getElementById("printPhone").innerText = order.phone;
-
-    document.getElementById("printShipping").innerText =
-        order.address + ", " +
-        order.town + ", " +
-        order.state + " - " +
-        order.pincode;
-
-    document.getElementById("printLandmark").innerText =
-        order.landmark ? order.landmark : "N/A";
-
-    document.getElementById("printTotal").innerText = order.total;
-    document.getElementById("printPayment").innerText = order.payment;
-
-    let itemsHtml = "";
-    order.items.forEach(item => {
-        itemsHtml += `
-        <tr>
-            <td>${item.name}</td>
-            <td>${item.qty}</td>
-            <td>₹${item.price}</td>
-        </tr>`;
-    });
-
-    document.getElementById("printItems").innerHTML = itemsHtml;
-
-    window.print();
+const printContents = document.getElementById("printArea").innerHTML;
+const originalContents = document.body.innerHTML;
+document.body.innerHTML = printContents;
+window.print();
+document.body.innerHTML = originalContents;
+location.reload();
 }
 </script>
 
