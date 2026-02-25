@@ -1,44 +1,194 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Cash on Delivery</title>
-    <style>
-        body {
-            font-family: Poppins;
-            background: #f4f6f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .success-box {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .success-box h1 {
-            color: #ff9800;
-            margin-bottom: 10px;
-        }
-        .success-box p {
-            color: #555;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Order Placed Successfully</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#fff3e0,#ffe0b2);
+}
+
+/* Card */
+.success-card{
+    width:430px;
+    background:#fff;
+    border-radius:20px;
+    padding:45px 40px;
+    text-align:center;
+    box-shadow:0 25px 60px rgba(0,0,0,0.12);
+    animation:fadeIn .6s ease;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(25px);}
+    to{opacity:1;transform:translateY(0);}
+}
+
+/* Icon */
+.icon-circle{
+    width:85px;
+    height:85px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ff9800,#ffb74d);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    color:#fff;
+    box-shadow:0 12px 30px rgba(255,152,0,.35);
+}
+
+/* Title */
+.success-title{
+    font-size:26px;
+    font-weight:600;
+    color:#333;
+    margin-bottom:6px;
+}
+
+/* Subtitle */
+.success-sub{
+    color:#777;
+    font-size:14px;
+    margin-bottom:28px;
+}
+
+/* Order Box */
+.order-box{
+    background:#fafafa;
+    border-radius:14px;
+    padding:18px 20px;
+    text-align:left;
+    margin-bottom:28px;
+    border:1px solid #f0f0f0;
+}
+
+.order-row{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+    font-size:14px;
+    color:#555;
+}
+
+.order-row:last-child{
+    margin-bottom:0;
+}
+
+.order-label{
+    font-weight:500;
+    color:#888;
+}
+
+.order-value{
+    font-weight:600;
+    color:#333;
+}
+
+/* Note */
+.note{
+    font-size:13px;
+    color:#888;
+    margin-bottom:28px;
+}
+
+/* Buttons (same as payment page) */
+.btn-group{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+}
+
+.btn{
+    padding:12px 24px;
+    border-radius:50px;
+    font-size:14px;
+    font-weight:500;
+    text-decoration:none;
+    transition:.3s;
+}
+
+.btn-primary{
+    background:linear-gradient(135deg,#ff9800,#ffb74d);
+    color:#fff;
+    box-shadow:0 8px 20px rgba(255,152,0,.35);
+}
+
+.btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 28px rgba(255,152,0,.45);
+}
+
+.btn-secondary{
+    background:#f3f4f6;
+    color:#111;
+}
+
+.btn-secondary:hover{
+    background:#e5e7eb;
+}
+
+/* Responsive */
+@media(max-width:480px){
+    .success-card{
+        width:92%;
+        padding:35px 25px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-<div class="success-box">
-    <h1>📦 Order Placed (Cash on Delivery)</h1>
-    <p><strong>Order ID:</strong> {{ order.id }}</p>
-    <p><strong>Total Amount:</strong> ₹{{ order.total }}</p>
-    <p><strong>Payment Method:</strong> Cash on Delivery</p>
+<div class="success-card">
 
-    <p>Please keep the cash ready when your order is delivered.</p>
+    <div class="icon-circle">📦</div>
 
-    <br>
-    <a href="{% url 'home' %}">Continue Shopping</a>
+    <div class="success-title">Order Placed Successfully</div>
+    <div class="success-sub">Cash on Delivery Selected</div>
+
+    {% if order %}
+    <div class="order-box">
+        <div class="order-row">
+            <span class="order-label">Order ID</span>
+            <span class="order-value">#{{ order.id }}</span>
+        </div>
+        <div class="order-row">
+            <span class="order-label">Total Amount</span>
+            <span class="order-value">₹{{ order.total }}</span>
+        </div>
+        <div class="order-row">
+            <span class="order-label">Payment</span>
+            <span class="order-value">Cash on Delivery</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="note">
+        Please keep the cash ready when your order arrives.<br>
+        Our delivery partner will contact you before delivery.
+    </div>
+
+    <div class="btn-group">
+        <a href="{% url 'home' %}" class="btn btn-primary">Continue Shopping</a>
+    </div>
+
 </div>
 
 </body>
