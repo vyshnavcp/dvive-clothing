@@ -9,35 +9,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body { background: #f4f6fb; font-family: 'Poppins', sans-serif; margin: 0; }
-.header-with-topbar { background: #000; box-shadow: 0 4px 20px rgba(0,0,0,0.35); }
-.dashboard-header { padding: 18px 24px; }
-.dashboard-header h4,.dashboard-header small,.dashboard-header i { color: #fff; }
-.dashboard-header .nav-link{ color:#fff !important; font-weight:500; transition:0.3s;}
-.dashboard-header .nav-link:hover{ color:#bdbdbd !important;}
+body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
+.header-with-topbar {background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.35);}
+.dashboard-header{padding:18px 24px;}
+.dashboard-header h4,.dashboard-header small,.dashboard-header i{color:#fff;}
+.dashboard-header .nav-link{color:#fff!important;font-weight:500;transition:.3s;}
+.dashboard-header .nav-link:hover{color:#bdbdbd!important;}
 .navbar-toggler{border:0;}
 .navbar-toggler-icon{filter:invert(1);}
-.container-fluid { padding: 30px 40px; }
-.page-header { background: linear-gradient(135deg,#111827,#1f2933); color:#fff; padding:20px; border-radius:12px; margin-bottom:20px;}
-.status-badge { padding:6px 12px; border-radius:30px; font-size:13px;}
-.completed { background:#dcfce7; color:#166534;}
-.pending { background:#fef3c7; color:#92400e;}
-.cancelled { background:#fee2e2; color:#991b1b;}
-.order-row { cursor:pointer; transition:0.3s ease;}
-.order-row:hover { background:#fff; transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.08);}
-#printArea { display:none;}
-.courier-slip { width:600px; margin:auto; background:#fff; padding:30px; border:1px solid #ccc;}
-.slip-title { text-align:center;}
-.slip-title h2 { letter-spacing:4px; font-weight:700;}
-.slip-title .sub { letter-spacing:6px; margin-top:-8px;}
-.slip-row { display:flex; justify-content:space-between; margin-top:15px; align-items:flex-start;}
-.slip-col { width:48%; font-size:14px; word-wrap:break-word; overflow-wrap:break-word; white-space:normal;}
-hr { border:1px solid #000; margin:15px 0;}
-@media print {
-body { background:#fff !important;}
-header,.container-fluid { display:none !important;}
-#printArea { display:block !important; position:absolute; left:0; top:0; width:100%;}
-.courier-slip { box-shadow:none;}
+.container-fluid{padding:30px 40px;}
+
+.page-header{background:linear-gradient(135deg,#111827,#1f2933);color:#fff;padding:20px;border-radius:12px;margin-bottom:20px;}
+
+.status-badge{padding:6px 12px;border-radius:30px;font-size:13px;}
+.completed{background:#dcfce7;color:#166534;}
+.pending{background:#fef3c7;color:#92400e;}
+.cancelled{background:#fee2e2;color:#991b1b;}
+
+.order-row{cursor:pointer;transition:.3s ease;}
+.order-row:hover{background:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.08);}
+
+#printArea,#billArea{display:none;}
+
+.courier-slip{width:600px;margin:auto;background:#fff;padding:30px;border:1px solid #ccc;}
+.slip-title{text-align:center;}
+.slip-title h2{letter-spacing:4px;font-weight:700;}
+.slip-title .sub{letter-spacing:6px;margin-top:-8px;}
+
+.slip-row{display:flex;justify-content:space-between;margin-top:15px;align-items:flex-start;}
+.slip-col{width:48%;font-size:14px;word-wrap:break-word;overflow-wrap:break-word;}
+
+hr{border:1px solid #000;margin:15px 0;}
+
+@media print{
+body{background:#fff!important;}
+header,.container-fluid{display:none!important;}
+body.print-slip #printArea{display:block!important;}
+body.print-bill #billArea{display:block!important;}
 }
 </style>
 </head>
@@ -47,7 +55,6 @@ header,.container-fluid { display:none !important;}
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
 <div class="container-fluid px-0">
-
 <div class="d-flex align-items-center gap-3">
 <i class="bi bi-speedometer2 fs-2"></i>
 <div>
@@ -56,8 +63,7 @@ header,.container-fluid { display:none !important;}
 </div>
 </div>
 
-<button class="navbar-toggler" type="button"
-data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
 <span class="navbar-toggler-icon"></span>
 </button>
 
@@ -71,13 +77,11 @@ data-bs-toggle="collapse" data-bs-target="#adminNavbar">
 <li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
 </ul>
 </div>
-
 </div>
 </nav>
 </header>
 
 <div class="container-fluid mt-4">
-
 <div class="page-header d-flex justify-content-between align-items-center">
 <h4>{{ title }}</h4>
 <i class="bi bi-receipt fs-2"></i>
@@ -94,17 +98,14 @@ data-bs-toggle="collapse" data-bs-target="#adminNavbar">
 <th>Payment</th>
 <th>Status</th>
 <th>Date</th>
-<th>Slip_Print</th>
+<th>Print</th>
 </tr>
 </thead>
 
 <tbody>
 {% for order in orders %}
-<tr class="order-row"
-onclick="window.location.href='{% url 'order_detail' order.id %}'">
-
+<tr class="order-row" onclick="window.location.href='{% url 'order_detail' order.id %}'">
 <td>{{ order.first_name }}</td>
-
 <td>
 {{ order.address }}<br>
 {{ order.town }}, {{ order.state }} - {{ order.pincode }}<br>
@@ -130,9 +131,12 @@ onclick="window.location.href='{% url 'order_detail' order.id %}'">
 
 <td>
 {% if not order.is_cancelled %}
-<button class="btn btn-sm btn-dark"
-onclick="event.stopPropagation(); printOrder({{ order.id }});">
+<button class="btn btn-sm btn-dark" onclick="event.stopPropagation();printOrder({{ order.id }});">
 <i class="bi bi-printer"></i>
+</button>
+
+<button class="btn btn-sm btn-outline-dark ms-1" onclick="event.stopPropagation();printBill({{ order.id }});">
+<i class="bi bi-receipt"></i>
 </button>
 {% else %}
 <span class="text-muted">—</span>
@@ -147,10 +151,9 @@ onclick="event.stopPropagation(); printOrder({{ order.id }});">
 </div>
 </div>
 
-<!-- PRINT AREA -->
+<!-- SLIP -->
 <div id="printArea">
 <div class="courier-slip">
-
 <div class="slip-title">
 <h2>DVIVE</h2>
 <div class="sub">CLOTHINGS</div>
@@ -162,7 +165,7 @@ onclick="event.stopPropagation(); printOrder({{ order.id }});">
 <div class="slip-row">
 <div class="slip-col">
 <strong>SHIP TO:</strong><br>
-<span id="printCustomer" class="fw-bold"></span><br>
+<span id="printCustomer"></span><br>
 <span id="printShipping"></span><br>
 <strong>Landmark:</strong> <span id="printLandmark"></span><br>
 📞 <span id="printPhone"></span>
@@ -173,7 +176,6 @@ Order ID : <strong>#<span id="printOrderId"></span></strong><br>
 Payment : <strong id="printPayment"></strong><br>
 Amount : ₹ <strong><span id="printTotal"></span></strong><br>
 Qty : <span id="printQty"></span><br>
-Products : <span id="printProducts"></span><br>
 Date : <span id="printDate"></span>
 </div>
 </div>
@@ -187,30 +189,78 @@ DVIVE CLOTHINGS<br>
 Calicut, Kerala<br>
 📞 8921830429
 </div>
-<div class="slip-col"></div>
+</div>
+</div>
 </div>
 
+<!-- BILL -->
+<div id="billArea">
+<div style="width:750px;margin:auto;background:#fff;padding:40px;border:1px solid #ccc;">
+<div style="text-align:center;">
+<img src="/static/images/dvive-new.png" style="height:70px;margin-bottom:10px;">
+<h2 style="letter-spacing:3px;margin:0;">DVIVE</h2>
+<div style="letter-spacing:6px;margin-top:-6px;">CLOTHINGS</div>
+<small>Calicut, Kerala • 8921830429</small>
+</div>
+
+<hr>
+
+<div style="display:flex;justify-content:space-between;margin-top:20px;">
+<div>
+<strong>Bill To:</strong><br>
+<span id="billCustomer"></span><br>
+<span id="billShipping"></span><br>
+📞 <span id="billPhone"></span>
+</div>
+
+<div style="text-align:right;">
+Bill No: #<span id="billOrderId"></span><br>
+Date: <span id="billDate"></span><br>
+Payment: <span id="billPayment"></span>
+</div>
+</div>
+
+<table style="width:100%;margin-top:20px;border-collapse:collapse;">
+<thead>
+<tr style="background:#000;color:#fff;">
+<th style="padding:8px;border:1px solid #ddd;">Product</th>
+<th style="padding:8px;border:1px solid #ddd;">Brand</th>
+<th style="padding:8px;border:1px solid #ddd;">Code</th>
+<th style="padding:8px;border:1px solid #ddd;">Qty</th>
+<th style="padding:8px;border:1px solid #ddd;text-align:right;">Price</th>
+<th style="padding:8px;border:1px solid #ddd;text-align:right;">Total</th>
+</tr>
+</thead>
+<tbody id="billItems"></tbody>
+</table>
+
+<div style="text-align:right;margin-top:20px;">
+Subtotal : ₹ <span id="billSubtotal"></span><br>
+<strong>Grand Total : ₹ <span id="billTotal"></span></strong>
+</div>
 </div>
 </div>
 
 <script>
 const ordersData = {
 {% for order in orders %}
-{{ order.id }}: {
-id: "{{ order.id }}",
-customer: "{{ order.first_name|escapejs }}",
-phone: "{{ order.phone|escapejs }}",
-shipping: `{{ order.address|escapejs }},
-{{ order.town|escapejs }}, {{ order.state|escapejs }} - {{ order.pincode|escapejs }}`,
-landmark: "{{ order.land_mark|default:''|escapejs }}",
-total: "{{ order.total }}",
-date: "{{ order.created_at|date:'d/m/Y' }}",
-payment: "{{ order.payment_method }}",
-items: [
+{{ order.id }}:{
+id:"{{ order.id }}",
+customer:"{{ order.first_name|escapejs }}",
+phone:"{{ order.phone|escapejs }}",
+shipping:`{{ order.address|escapejs }}, {{ order.town|escapejs }}, {{ order.state|escapejs }} - {{ order.pincode|escapejs }}`,
+landmark:"{{ order.land_mark|default:''|escapejs }}",
+total:"{{ order.total }}",
+date:"{{ order.created_at|date:'d/m/Y' }}",
+payment:"{{ order.payment_method }}",
+items:[
 {% for item in order.items.all %}
 {
-name: "{{ item.product.name|escapejs }}",
-qty: {{ item.quantity }}
+name:"{{ item.product.name|escapejs }}",
+brand:"{{ item.product.brand|escapejs }}",
+code:"{{ item.product.code|escapejs }}",
+price:{{ item.price }},
+qty:{{ item.quantity }}
 }{% if not forloop.last %},{% endif %}
 {% endfor %}
 ]
@@ -218,38 +268,51 @@ qty: {{ item.quantity }}
 {% endfor %}
 };
 
-function printOrder(orderId) {
-const order = ordersData[orderId];
-if (!order) return;
-
-document.getElementById("printCustomer").innerText = order.customer;
-document.getElementById("printPhone").innerText = order.phone;
-document.getElementById("printShipping").innerText = order.shipping;
-document.getElementById("printLandmark").innerText = order.landmark || "N/A";
-document.getElementById("printOrderId").innerText = order.id;
-document.getElementById("printTotal").innerText = order.total;
-document.getElementById("printDate").innerText = order.date;
-
-if (order.payment === "cod") {
-document.getElementById("printPayment").innerText = "COD";
-} else if (order.payment === "razorpay") {
-document.getElementById("printPayment").innerText = "RAZORPAY";
-} else {
-document.getElementById("printPayment").innerText = order.payment;
+function printOrder(id){
+const o=ordersData[id];
+document.body.className="print-slip";
+document.getElementById("printCustomer").innerText=o.customer;
+document.getElementById("printPhone").innerText=o.phone;
+document.getElementById("printShipping").innerText=o.shipping;
+document.getElementById("printLandmark").innerText=o.landmark||"N/A";
+document.getElementById("printOrderId").innerText=o.id;
+document.getElementById("printTotal").innerText=o.total;
+document.getElementById("printDate").innerText=o.date;
+document.getElementById("printPayment").innerText=o.payment.toUpperCase();
+let q=0;o.items.forEach(i=>q+=i.qty);
+document.getElementById("printQty").innerText=q;
+window.print();
+location.reload();
 }
 
-let totalQty = 0;
-let productList = [];
+function printBill(id){
+const o=ordersData[id];
+document.body.className="print-bill";
+document.getElementById("billCustomer").innerText=o.customer;
+document.getElementById("billPhone").innerText=o.phone;
+document.getElementById("billShipping").innerText=o.shipping;
+document.getElementById("billOrderId").innerText=o.id;
+document.getElementById("billDate").innerText=o.date;
+document.getElementById("billPayment").innerText=o.payment.toUpperCase();
 
-order.items.forEach(item => {
-totalQty += parseInt(item.qty);
-productList.push(item.name);
+let rows="",subtotal=0;
+o.items.forEach(i=>{
+let t=i.price*i.qty;subtotal+=t;
+rows+=`<tr>
+<td style="border:1px solid #ddd;padding:6px;">${i.name}</td>
+<td style="border:1px solid #ddd;padding:6px;">${i.brand}</td>
+<td style="border:1px solid #ddd;padding:6px;">${i.code}</td>
+<td style="border:1px solid #ddd;padding:6px;">${i.qty}</td>
+<td style="border:1px solid #ddd;padding:6px;text-align:right;">₹ ${i.price}</td>
+<td style="border:1px solid #ddd;padding:6px;text-align:right;">₹ ${t}</td>
+</tr>`;
 });
-
-document.getElementById("printQty").innerText = totalQty;
-document.getElementById("printProducts").innerText = productList.join(", ");
+document.getElementById("billItems").innerHTML=rows;
+document.getElementById("billSubtotal").innerText=subtotal;
+document.getElementById("billTotal").innerText=o.total;
 
 window.print();
+location.reload();
 }
 </script>
 
