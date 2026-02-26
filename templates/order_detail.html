@@ -199,11 +199,18 @@
             </div>
 
             <!-- ✅ ADDED ONLY THIS -->
+         
             <div class="card shadow-sm p-4 mb-4">
                 <h5 class="info-title">Products</h5>
                 <hr>
                 {% for item in order.items.all %}
-                    <p class="mb-1">{{ item.product.name }} × {{ item.quantity }}</p>
+                    <p class="mb-1">
+                        {{ item.product.name }} × {{ item.quantity }}<br>
+                        <small class="text-muted">
+                            Brand: {{ item.product.brand }} |
+                            Code: {{ item.product.product_code }}
+                        </small>
+                    </p>
                 {% empty %}
                     <p class="text-muted">No products found.</p>
                 {% endfor %}
