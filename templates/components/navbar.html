@@ -115,7 +115,42 @@
                                     <div class="d-lg-flex mega-menu m-auto flex-column">
                                         <div
                                             class="row row-cols-1 row-cols-lg-5 row-cols-md-3 row-cols-sm-3 mb-50px md-mb-25px xs-mb-15px">
+                                            
+                                            {% for cat in nav_categories %}
                                             <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">{{ cat.name }}</li>
+
+                                                    {% for sub in cat.subcategories.all %}
+                                                    <li>
+                                                        <a href="{% url 'filter_by_subcategory' sub.slug %}">
+                                                            {{ sub.name }}
+                                                        </a>
+                                                    </li>
+                                                    {% endfor %}
+
+                                                </ul>
+                                            </div>
+                                            {% endfor %}
+                                            
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Men</li>
+                                                    <li>
+                                                        <span class="text-muted fst-italic">Upcoming collection</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Kids</li>
+                                                    <li>
+                                                        <span class="text-muted fst-italic">Upcoming collection</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <!-- <div class="col">
                                                 <ul>
                                                     <li class="sub-title">Men</li>
                                                     <li><a href="#">Jeans</a></li>
@@ -128,17 +163,6 @@
                                             </div>
                                             <div class="col">
                                                 <ul>
-                                                    <li class="sub-title">Women</li>
-                                                    <li><a href="#">Dupattas</a></li>
-                                                    <li><a href="#">Leggings</a></li>
-                                                    <li><a href="#">Ethnic wear</a></li>
-                                                    <li><a href="#">Kurtas & suits</a></li>
-                                                    <li><a href="#">Western wear</a></li>
-                                                    <li><a href="#">Dress materials</a></li>
-                                                </ul>
-                                            </div>
-                                            <div class="col">
-                                                <ul>
                                                     <li class="sub-title">Kids</li>
                                                     <li><a href="#">Dresses</a></li>
                                                     <li><a href="#">Jumpsuits</a></li>
@@ -147,29 +171,7 @@
                                                     <li><a href="#">Value packs</a></li>
                                                     <li><a href="#">Loungewear</a></li>
                                                 </ul>
-                                            </div>
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Divided</li>
-                                                    <li><a href="#">Tops</a></li>
-                                                    <li><a href="#">Dresses</a></li>
-                                                    <li><a href="#">Shorts</a></li>
-                                                    <li><a href="#">Swimwear</a></li>
-                                                    <li><a href="#">Jeans</a></li>
-                                                    <li><a href="#">Jackets</a></li>
-                                                </ul>
-                                            </div>
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Accessories</li>
-                                                    <li><a href="#">Shoes</a></li>
-                                                    <li><a href="#">Scarves</a></li>
-                                                    <li><a href="#">Watches</a></li>
-                                                    <li><a href="#">Wristwear</a></li>
-                                                    <li><a href="#">Backpacks</a></li>
-                                                    <li><a href="#">Sunglasses</a></li>
-                                                </ul>
-                                            </div>
+                                            </div> -->
                                         </div>
                                         <div class="row row-cols-1 row-cols-sm-2">
                                             <div class="col">

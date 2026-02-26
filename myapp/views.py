@@ -34,8 +34,9 @@ def home(request):
    best_seller_products = Product.objects.filter(is_best_seller=True)[:5]
    featured_product= Product.objects.filter(is_featured=True)[:5]
    signature_products = Product.objects.filter( is_signature_collection=True,status=True)[:8]
+   categories = Category.objects.prefetch_related("subcategories").all()
 
-   return render(request, "home.html", {'blogs': blogs,'best_seller_products': best_seller_products,'featured_product':featured_product,'signature_products': signature_products,})
+   return render(request, "home.html", {'blogs': blogs,'best_seller_products': best_seller_products,'featured_product':featured_product,'signature_products': signature_products,"categories": categories})
 
 
 def about(request):

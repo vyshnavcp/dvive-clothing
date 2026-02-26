@@ -1,4 +1,4 @@
-from .models import Cart,SubCategory
+from .models import Cart, Category,SubCategory
 
 
 def cart_count(request):
@@ -24,4 +24,12 @@ def footer_categories(request):
     categories = SubCategory.objects.all()
     return {
         'footer_categories': categories
+    }
+def navbar_categories(request):
+    """
+    Adds categories with subcategories for navbar mega menu
+    """
+    categories = Category.objects.prefetch_related("subcategories").all()
+    return {
+        "nav_categories": categories
     }
