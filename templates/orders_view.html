@@ -9,99 +9,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body {
-    background: #f4f6fb;
-    font-family: 'Poppins', sans-serif;
-    margin: 0;
-}
-.header-with-topbar {
-    background: #000;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-}
+body { background: #f4f6fb; font-family: 'Poppins', sans-serif; margin: 0; }
+.header-with-topbar { background: #000; box-shadow: 0 4px 20px rgba(0,0,0,0.35); }
 .dashboard-header { padding: 18px 24px; }
-.dashboard-header h4,
-.dashboard-header small,
-.dashboard-header i { color: #fff; }
-
-.dashboard-header .nav-link{
-    color:#fff !important;
-    font-weight:500;
-    transition:0.3s;
-}
-.dashboard-header .nav-link:hover{ color:#bdbdbd !important; }
+.dashboard-header h4,.dashboard-header small,.dashboard-header i { color: #fff; }
+.dashboard-header .nav-link{ color:#fff !important; font-weight:500; transition:0.3s;}
+.dashboard-header .nav-link:hover{ color:#bdbdbd !important;}
 .navbar-toggler{border:0;}
 .navbar-toggler-icon{filter:invert(1);}
-
 .container-fluid { padding: 30px 40px; }
-
-.page-header {
-    background: linear-gradient(135deg,#111827,#1f2933);
-    color:#fff;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
-}
-
-.status-badge {
-    padding:6px 12px;
-    border-radius:30px;
-    font-size:13px;
-}
-.completed { background:#dcfce7; color:#166534; }
-.pending { background:#fef3c7; color:#92400e; }
-.cancelled { background:#fee2e2; color:#991b1b; }
-
-.order-row {
-    cursor: pointer;
-    transition: 0.3s ease;
-}
-.order-row:hover {
-    background: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-}
-
-#printArea { display: none; }
-
-.courier-slip {
-    width: 600px;
-    margin: auto;
-    background: #fff;
-    padding: 30px;
-    border: 1px solid #ccc;
-}
-.slip-title { text-align: center; }
-.slip-title h2 { letter-spacing: 4px; font-weight: 700; }
-.slip-title .sub { letter-spacing: 6px; margin-top: -8px; }
-
-/* ✅ FIX: prevent alignment break on long text */
-.slip-row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-    align-items: flex-start;
-}
-.slip-col {
-    width: 48%;
-    font-size: 14px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
-}
-
-hr { border: 1px solid #000; margin: 15px 0; }
-
+.page-header { background: linear-gradient(135deg,#111827,#1f2933); color:#fff; padding:20px; border-radius:12px; margin-bottom:20px;}
+.status-badge { padding:6px 12px; border-radius:30px; font-size:13px;}
+.completed { background:#dcfce7; color:#166534;}
+.pending { background:#fef3c7; color:#92400e;}
+.cancelled { background:#fee2e2; color:#991b1b;}
+.order-row { cursor:pointer; transition:0.3s ease;}
+.order-row:hover { background:#fff; transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.08);}
+#printArea { display:none;}
+.courier-slip { width:600px; margin:auto; background:#fff; padding:30px; border:1px solid #ccc;}
+.slip-title { text-align:center;}
+.slip-title h2 { letter-spacing:4px; font-weight:700;}
+.slip-title .sub { letter-spacing:6px; margin-top:-8px;}
+.slip-row { display:flex; justify-content:space-between; margin-top:15px; align-items:flex-start;}
+.slip-col { width:48%; font-size:14px; word-wrap:break-word; overflow-wrap:break-word; white-space:normal;}
+hr { border:1px solid #000; margin:15px 0;}
 @media print {
-    body { background: #fff !important; }
-    header, .container-fluid { display: none !important; }
-    #printArea {
-        display: block !important;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
-    .courier-slip { box-shadow: none; }
+body { background:#fff !important;}
+header,.container-fluid { display:none !important;}
+#printArea { display:block !important; position:absolute; left:0; top:0; width:100%;}
+.courier-slip { box-shadow:none;}
 }
 </style>
 </head>
@@ -158,7 +94,7 @@ data-bs-toggle="collapse" data-bs-target="#adminNavbar">
 <th>Payment</th>
 <th>Status</th>
 <th>Date</th>
-<th>Print</th>
+<th>Slip_Print</th>
 </tr>
 </thead>
 
@@ -237,6 +173,7 @@ Order ID : <strong>#<span id="printOrderId"></span></strong><br>
 Payment : <strong id="printPayment"></strong><br>
 Amount : ₹ <strong><span id="printTotal"></span></strong><br>
 Qty : <span id="printQty"></span><br>
+Products : <span id="printProducts"></span><br>
 Date : <span id="printDate"></span>
 </div>
 </div>
@@ -271,7 +208,10 @@ date: "{{ order.created_at|date:'d/m/Y' }}",
 payment: "{{ order.payment_method }}",
 items: [
 {% for item in order.items.all %}
-{ qty: {{ item.quantity }} }{% if not forloop.last %},{% endif %}
+{
+name: "{{ item.product.name|escapejs }}",
+qty: {{ item.quantity }}
+}{% if not forloop.last %},{% endif %}
 {% endfor %}
 ]
 }{% if not forloop.last %},{% endif %}
@@ -291,18 +231,23 @@ document.getElementById("printTotal").innerText = order.total;
 document.getElementById("printDate").innerText = order.date;
 
 if (order.payment === "cod") {
-    document.getElementById("printPayment").innerText = "COD";
+document.getElementById("printPayment").innerText = "COD";
 } else if (order.payment === "razorpay") {
-    document.getElementById("printPayment").innerText = "RAZORPAY";
+document.getElementById("printPayment").innerText = "RAZORPAY";
 } else {
-    document.getElementById("printPayment").innerText = order.payment;
+document.getElementById("printPayment").innerText = order.payment;
 }
 
 let totalQty = 0;
+let productList = [];
+
 order.items.forEach(item => {
 totalQty += parseInt(item.qty);
+productList.push(item.name);
 });
+
 document.getElementById("printQty").innerText = totalQty;
+document.getElementById("printProducts").innerText = productList.join(", ");
 
 window.print();
 }

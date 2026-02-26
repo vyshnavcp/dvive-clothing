@@ -15,8 +15,6 @@
             margin: 0;
         }
 
-        /* ===== NAVBAR SAME STYLE ===== */
-
         .header-with-topbar {
             background: #000;
             box-shadow: 0 4px 20px rgba(0,0,0,0.35);
@@ -49,8 +47,6 @@
         .navbar-toggler-icon {
             filter: invert(1);
         }
-
-        /* ===== PAGE ===== */
 
         .page-container {
             padding: 30px 40px;
@@ -93,8 +89,6 @@
 </head>
 
 <body>
-
-<!-- ===== ADMIN NAVBAR ===== -->
 
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
@@ -149,8 +143,6 @@
 </nav>
 </header>
 
-<!-- ===== PAGE CONTENT ===== -->
-
 <div class="page-container">
 
     {% if messages %}
@@ -184,7 +176,6 @@
 
     <div class="row">
 
-        <!-- LEFT -->
         <div class="col-md-8">
 
             <div class="card shadow-sm p-4 mb-4">
@@ -207,9 +198,19 @@
                 </p>
             </div>
 
+            <!-- ✅ ADDED ONLY THIS -->
+            <div class="card shadow-sm p-4 mb-4">
+                <h5 class="info-title">Products</h5>
+                <hr>
+                {% for item in order.items.all %}
+                    <p class="mb-1">{{ item.product.name }} × {{ item.quantity }}</p>
+                {% empty %}
+                    <p class="text-muted">No products found.</p>
+                {% endfor %}
+            </div>
+
         </div>
 
-        <!-- RIGHT -->
         <div class="col-md-4">
 
             <div class="card shadow-sm p-4 mb-4">

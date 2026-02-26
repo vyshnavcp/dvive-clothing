@@ -27,6 +27,7 @@ from django.template.loader import render_to_string
 from django.db import IntegrityError
 from .forms import FAQForm, PrivacyForm,TermsForm
 import re
+from django.views.decorators.http import require_POST
 
 
 def home(request):
@@ -54,10 +55,7 @@ def blog(request):
 def blog_detail(request, slug):
     blog_detail = get_object_or_404(Article, slug=slug)
     return render(request, 'blog_detail.html', {'blog': blog_detail})
-import re
-from django.http import JsonResponse
-from django.shortcuts import render
-from .models import Contact
+
 
 def contact(request):
     if request.method == "POST":
@@ -560,8 +558,6 @@ def delete_article(request, slug):
     return redirect('article_list')
 
 
-
-
 def product_detail(request, slug):
     product = Product.objects.filter(slug=slug).first()
 
@@ -623,7 +619,7 @@ def product_detail(request, slug):
         'rating_percent': rating_percent,
         'related_products': related_products,
     })
-from django.views.decorators.http import require_POST
+
 
 @login_required
 @require_POST
