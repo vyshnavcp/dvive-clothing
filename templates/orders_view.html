@@ -153,44 +153,44 @@ body.print-bill #billArea{display:block!important;}
 
 <!-- SLIP -->
 <div id="printArea">
-<div class="courier-slip">
-<div class="slip-title">
-<h2>DVIVE</h2>
-<div class="sub">CLOTHINGS</div>
-<small>Instagram: @DVIVE_CLOTHINGS</small>
-</div>
+  <div class="courier-slip">
+    <div class="slip-title">
+      <h2>DVIVE</h2>
+      <div class="sub">CLOTHINGS</div>
+      <small>Instagram: @DVIVE_CLOTHINGS</small>
+    </div>
 
-<hr>
+    <hr>
 
-<div class="slip-row">
-<div class="slip-col">
-<strong>SHIP TO:</strong><br>
-<span id="printCustomer"></span><br>
-<span id="printShipping"></span><br>
-<strong>Landmark:</strong> <span id="printLandmark"></span><br>
-📞 <span id="printPhone"></span>
-</div>
+    <div class="slip-row">
+      <div class="slip-col">
+        <strong>SHIP TO:</strong><br>
+        <span id="printCustomer"></span><br>
+        <span id="printShipping"></span><br>
+        <strong>Landmark:</strong> <span id="printLandmark"></span><br>
+        📞 <span id="printPhone"></span>
+      </div>
 
-<div class="slip-col">
-Order ID : <strong>#<span id="printOrderId"></span></strong><br>
-Payment : <strong id="printPayment"></strong><br>
-Amount : ₹ <strong><span id="printTotal"></span></strong><br>
-Qty : <span id="printQty"></span><br>
-Date : <span id="printDate"></span>
-</div>
-</div>
+      <div class="slip-col">
+        Order ID : <strong>#<span id="printOrderId"></span></strong><br>
+        Payment : <strong id="printPayment"></strong><br>
+        Amount : ₹ <strong><span id="printTotal"></span></strong><br>
+        <strong>Items:</strong>
+        <div id="printItems"></div>
+      </div>
+    </div>
 
-<hr>
+    <hr>
 
-<div class="slip-row">
-<div class="slip-col">
-<strong>FROM:</strong><br>
-DVIVE CLOTHINGS<br>
-Calicut, Kerala<br>
-📞 8921830429
-</div>
-</div>
-</div>
+    <div class="slip-row">
+      <div class="slip-col">
+        <strong>FROM:</strong><br>
+        DVIVE CLOTHINGS<br>
+        Calicut, Kerala<br>
+        📞 8921830429
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- BILL -->
@@ -258,7 +258,7 @@ items:[
 {
 name:"{{ item.product.name|escapejs }}",
 brand:"{{ item.product.brand|escapejs }}",
-code:"{{ item.product.code|escapejs }}",
+code:"{{ item.product.product_code|escapejs }}",
 price:{{ item.price }},
 qty:{{ item.quantity }}
 }{% if not forloop.last %},{% endif %}
@@ -269,36 +269,47 @@ qty:{{ item.quantity }}
 };
 
 function printOrder(id){
-const o=ordersData[id];
-document.body.className="print-slip";
-document.getElementById("printCustomer").innerText=o.customer;
-document.getElementById("printPhone").innerText=o.phone;
-document.getElementById("printShipping").innerText=o.shipping;
-document.getElementById("printLandmark").innerText=o.landmark||"N/A";
-document.getElementById("printOrderId").innerText=o.id;
-document.getElementById("printTotal").innerText=o.total;
-document.getElementById("printDate").innerText=o.date;
-document.getElementById("printPayment").innerText=o.payment.toUpperCase();
-let q=0;o.items.forEach(i=>q+=i.qty);
-document.getElementById("printQty").innerText=q;
-window.print();
-location.reload();
+  const o=ordersData[id];
+  document.body.className="print-slip";
+  document.getElementById("printCustomer").innerText=o.customer;
+  document.getElementById("printPhone").innerText=o.phone;
+  document.getElementById("printShipping").innerText=o.shipping;
+  document.getElementById("printLandmark").innerText=o.landmark||"N/A";
+  document.getElementById("printOrderId").innerText=o.id;
+  document.getElementById("printTotal").innerText=o.total;
+  document.getElementById("printPayment").innerText=o.payment.toUpperCase();
+
+  // Fill items for slip
+  let itemsHtml="";
+  o.items.forEach(i=>{
+    itemsHtml += `
+      <div>
+        <strong>${i.name}</strong><br>
+        <small class="text-muted">
+          Brand: ${i.brand} | Code: ${i.code} | Qty: ${i.qty}
+        </small>
+      </div><br>
+    `;
+  });
+  document.getElementById("printItems").innerHTML=itemsHtml;
+
+  window.print();
 }
 
 function printBill(id){
-const o=ordersData[id];
-document.body.className="print-bill";
-document.getElementById("billCustomer").innerText=o.customer;
-document.getElementById("billPhone").innerText=o.phone;
-document.getElementById("billShipping").innerText=o.shipping;
-document.getElementById("billOrderId").innerText=o.id;
-document.getElementById("billDate").innerText=o.date;
-document.getElementById("billPayment").innerText=o.payment.toUpperCase();
+  const o=ordersData[id];
+  document.body.className="print-bill";
+  document.getElementById("billCustomer").innerText=o.customer;
+  document.getElementById("billPhone").innerText=o.phone;
+  document.getElementById("billShipping").innerText=o.shipping;
+  document.getElementById("billOrderId").innerText=o.id;
+  document.getElementById("billDate").innerText=o.date;
+  document.getElementById("billPayment").innerText=o.payment.toUpperCase();
 
-let rows="",subtotal=0;
-o.items.forEach(i=>{
-let t=i.price*i.qty;subtotal+=t;
-rows+=`<tr>
+  let rows="",subtotal=0;
+  o.items.forEach(i=>{
+    let t=i.price*i.qty; subtotal+=t;
+    rows += `<tr>
 <td style="border:1px solid #ddd;padding:6px;">${i.name}</td>
 <td style="border:1px solid #ddd;padding:6px;">${i.brand}</td>
 <td style="border:1px solid #ddd;padding:6px;">${i.code}</td>
@@ -306,13 +317,12 @@ rows+=`<tr>
 <td style="border:1px solid #ddd;padding:6px;text-align:right;">₹ ${i.price}</td>
 <td style="border:1px solid #ddd;padding:6px;text-align:right;">₹ ${t}</td>
 </tr>`;
-});
-document.getElementById("billItems").innerHTML=rows;
-document.getElementById("billSubtotal").innerText=subtotal;
-document.getElementById("billTotal").innerText=o.total;
+  });
+  document.getElementById("billItems").innerHTML=rows;
+  document.getElementById("billSubtotal").innerText=subtotal;
+  document.getElementById("billTotal").innerText=o.total;
 
-window.print();
-location.reload();
+  window.print();
 }
 </script>
 
