@@ -596,6 +596,13 @@ def product_detail(request, slug):
             subcategory=product.subcategory
         ).exclude(id=product.id)[:4]
 
+        # Prepare a list of product images that exist
+        product_images = []
+        for img_field in ['image1', 'image2', 'image3', 'image4', 'image5']:
+            img = getattr(product, img_field)
+            if img and hasattr(img, 'url'):
+                product_images.append(img.url)
+
     else:
         colors = []
         sizes = []
@@ -606,6 +613,7 @@ def product_detail(request, slug):
         total_reviews = 0
         rating_percent = {i: 0 for i in range(1, 6)}
         related_products = []
+        product_images = []
 
     return render(request, 'product_detail.html', {
         'product': product,
@@ -618,8 +626,8 @@ def product_detail(request, slug):
         'total_reviews': total_reviews,
         'rating_percent': rating_percent,
         'related_products': related_products,
+        'product_images': product_images,  # <-- pass safe list to template
     })
-
 
 @login_required
 @require_POST
