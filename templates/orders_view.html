@@ -47,6 +47,31 @@ header,.container-fluid{display:none!important;}
 body.print-slip #printArea{display:block!important;}
 body.print-bill #billArea{display:block!important;}
 }
+
+/* ===== 58mm Bill ===== */
+.thermal-bill{
+    width:58mm;
+    margin:auto;
+    font-family:monospace;
+    font-size:12px;
+    padding:8px;
+
+    border:2px solid #000;     /* ← adds border */
+    box-sizing:border-box;     /* ← prevents size overflow */
+}
+.thermal-bill h2{
+    text-align:center;
+    letter-spacing:3px;
+    margin:0;
+}
+.row-flex{
+    display:flex;
+    justify-content:space-between;
+}
+.center{text-align:center;}
+.bold{font-weight:bold;}
+.line{border-top:1px solid #000;margin:6px 0;}
+.small{font-size:11px;}
 </style>
 </head>
 
@@ -192,55 +217,61 @@ body.print-bill #billArea{display:block!important;}
     </div>
   </div>
 </div>
-
-<!-- BILL -->
+<!-- ================= 58MM BILL ================= -->
 <div id="billArea">
-<div style="width:750px;margin:auto;background:#fff;padding:40px;border:1px solid #ccc;">
-<div style="text-align:center;">
-<img src="/static/images/dvive-new.png" style="height:70px;margin-bottom:10px;">
-<h2 style="letter-spacing:3px;margin:0;">DVIVE</h2>
-<div style="letter-spacing:6px;margin-top:-6px;">CLOTHINGS</div>
-<small>Calicut, Kerala • 8921830429</small>
+<div class="thermal-bill">
+
+<h2>DVIVE</h2>
+<div class="center small">Calicut, Kerala</div>
+
+<div class="line"></div>
+
+<div class="row-flex small">
+<div id="billDate"></div>
+<div>#<span id="billOrderId"></span></div>
 </div>
 
-<hr>
+<div class="line"></div>
 
-<div style="display:flex;justify-content:space-between;margin-top:20px;">
-<div>
-<strong>Bill To:</strong><br>
-<span id="billCustomer"></span><br>
-<span id="billShipping"></span><br>
-📞 <span id="billPhone"></span>
-</div>
-
-<div style="text-align:right;">
-Bill No: #<span id="billOrderId"></span><br>
-Date: <span id="billDate"></span><br>
-Payment: <span id="billPayment"></span>
-</div>
+<div class="row-flex bold small">
+<div style="width:40%">ITEM</div>
+<div style="width:15%;text-align:center;">QTY</div>
+<div style="width:20%;text-align:right;">PRICE</div>
+<div style="width:25%;text-align:right;">TOTAL</div>
 </div>
 
-<table style="width:100%;margin-top:20px;border-collapse:collapse;">
-<thead>
-<tr style="background:#000;color:#fff;">
-<th style="padding:8px;border:1px solid #ddd;">Product</th>
-<th style="padding:8px;border:1px solid #ddd;">Brand</th>
-<th style="padding:8px;border:1px solid #ddd;">Code</th>
-<th style="padding:8px;border:1px solid #ddd;">Qty</th>
-<th style="padding:8px;border:1px solid #ddd;text-align:right;">Price</th>
-<th style="padding:8px;border:1px solid #ddd;text-align:right;">Total</th>
-</tr>
-</thead>
-<tbody id="billItems"></tbody>
-</table>
+<div class="line"></div>
 
-<div style="text-align:right;margin-top:20px;">
-Subtotal : ₹ <span id="billSubtotal"></span><br>
-<strong>Grand Total : ₹ <span id="billTotal"></span></strong>
-</div>
-</div>
+<div id="billItems"></div>
+
+<div class="line"></div>
+
+<div class="row-flex">
+<div>Subtotal</div>
+<div>₹ <span id="billSubtotal"></span></div>
 </div>
 
+<div class="line"></div>
+
+<div class="row-flex bold">
+<div>Total</div>
+<div>₹ <span id="billTotal"></span></div>
+</div>
+
+<div class="line"></div>
+
+<div class="row-flex">
+<div>Payment</div>
+<div id="billPayment"></div>
+</div>
+
+<br>
+<div class="center">
+Thank you for shopping!
+</div>
+
+</div>
+</div>
 <script>
 const ordersData = {
 {% for order in orders %}
@@ -324,6 +355,42 @@ function printBill(id){
 
   window.print();
 }
+function printBill(id){
+
+const o=ordersData[id];
+document.body.className="print-bill";
+
+document.getElementById("billDate").innerText=o.date;
+document.getElementById("billOrderId").innerText=o.id;
+document.getElementById("billPayment").innerText=o.payment.toUpperCase();
+
+let subtotal=0;
+let itemsHtml="";
+
+o.items.forEach(i=>{
+let total=i.price*i.qty;
+subtotal+=total;
+
+itemsHtml+=`
+<div class="row-flex small">
+<div style="width:40%">${i.name}</div>
+<div style="width:15%;text-align:center;">${i.qty}</div>
+<div style="width:20%;text-align:right;">₹${i.price}</div>
+<div style="width:25%;text-align:right;">₹${total}</div>
+</div>
+`;
+});
+
+document.getElementById("billItems").innerHTML=itemsHtml;
+document.getElementById("billSubtotal").innerText=subtotal;
+document.getElementById("billTotal").innerText=subtotal;
+
+setTimeout(()=>{
+window.print();
+document.body.className="";
+},200);
+}
+
 </script>
 
 </body>
