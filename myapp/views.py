@@ -27,6 +27,7 @@ from django.template.loader import render_to_string
 from django.db import IntegrityError
 from .forms import FAQForm, PrivacyForm,TermsForm
 import re
+import json
 from django.views.decorators.http import require_POST
 
 
@@ -1627,3 +1628,86 @@ def delete_faq(request, pk):
 def faq_page(request):
     faqs = FAQ.objects.all().order_by("created_at")
     return render(request, "faq_page.html", {"faqs": faqs})
+# POS PAGE
+@staff_member_required
+def pos_page(request):
+    products = Product.objects.filter(status=True)
+    return render(request, "pos.html", {"products": products})
+
+
+# CREATE POS ORDER
+@login_required
+def pos_create_order(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            items = data.get("items", [])
+            payment_method = data.get("payment_method")
+
+            if not items:
+                return JsonResponse({"status": "error", "message": "Cart empty"})
+
+            # ✅ Safe Registration (auto create if not exists)
+            registration, created = Registration.objects.get_or_create(
+                authuser=request.user,
+                defaults={
+                    "user_name": request.user.username,
+                    "email": request.user.email or "pos@store.com",
+                    "phone": "0000000000"
+                }
+            )
+
+            subtotal = Decimal("0.00")
+
+            # ✅ Create Order
+            order = Order.objects.create(
+                registration=registration,
+                first_name=registration.user_name,
+                email=registration.email,
+                phone=registration.phone,
+                address="POS Store Sale",
+                town="Store",
+                state="Store",
+                pincode="000000",
+                subtotal=Decimal("0.00"),
+                total=Decimal("0.00"),
+                payment_method="cod",
+                payment_status=True,
+                is_completed=True,
+                is_pos_order=True
+            )
+
+            # ✅ Create Order Items
+            for item in items:
+                product = Product.objects.get(id=item["id"])
+
+                if product.stock < item["quantity"]:
+                    return JsonResponse({
+                        "status": "error",
+                        "message": f"{product.name} stock not enough"
+                    })
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=item["quantity"],
+                    price=product.price
+                )
+
+                subtotal += product.price * item["quantity"]
+
+                # Reduce stock
+                product.stock -= item["quantity"]
+                product.save()
+
+            # Update totals
+            order.subtotal = subtotal
+            order.total = subtotal
+            order.save()
+
+            return JsonResponse({"status": "success"})
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+
+    return JsonResponse({"status": "error"})

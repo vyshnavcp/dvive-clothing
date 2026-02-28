@@ -127,6 +127,8 @@ urlpatterns = [
     path('dashboard/faq/add/', views.add_faq, name='add_faq'),
     path('dashboard/faq/edit/<int:pk>/', views.edit_faq, name='edit_faq'),
     path('dashboard/faq/delete/<int:pk>/', views.delete_faq, name='delete_faq'),
+     path("dashboard/pos/", views.pos_page, name="pos_page"),
+    path("dashboard/pos/create/", views.pos_create_order, name="pos_create_order"),
     path('faq/', views.faq_page, name='faq_page'),
     
     

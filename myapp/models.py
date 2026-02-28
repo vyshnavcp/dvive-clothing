@@ -304,6 +304,7 @@ class Order(models.Model):
     is_cancelled = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
+    is_pos_order = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Order #{self.id} - {self.payment_method}"
