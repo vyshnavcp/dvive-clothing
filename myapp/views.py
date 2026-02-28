@@ -751,19 +751,26 @@ def ajax_validate_register(request):
 def user_login(request):
     return render(request,'login.html')
 
-
-
 def login_post(request):
     login_input = request.POST.get('name', '').strip()
     password = request.POST.get('password', '').strip()
-
-    # Basic validation only
     if not login_input:
         messages.error(request, "Username or Email is required")
         return redirect('user_login')
-
     if not password:
         messages.error(request, "Password is required")
+        return redirect('user_login')
+    if len(password) < 8:
+        messages.error(request, "Minimum 8 characters required")
+        return redirect('user_login')
+    if not re.search(r'[A-Z]', password):
+        messages.error(request, "Must contain at least 1 uppercase letter")
+        return redirect('user_login')
+    if not re.search(r'[0-9]', password):
+        messages.error(request, "Must contain at least 1 number")
+        return redirect('user_login')
+    if not re.search(r'[!@#$%^&*]', password):
+        messages.error(request, "Must contain at least 1 special character (!@#$%^&*)")
         return redirect('user_login')
 
     # Case-insensitive email check
@@ -773,17 +780,14 @@ def login_post(request):
     except User.DoesNotExist:
         username = login_input
 
-    # Authenticate
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
         login(request, user)
 
-        # Admin
         if user.is_staff or user.is_superuser:
             return redirect("dashboard")
 
-        # Normal users
         return redirect("home")
 
     else:
