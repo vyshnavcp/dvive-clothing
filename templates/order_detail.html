@@ -14,77 +14,20 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
         }
-
-        .header-with-topbar {
-            background: #000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-        }
-
-        .dashboard-header {
-            padding: 18px 24px;
-        }
-
-        .dashboard-header h4,
-        .dashboard-header small,
-        .dashboard-header i {
-            color: #fff;
-        }
-
-        .dashboard-header .nav-link {
-            color: #fff !important;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-
-        .dashboard-header .nav-link:hover {
-            color: #bdbdbd !important;
-        }
-
-        .navbar-toggler {
-            border: 0;
-        }
-
-        .navbar-toggler-icon {
-            filter: invert(1);
-        }
-
-        .page-container {
-            padding: 30px 40px;
-        }
-
-        .header-box {
-            background: linear-gradient(135deg,#111827,#1f2933);
-            color: white;
-            padding: 20px;
-            border-radius: 14px;
-            margin-bottom: 25px;
-        }
-
-        .card {
-            border-radius: 16px;
-        }
-
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .completed {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .info-title {
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
+        .header-with-topbar { background: #000; box-shadow: 0 4px 20px rgba(0,0,0,0.35); }
+        .dashboard-header { padding: 18px 24px; }
+        .dashboard-header h4, .dashboard-header small, .dashboard-header i { color: #fff; }
+        .dashboard-header .nav-link { color: #fff !important; font-weight: 500; transition: 0.3s; }
+        .dashboard-header .nav-link:hover { color: #bdbdbd !important; }
+        .navbar-toggler { border: 0; }
+        .navbar-toggler-icon { filter: invert(1); }
+        .page-container { padding: 30px 40px; }
+        .header-box { background: linear-gradient(135deg,#111827,#1f2933); color: white; padding: 20px; border-radius: 14px; margin-bottom: 25px; }
+        .card { border-radius: 16px; }
+        .status-badge { padding: 6px 14px; border-radius: 30px; font-size: 13px; font-weight: 500; }
+        .completed { background: #dcfce7; color: #166534; }
+        .pending { background: #fef3c7; color: #92400e; }
+        .info-title { font-weight: 600; margin-bottom: 15px; }
     </style>
 </head>
 
@@ -109,33 +52,12 @@
 
         <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
             <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
-                        Logout
-                    </a>
-                </li>
-
+                <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
+                <li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
             </ul>
         </div>
 
@@ -147,9 +69,7 @@
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-success text-center">
-                {{ message }}
-            </div>
+            <div class="alert alert-success text-center">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
@@ -159,18 +79,20 @@
             <small>{{ order.created_at|date:"d M Y - h:i A" }}</small>
         </div>
 
-        {% if order.is_delivered %}
-            <span class="status-badge completed">
-                <i class="bi bi-check-circle"></i> Delivered
-            </span>
-        {% elif order.is_cancelled %}
-            <span class="status-badge pending">
-                <i class="bi bi-x-circle"></i> Cancelled
-            </span>
+        {% if order.is_pos_order %}
+            {% if order.payment_status %}
+                <span class="status-badge completed"><i class="bi bi-check-circle"></i> Paid</span>
+            {% else %}
+                <span class="status-badge pending"><i class="bi bi-clock"></i> Pending Payment</span>
+            {% endif %}
         {% else %}
-            <span class="status-badge pending">
-                <i class="bi bi-clock"></i> Pending
-            </span>
+            {% if order.is_delivered %}
+                <span class="status-badge completed"><i class="bi bi-check-circle"></i> Delivered</span>
+            {% elif order.is_cancelled %}
+                <span class="status-badge pending"><i class="bi bi-x-circle"></i> Cancelled</span>
+            {% else %}
+                <span class="status-badge pending"><i class="bi bi-clock"></i> Pending</span>
+            {% endif %}
         {% endif %}
     </div>
 
@@ -198,8 +120,6 @@
                 </p>
             </div>
 
-            <!-- ✅ ADDED ONLY THIS -->
-         
             <div class="card shadow-sm p-4 mb-4">
                 <h5 class="info-title">Products</h5>
                 <hr>
@@ -232,49 +152,57 @@
                 {% endif %}
 
                 <p><strong>Total:</strong> ₹ {{ order.total }}</p>
-
                 <hr>
 
-                <p><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
-
-                <p>
-                    <strong>Delivery Status:</strong>
-                    {% if order.is_delivered %}
-                        <span class="badge bg-success">Delivered</span>
-                    {% elif order.is_cancelled %}
-                        <span class="badge bg-danger">Cancelled</span>
+                <p><strong>Status:</strong> 
+                    {% if order.is_pos_order %}
+                        {% if order.payment_status %}
+                            Paid
+                        {% else %}
+                            Pending Payment
+                        {% endif %}
                     {% else %}
-                        <span class="badge bg-warning text-dark">Pending</span>
+                        {% if order.is_delivered %}
+                            Delivered
+                        {% elif order.is_cancelled %}
+                            Cancelled
+                        {% else %}
+                            Pending
+                        {% endif %}
                     {% endif %}
                 </p>
-
                 <hr>
 
                 {% if not order.is_delivered and not order.is_cancelled %}
-
-                    <form method="POST" action="{% url 'mark_order_completed' order.id %}" class="mb-2">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-check-circle"></i> Mark as Completed
-                        </button>
-                    </form>
+                    {% if order.is_pos_order and not order.payment_status %}
+                        <!-- POS order pending payment -->
+                        <form method="POST" action="{% url 'pos_payment_complete' order.id %}" class="mb-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-cash-stack"></i> Mark Payment Complete
+                            </button>
+                        </form>
+                    {% else %}
+                        <!-- Regular order or POS already paid -->
+                        <form method="POST" action="{% url 'mark_order_completed' order.id %}" class="mb-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-circle"></i> Mark as Completed
+                            </button>
+                        </form>
+                    {% endif %}
 
                     <form method="POST" action="{% url 'cancel_order' order.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger w-100">
+                        <button type="submit" class="btn btn-danger w-100 mt-2">
                             <i class="bi bi-x-circle"></i> Cancel Order
                         </button>
                     </form>
 
                 {% elif order.is_cancelled %}
-                    <div class="alert alert-danger text-center mt-2">
-                        Order Cancelled
-                    </div>
-
+                    <div class="alert alert-danger text-center mt-2">Order Cancelled</div>
                 {% else %}
-                    <div class="alert alert-success text-center mt-2">
-                        Order Already Completed
-                    </div>
+                    <div class="alert alert-success text-center mt-2">Order Already Completed</div>
                 {% endif %}
 
             </div>

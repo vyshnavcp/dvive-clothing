@@ -1351,41 +1351,55 @@ def my_orders(request):
 
 
 
+
+
 @login_required(login_url='user_login')
 def dashboard(request):
     today = now().date()
 
+    # Get all orders
     orders = Order.objects.all().order_by('-created_at')
 
-    # Revenue calculations
-    paid_orders = orders.filter(payment_status=True)
+    # Only count orders which are not cancelled for revenue
+    paid_orders = orders.filter(payment_status=True, is_cancelled=False)
 
-    total_revenue = paid_orders.aggregate(
-        total=Sum("total")
-    )["total"] or 0
+    # Total revenue (exclude cancelled orders)
+    total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
 
-    today_revenue = paid_orders.filter(
-        created_at__date=today
-    ).aggregate(
-        total=Sum("total")
-    )["total"] or 0
+    # Today's revenue (exclude cancelled orders)
+    today_revenue = paid_orders.filter(created_at__date=today).aggregate(total=Sum("total"))["total"] or 0
+
+    # Total number of orders
+    total_orders = orders.count()
+
+    # Number of paid orders (exclude cancelled)
+    total_paid_orders = paid_orders.count()
+
+    # Number of pending orders (payment not done and not cancelled)
+    pending_orders = orders.filter(payment_status=False, is_cancelled=False).count()
+
+    # POS orders pending payment
+    pos_pending_payment = orders.filter(is_pos_order=True, payment_status=False, is_cancelled=False).count()
+
+    # Total customers
+    total_customers = Registration.objects.count()
+
+    # Total products
+    total_products = Product.objects.count()
 
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
-
-        "total_orders": orders.count(),
-        "paid_orders": paid_orders.count(),
-        "pending_orders": orders.filter(payment_status=False).count(),
-
-        "total_customers": Registration.objects.count(),
-        "total_products": Product.objects.count(),
-
+        "total_orders": total_orders,
+        "paid_orders": total_paid_orders,
+        "pending_orders": pending_orders,
+        "pos_pending_payment": pos_pending_payment,  # NEW
+        "total_customers": total_customers,
+        "total_products": total_products,
         "orders": orders,
     }
 
     return render(request, "dashboard.html", context)
-
 
 def order_list(request):
     orders = Order.objects.all().order_by('-created_at')
@@ -1414,7 +1428,13 @@ def pending_orders(request):
 
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    return render(request, "order_detail.html", {"order": order})
+    # Payment buttons for POS orders
+    show_pos_payment_buttons = order.is_pos_order and not order.payment_status
+
+    return render(request, "order_detail.html", {
+        "order": order,
+        "show_pos_payment_buttons": show_pos_payment_buttons,
+    })
 
 
 
@@ -1432,7 +1452,26 @@ def mark_order_completed(request, order_id):
     order.save()
 
     return redirect('dashboard')
+@login_required
+def pos_payment_complete(request, order_id):
+    order = get_object_or_404(Order, id=order_id, is_pos_order=True)
+    if request.method == "POST" and not order.payment_status:
+        order.payment_status = True
+        order.is_completed = True
+        order.save()
+        messages.success(request, f"POS Payment for Order #{order.id} marked as complete.")
+    return redirect("order_detail", order_id=order.id)
+def cancel_pos_payment(request, order_id):
+    order = get_object_or_404(Order, id=order_id, is_pos_order=True)
+    if order.payment_status:
+        # Deduct revenue logic here if you have a revenue model
+        order.payment_status = False
+        order.is_completed = False
+        order.is_cancelled = True
+        order.save()
 
+        messages.warning(request, f"POS Payment for Order #{order.id} has been canceled.")
+    return redirect("order_detail", order_id=order.id)
 
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)

@@ -129,6 +129,7 @@ urlpatterns = [
     path('dashboard/faq/delete/<int:pk>/', views.delete_faq, name='delete_faq'),
      path("dashboard/pos/", views.pos_page, name="pos_page"),
     path("dashboard/pos/create/", views.pos_create_order, name="pos_create_order"),
+    path("order/<int:order_id>/pos-complete/", views.pos_payment_complete, name="pos_payment_complete"),
     path('faq/', views.faq_page, name='faq_page'),
     
     
