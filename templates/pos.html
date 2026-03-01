@@ -10,13 +10,19 @@
 
 <h3 class="mb-4">POS Billing</h3>
 
+<div class="row mb-3">
+    <div class="col-md-7">
+        <input type="text" id="productSearch" class="form-control" placeholder="Search by name or code" onkeyup="filterProducts()">
+    </div>
+</div>
+
 <div class="row">
 
     <!-- PRODUCTS -->
     <div class="col-md-7">
-        <div class="row">
+        <div class="row" id="productGrid">
             {% for product in products %}
-            <div class="col-md-4 mb-3">
+            <div class="col-md-4 mb-3 product-card" data-name="{{ product.name|lower }}" data-code="{{ product.product_code|lower }}">
                 <div class="card p-2 text-center shadow-sm">
                     <h6>{{ product.name }}</h6>
                     <p class="fw-bold">₹ {{ product.price }}</p>
@@ -61,9 +67,7 @@ let cart = [];
 function addToCart(id, name, price, stock) {
     let item = cart.find(p => p.id === id);
     if (item) {
-        if(item.quantity < stock) {
-            item.quantity += 1;
-        }
+        if(item.quantity < stock) item.quantity += 1;
     } else {
         cart.push({id, name, price, quantity: 1, stock: stock});
     }
@@ -95,6 +99,22 @@ function renderCart() {
     });
 
     document.getElementById("total").innerText = total;
+}
+
+// Search / Filter products
+function filterProducts() {
+    const query = document.getElementById("productSearch").value.toLowerCase();
+    const products = document.querySelectorAll(".product-card");
+
+    products.forEach(card => {
+        const name = card.dataset.name;
+        const code = card.dataset.code;
+        if (name.includes(query) || code.includes(query)) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
 }
 
 // Get CSRF
