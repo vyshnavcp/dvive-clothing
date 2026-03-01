@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
+.header-with-topbar {background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.35);}
+.dashboard-header{padding:18px 24px;}
+.dashboard-header h4,.dashboard-header small,.dashboard-header i{color:#fff;}
+.dashboard-header .nav-link{color:#fff!important;font-weight:500;transition:.3s;}
+.dashboard-header .nav-link:hover{color:#bdbdbd!important;}
+.navbar-toggler{border:0;}
+.navbar-toggler-icon{filter:invert(1);}
+.container-fluid{padding:30px 40px;}
+.page-header{background:linear-gradient(135deg,#111827,#1f2933);color:#fff;padding:20px;border-radius:12px;margin-bottom:20px;}
+.status-badge{padding:6px 12px;border-radius:30px;font-size:13px;}
+.completed{background:#dcfce7;color:#166534;}
+.pending{background:#fef3c7;color:#92400e;}
+.cancelled{background:#fee2e2;color:#991b1b;}
+.order-row{cursor:pointer;transition:.3s ease;}
+.order-row:hover{background:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.08);}
+.filter-row{margin-bottom:20px;}
+</style>
+</head>
+
+<body>
+
+<header class="header-with-topbar">
+<nav class="navbar dashboard-header navbar-expand-lg">
+<div class="container-fluid px-0">
+<div class="d-flex align-items-center gap-3">
+<i class="bi bi-speedometer2 fs-2"></i>
+<div>
+<h4 class="mb-0">Admin Dashboard</h4>
+<small>Store Report</small>
+</div>
+</div>
+
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+<ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+<li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
+<li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
+</ul>
+</div>
+</div>
+</nav>
+</header>
+
+<div class="container-fluid mt-4">
+
+<div class="page-header d-flex justify-content-between align-items-center">
+<h4>{{ title }}</h4>
+<i class="bi bi-clipboard-data fs-2"></i>
+</div>
+
+<!-- FILTER -->
+<div class="card shadow-sm mb-4 p-3">
+<form method="get" class="row g-3 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label">From Date</label>
+        <input type="date" name="from_date" class="form-control" value="{{ request.GET.from_date }}">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">To Date</label>
+        <input type="date" name="to_date" class="form-control" value="{{ request.GET.to_date }}">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Payment</label>
+        <select name="payment" class="form-select">
+            <option value="">All</option>
+            <option value="cod" {% if request.GET.payment == 'cod' %}selected{% endif %}>COD</option>
+            <option value="razorpay" {% if request.GET.payment == 'razorpay' %}selected{% endif %}>Razorpay</option>
+            <option value="pos_paid" {% if request.GET.payment == 'pos_paid' %}selected{% endif %}>POS Paid</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+            <option value="">All</option>
+            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+    </div>
+    <div class="col-md-12">
+        <button type="submit" class="btn btn-dark">Filter</button>
+        <a href="{% url 'report_page' %}" class="btn btn-outline-secondary ms-2">Reset</a>
+    </div>
+</form>
+</div>
+
+<!-- REPORT TABLE -->
+<div class="card shadow-sm">
+<div class="card-body p-0">
+<table class="table mb-0 align-middle">
+<thead class="table-light">
+<tr>
+<th>Order ID</th>
+<th>Customer</th>
+<th>Total</th>
+<th>Payment</th>
+<th>Status</th>
+<th>Date</th>
+</tr>
+</thead>
+<tbody>
+{% for order in orders %}
+<tr class="order-row" onclick="window.location.href='{% url 'order_detail' order.id %}'">
+<td>#{{ order.id }}</td>
+<td>{{ order.first_name }}</td>
+<td>₹ {{ order.total }}</td>
+<td>
+{% if order.is_pos_order %}
+    {% if order.payment_status %}POS Paid{% else %}POS Pending{% endif %}
+{% elif order.payment_method == "razorpay" %}Razorpay
+{% elif order.payment_method == "cod" %}COD
+{% else %}{{ order.get_payment_method_display }}{% endif %}
+</td>
+<td>
+{% if order.is_cancelled %}<span class="status-badge cancelled">Cancelled</span>
+{% elif order.is_delivered %}<span class="status-badge completed">Delivered</span>
+{% else %}<span class="status-badge pending">Pending</span>{% endif %}
+</td>
+<td>{{ order.created_at|date:"d M Y" }}</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="6" class="text-center text-muted">No orders found.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- TOTALS -->
+<div class="card shadow-sm mt-4 p-3">
+<h5>Report Summary</h5>
+<p>Total Orders: <strong>{{ total_orders }}</strong></p>
+<p>Total Revenue: <strong>₹ {{ total_revenue }}</strong></p>
+<p>Paid Orders: <strong>{{ total_paid_orders }}</strong></p>
+<p>Pending Orders: <strong>{{ pending_orders }}</strong></p>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

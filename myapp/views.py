@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 import json
 from django.conf import settings
 from django.http import JsonResponse
@@ -28,6 +28,7 @@ from django.db import IntegrityError
 from .forms import FAQForm, PrivacyForm,TermsForm
 import re
 import json
+from django.utils.dateparse import parse_date 
 from django.views.decorators.http import require_POST
 
 
@@ -1400,6 +1401,59 @@ def dashboard(request):
     }
 
     return render(request, "dashboard.html", context)
+
+
+def report_page(request):
+    orders = Order.objects.all()
+
+    # Filter by date
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    if from_date:
+        orders = orders.filter(created_at__date__gte=datetime.strptime(from_date, "%Y-%m-%d"))
+    if to_date:
+        orders = orders.filter(created_at__date__lte=datetime.strptime(to_date, "%Y-%m-%d"))
+
+    # Filter by payment
+    payment = request.GET.get('payment')
+    if payment:
+        if payment == "paid":
+            orders = orders.filter(Q(payment_status=True) & Q(is_pos_order=False))
+        elif payment == "pending":
+            orders = orders.filter(Q(payment_status=False) & Q(is_pos_order=False))
+        elif payment == "cod":
+            orders = orders.filter(payment_method="cod")
+        elif payment == "razorpay":
+            orders = orders.filter(payment_method="razorpay")
+        elif payment == "pos_paid":
+            orders = orders.filter(is_pos_order=True, payment_status=True)
+        elif payment == "pos_pending":
+            orders = orders.filter(is_pos_order=True, payment_status=False)
+
+    # Filter by status
+    status = request.GET.get('status')
+    if status:
+        if status == "pending":
+            orders = orders.filter(is_delivered=False, is_cancelled=False)
+        elif status == "completed":
+            orders = orders.filter(is_delivered=True)
+        elif status == "cancelled":
+            orders = orders.filter(is_cancelled=True)
+
+    # Summary
+    total_orders = orders.count()
+    total_revenue = orders.aggregate(Sum('total'))['total__sum'] or 0
+    total_paid_orders = orders.filter(is_delivered=True).count()
+    pending_orders = orders.filter(is_delivered=False, is_cancelled=False).count()
+
+    return render(request, "report_page.html", {
+        "title": "Order Report",
+        "orders": orders.order_by("-created_at"),
+        "total_orders": total_orders,
+        "total_revenue": total_revenue,
+        "total_paid_orders": total_paid_orders,
+        "pending_orders": pending_orders,
+    })
 
 def order_list(request):
     orders = Order.objects.all().order_by('-created_at')

@@ -74,6 +74,7 @@ urlpatterns = [
     path("my-orders/", views.my_orders, name="my_orders"),
     path("ajax/shipping-charge/", views.ajax_shipping_charge, name="ajax_shipping_charge"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path('report/', views.report_page, name='report_page'),
     path('order/complete/<int:order_id>/', views.mark_order_completed, name='mark_order_completed'),
     path('orders/', views.order_list, name='order_list'),
     path('orders/paid/', views.paid_orders, name='paid_orders'),
