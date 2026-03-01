@@ -49,6 +49,10 @@ body{
     background:linear-gradient(135deg,#222,#000);
     transform:translateY(-1px);
 }
+.quantity-input{
+    width: 60px;
+    text-align: center;
+}
 </style>
 </head>
 
@@ -109,13 +113,16 @@ data-bs-toggle="collapse" data-bs-target="#adminNavbar">
                     <h6>{{ product.name }}</h6>
                     <p class="fw-bold">₹ {{ product.price }}</p>
                     <p class="small text-muted">Stock: {{ product.stock }}</p>
+
                     {% if product.stock > 0 %}
-                        <button class="btn btn-dark btn-sm"
-                            onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }}, {{ product.stock }})">
+                    <div class="d-flex justify-content-center gap-2 align-items-center">
+                        <input type="number" min="1" max="{{ product.stock }}" value="1" class="form-control form-control-sm quantity-input">
+                        <button class="btn btn-dark btn-sm" onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }}, {{ product.stock }}, this)">
                             Add
                         </button>
+                    </div>
                     {% else %}
-                        <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                    <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
                     {% endif %}
                 </div>
             </div>
@@ -149,15 +156,26 @@ data-bs-toggle="collapse" data-bs-target="#adminNavbar">
 <script>
 let cart = [];
 
-// Add to cart
-function addToCart(id, name, price, stock) {
+// Add to cart with quantity input
+function addToCart(id, name, price, stock, btn) {
+    const qtyInput = btn.previousElementSibling;
+    let quantity = parseInt(qtyInput.value) || 1;
+
+    if(quantity > stock) quantity = stock; // limit to stock
+
     let item = cart.find(p => p.id === id);
-    if (item) {
-        if(item.quantity < stock) item.quantity += 1;
+    if(item) {
+        if(item.quantity + quantity <= stock) {
+            item.quantity += quantity;
+        } else {
+            item.quantity = stock; // don't exceed stock
+        }
     } else {
-        cart.push({id, name, price, quantity: 1, stock: stock});
+        cart.push({id, name, price, quantity: quantity, stock: stock});
     }
+
     renderCart();
+    qtyInput.value = 1; // reset input after adding
 }
 
 // Remove from cart
