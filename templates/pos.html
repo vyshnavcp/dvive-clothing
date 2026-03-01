@@ -20,10 +20,15 @@
                 <div class="card p-2 text-center shadow-sm">
                     <h6>{{ product.name }}</h6>
                     <p class="fw-bold">₹ {{ product.price }}</p>
-                    <button class="btn btn-dark btn-sm"
-                        onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }})">
-                        Add
-                    </button>
+                    <p class="small text-muted">Stock: {{ product.stock }}</p>
+                    {% if product.stock > 0 %}
+                        <button class="btn btn-dark btn-sm"
+                            onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }}, {{ product.stock }})">
+                            Add
+                        </button>
+                    {% else %}
+                        <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                    {% endif %}
                 </div>
             </div>
             {% empty %}
@@ -53,13 +58,21 @@
 let cart = [];
 
 // Add to cart
-function addToCart(id, name, price) {
+function addToCart(id, name, price, stock) {
     let item = cart.find(p => p.id === id);
     if (item) {
-        item.quantity += 1;
+        if(item.quantity < stock) {
+            item.quantity += 1;
+        }
     } else {
-        cart.push({id, name, price, quantity: 1});
+        cart.push({id, name, price, quantity: 1, stock: stock});
     }
+    renderCart();
+}
+
+// Remove from cart
+function removeFromCart(id) {
+    cart = cart.filter(item => item.id !== id);
     renderCart();
 }
 
@@ -72,9 +85,12 @@ function renderCart() {
     cart.forEach(item => {
         total += item.price * item.quantity;
         list.innerHTML += `
-            <li class="list-group-item d-flex justify-content-between">
-                ${item.name} x ${item.quantity}
-                <span>₹ ${item.price * item.quantity}</span>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${item.name} x ${item.quantity}</span>
+                <div>
+                    ₹ ${item.price * item.quantity}
+                    <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeFromCart(${item.id})">&times;</button>
+                </div>
             </li>`;
     });
 
@@ -88,11 +104,7 @@ function getCSRFToken() {
 
 // Checkout
 function checkout() {
-
-    if (cart.length === 0) {
-        alert("Cart is empty!");
-        return;
-    }
+    if (cart.length === 0) return;
 
     fetch("{% url 'pos_create_order' %}", {
         method: "POST",
@@ -105,17 +117,10 @@ function checkout() {
     .then(response => response.json())
     .then(data => {
         if (data.status === "success") {
-            alert("Order Created Successfully!");
-            cart = [];
-            renderCart();
-        } else {
-            alert(data.message || "Error creating order");
+            window.location.href = "{% url 'dashboard' %}";
         }
     })
-    .catch(error => {
-        alert("JS Error occurred");
-        console.log(error);
-    });
+    .catch(error => console.log(error));
 }
 </script>
 

@@ -263,9 +263,7 @@ class Coupon(models.Model):
 
 
 
-from django.db import models
-from decimal import Decimal
-from .models import Registration  # make sure Registration is imported
+ # make sure Registration is imported
 
 class Order(models.Model):
     PAYMENT_CHOICES = (

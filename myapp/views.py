@@ -1728,20 +1728,18 @@ def pos_page(request):
     return render(request, "pos.html", {"products": products})
 
 
-# CREATE POS ORDER
 @login_required
 def pos_create_order(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             items = data.get("items", [])
-            payment_method = data.get("payment_method")
 
             if not items:
                 return JsonResponse({"status": "error", "message": "Cart empty"})
 
-            # ✅ Safe Registration (auto create if not exists)
-            registration, created = Registration.objects.get_or_create(
+            # Create or get POS registration
+            registration, _ = Registration.objects.get_or_create(
                 authuser=request.user,
                 defaults={
                     "user_name": request.user.username,
@@ -1752,7 +1750,7 @@ def pos_create_order(request):
 
             subtotal = Decimal("0.00")
 
-            # ✅ Create Order
+            # Create Order
             order = Order.objects.create(
                 registration=registration,
                 first_name=registration.user_name,
@@ -1770,7 +1768,7 @@ def pos_create_order(request):
                 is_pos_order=True
             )
 
-            # ✅ Create Order Items
+            # Create Order Items and reduce stock
             for item in items:
                 product = Product.objects.get(id=item["id"])
 
@@ -1803,4 +1801,4 @@ def pos_create_order(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
 
-    return JsonResponse({"status": "error"})
+    return JsonResponse({"status": "error", "message": "Invalid method"})
