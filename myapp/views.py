@@ -1403,10 +1403,11 @@ def dashboard(request):
     return render(request, "dashboard.html", context)
 
 
+
 def report_page(request):
     orders = Order.objects.all()
 
-    # Filter by date
+    # ----- DATE FILTER -----
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
     if from_date:
@@ -1414,23 +1415,19 @@ def report_page(request):
     if to_date:
         orders = orders.filter(created_at__date__lte=datetime.strptime(to_date, "%Y-%m-%d"))
 
-    # Filter by payment
+    # ----- PAYMENT FILTER -----
     payment = request.GET.get('payment')
     if payment:
-        if payment == "paid":
-            orders = orders.filter(Q(payment_status=True) & Q(is_pos_order=False))
-        elif payment == "pending":
-            orders = orders.filter(Q(payment_status=False) & Q(is_pos_order=False))
-        elif payment == "cod":
-            orders = orders.filter(payment_method="cod")
+        if payment == "cod":
+            orders = orders.filter(payment_method="cod", is_pos_order=False)
         elif payment == "razorpay":
-            orders = orders.filter(payment_method="razorpay")
+            orders = orders.filter(payment_method="razorpay", is_pos_order=False)
         elif payment == "pos_paid":
             orders = orders.filter(is_pos_order=True, payment_status=True)
         elif payment == "pos_pending":
             orders = orders.filter(is_pos_order=True, payment_status=False)
 
-    # Filter by status
+    # ----- STATUS FILTER -----
     status = request.GET.get('status')
     if status:
         if status == "pending":
@@ -1440,7 +1437,7 @@ def report_page(request):
         elif status == "cancelled":
             orders = orders.filter(is_cancelled=True)
 
-    # Summary
+    # ----- SUMMARY -----
     total_orders = orders.count()
     total_revenue = orders.aggregate(Sum('total'))['total__sum'] or 0
     total_paid_orders = orders.filter(is_delivered=True).count()
