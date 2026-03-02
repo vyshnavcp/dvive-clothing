@@ -627,43 +627,39 @@ def ajax_validate_register(request):
 
 def user_login(request):
     return render(request,'login.html')
-
 def login_post(request):
     login_input = request.POST.get('name', '').strip()
     password = request.POST.get('password', '').strip()
+
     if not login_input:
         messages.error(request, "Username or Email is required")
         return redirect('user_login')
+
     if not password:
         messages.error(request, "Password is required")
         return redirect('user_login')
-    if len(password) < 8:
-        messages.error(request, "Minimum 8 characters required")
-        return redirect('user_login')
-    if not re.search(r'[A-Z]', password):
-        messages.error(request, "Must contain at least 1 uppercase letter")
-        return redirect('user_login')
-    if not re.search(r'[0-9]', password):
-        messages.error(request, "Must contain at least 1 number")
-        return redirect('user_login')
-    if not re.search(r'[!@#$%^&*]', password):
-        messages.error(request, "Must contain at least 1 special character (!@#$%^&*)")
-        return redirect('user_login')
+
+    # Find username if email is entered
     try:
         user_obj = User.objects.get(email__iexact=login_input)
         username = user_obj.username
     except User.DoesNotExist:
         username = login_input
+
     user = authenticate(request, username=username, password=password)
+
     if user is not None:
         login(request, user)
-        if user.is_staff or user.is_superuser:
+
+        # ✅ Allow admin & staff
+        if user.is_staff:
             return redirect("dashboard")
-        return redirect("home")
+        else:
+            return redirect("home")
+
     else:
         messages.error(request, "Invalid username or password")
         return redirect('user_login')
-    
 def user_logout(request):
     logout(request)
     return redirect('user_login')
@@ -1106,8 +1102,12 @@ def my_orders(request):
     return render(request, "my_orders.html", {
         "orders": orders
     })
-
-@login_required(login_url='user_login')
+from django.contrib.auth.decorators import user_passes_test
+from .decorators import role_required
+@user_passes_test(
+    lambda u: u.is_authenticated and u.is_staff,
+    login_url='user_login'
+)
 def dashboard(request):
     today = now().date()
     orders = Order.objects.all().order_by('-created_at')
