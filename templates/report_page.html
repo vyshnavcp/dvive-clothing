@@ -85,7 +85,7 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
             <option value="">All</option>
             <option value="cod" {% if request.GET.payment == 'cod' %}selected{% endif %}>COD</option>
             <option value="razorpay" {% if request.GET.payment == 'razorpay' %}selected{% endif %}>Razorpay</option>
-            <option value="pos_paid" {% if request.GET.payment == 'pos_paid' %}selected{% endif %}>POS Paid</option>
+            <option value="pos_paid" {% if request.GET.payment == 'pos_paid' %}selected{% endif %}>Retail Shop</option>
            
         </select>
     </div>
@@ -127,10 +127,14 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 <td>₹ {{ order.total }}</td>
 <td>
 {% if order.is_pos_order %}
-    {% if order.payment_status %}POS Paid{% else %}POS Pending{% endif %}
-{% elif order.payment_method == "razorpay" %}Razorpay
-{% elif order.payment_method == "cod" %}COD
-{% else %}{{ order.get_payment_method_display }}{% endif %}
+    Retail Shop
+{% elif order.payment_method == "razorpay" %}
+    Razorpay
+{% elif order.payment_method == "cod" %}
+    COD
+{% else %}
+    {{ order.get_payment_method_display }}
+{% endif %}
 </td>
 <td>
 {% if order.is_cancelled %}<span class="status-badge cancelled">Cancelled</span>

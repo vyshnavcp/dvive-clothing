@@ -135,7 +135,7 @@ body.print-bill #billArea{display:block!important;}
 <td>
 {% if order.is_pos_order %}
     {% if order.payment_status %}
-        POS Paid
+        Retail Shop
     {% else %}
         POS Pending
     {% endif %}
@@ -283,7 +283,7 @@ shipping:`{{ order.address|escapejs }}, {{ order.town|escapejs }}, {{ order.stat
 landmark:"{{ order.land_mark|default:''|escapejs }}",
 total:"{{ order.total }}",
 date:"{{ order.created_at|date:'d/m/Y' }}",
-payment:`{% if order.is_pos_order %}{{ order.payment_status|yesno:"POS Paid,POS Pending" }}{% else %}{{ order.payment_method }}{% endif %}`,
+payment:`{% if order.is_pos_order %}Retail Shop{% else %}{{ order.payment_method }}{% endif %}`,
 items:[
 {% for item in order.items.all %}
 {
