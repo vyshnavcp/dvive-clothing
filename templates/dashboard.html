@@ -12,25 +12,106 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8f9fa; min-height: 100vh; }
-        .dashboard-header { background: linear-gradient(135deg, #111111, #1f1f1f); color: #fff; padding: 25px 30px; border-radius: 12px; margin-bottom: 40px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        .dashboard-header h4 { font-weight: 600; margin-bottom: 4px; }
-        .dashboard-header small { opacity: 0.85; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #f1f3f6; 
+            min-height: 100vh; 
+        }
 
-        .stat-card { background: #fff; border-radius: 15px; padding: 20px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-        .stat-card:hover { transform: translateY(-6px); box-shadow: 0 12px 25px rgba(0,0,0,0.12); }
-        .stat-title { font-size: 14px; color: #6b7280; }
-        .stat-value { font-size: 22px; font-weight: 600; margin-top: 5px; }
+    
+    /* Navbar styling */
+    .dashboard-header { 
+        background: #000; /* solid black */
+        color: #fff; 
+        padding: 25px 30px; 
+        border-radius: 12px; 
+        margin-bottom: 40px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+    }
 
-        .table thead th { background: #e0e7ff; font-weight: 600; color: #1e293b; border: none; }
-        .table tbody tr:hover { background: #f1f5ff; cursor: pointer; }
+    .dashboard-header h4,
+    .dashboard-header small {
+        color: #fff;
+    }
 
-        .quick-btn { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; transition: all 0.3s; font-weight: 500; color: #1e293b; background: #f8fafc; }
-        .quick-btn:hover { background: #4f46e5; color: #fff; transform: translateX(4px); }
+    .dashboard-header .nav-link {
+        color: #fff;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
 
+    .dashboard-header .nav-link:hover {
+        color: #4f46e5; /* nice hover accent */
+    }
+
+    .navbar-toggler-icon {
+        filter: invert(1); /* make toggler visible on black */
+    }
+
+        /* STAT CARDS */
+        .stat-card { 
+            background: #fff; 
+            border-radius: 20px; 
+            padding: 25px 15px; 
+            transition: all 0.4s ease; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
+            text-align: center; 
+        }
+        .stat-card:hover { 
+            transform: translateY(-6px); 
+            box-shadow: 0 16px 35px rgba(0,0,0,0.12); 
+        }
+        .stat-title { font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 24px; font-weight: 700; margin-top: 5px; color: #111827; }
+
+        /* TABLE */
+        .table thead th { 
+            background: #e0e7ff; 
+            font-weight: 600; 
+            color: #1e293b; 
+            border: none; 
+        }
+        .table tbody tr { 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05); 
+            transition: all 0.3s ease; 
+        }
+        .table tbody tr:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+            cursor: pointer; 
+        }
+        .table tbody td { vertical-align: middle; }
+
+        /* QUICK ACTIONS */
+        .quick-btn { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 18px; 
+            border-radius: 15px; 
+            transition: all 0.3s; 
+            font-weight: 500; 
+            color: #1e293b; 
+            background: #f8fafc; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        .quick-btn i { font-size: 18px; }
+        .quick-btn:hover { 
+            background: #4f46e5; 
+            color: #fff; 
+            transform: translateX(4px); 
+            box-shadow: 0 10px 25px rgba(79,70,229,0.3);
+        }
+
+        .card { border-radius: 20px; }
         .card-header { background: #fff; font-weight: 600; border-bottom: none; font-size: 16px; }
+        .card-body { background: #f9fafb; border-radius: 0 0 20px 20px; }
 
-        @media(max-width: 768px){ .stat-card { margin-bottom: 15px; } }
+        @media(max-width: 768px){ 
+            .stat-card { margin-bottom: 15px; } 
+        }
     </style>
 </head>
 
@@ -101,8 +182,6 @@
                                     <td>#{{ order.id }}</td>
                                     <td>{{ order.first_name }}</td>
                                     <td>₹ {{ order.total }}</td>
-
-                                    <!-- Payment Method -->
                                     <td>
                                         {% if order.is_pos_order %}
                                             {% if order.payment_status %}
@@ -118,8 +197,6 @@
                                             <span style="color: gray; font-weight: 600;">{{ order.get_payment_method_display }}</span>
                                         {% endif %}
                                     </td>
-
-                                    <!-- Payment Choice -->
                                     <td>
                                         {% if order.is_pos_order %}
                                             {% if order.payment_status %}
@@ -135,8 +212,6 @@
                                             {% endif %}
                                         {% endif %}
                                     </td>
-
-                                    <!-- Status -->
                                     <td>
                                         {% if order.is_cancelled %}
                                             <span class="badge bg-danger">Cancelled</span>
@@ -146,7 +221,6 @@
                                             <span class="badge bg-warning text-dark">Pending</span>
                                         {% endif %}
                                     </td>
-
                                     <td>{{ order.created_at|date:"d M Y" }}</td>
                                 </tr>
                             {% empty %}
@@ -188,7 +262,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
