@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">  
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+
+    <!-- Bootstrap CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #f1f3f6; 
+            min-height: 100vh; 
+        }
+
+    
+    /* Navbar styling */
+    .dashboard-header { 
+        background: #000; /* solid black */
+        color: #fff; 
+        padding: 25px 30px; 
+        border-radius: 12px; 
+        margin-bottom: 40px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+    }
+
+    .dashboard-header h4,
+    .dashboard-header small {
+        color: #fff;
+    }
+
+    .dashboard-header .nav-link {
+        color: #fff;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    .dashboard-header .nav-link:hover {
+        color: #4f46e5; /* nice hover accent */
+    }
+
+    .navbar-toggler-icon {
+        filter: invert(1); /* make toggler visible on black */
+    }
+
+        /* STAT CARDS */
+        .stat-card { 
+            background: #fff; 
+            border-radius: 20px; 
+            padding: 25px 15px; 
+            transition: all 0.4s ease; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
+            text-align: center; 
+        }
+        .stat-card:hover { 
+            transform: translateY(-6px); 
+            box-shadow: 0 16px 35px rgba(0,0,0,0.12); 
+        }
+        .stat-title { font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 24px; font-weight: 700; margin-top: 5px; color: #111827; }
+
+        /* TABLE */
+        .table thead th { 
+            background: #e0e7ff; 
+            font-weight: 600; 
+            color: #1e293b; 
+            border: none; 
+        }
+        .table tbody tr { 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05); 
+            transition: all 0.3s ease; 
+        }
+        .table tbody tr:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+            cursor: pointer; 
+        }
+        .table tbody td { vertical-align: middle; }
+
+        /* QUICK ACTIONS */
+        .quick-btn { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 18px; 
+            border-radius: 15px; 
+            transition: all 0.3s; 
+            font-weight: 500; 
+            color: #1e293b; 
+            background: #f8fafc; 
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        .quick-btn i { font-size: 18px; }
+        .quick-btn:hover { 
+            background: #4f46e5; 
+            color: #fff; 
+            transform: translateX(4px); 
+            box-shadow: 0 10px 25px rgba(79,70,229,0.3);
+        }
+
+        .card { border-radius: 20px; }
+        .card-header { background: #fff; font-weight: 600; border-bottom: none; font-size: 16px; }
+        .card-body { background: #f9fafb; border-radius: 0 0 20px 20px; }
+
+        @media(max-width: 768px){ 
+            .stat-card { margin-bottom: 15px; } 
+        }
+    </style>
+</head>
+
+<body>
+<div class="container-fluid px-4">
+
+    <!-- HEADER -->
+    <nav class="navbar dashboard-header navbar-expand-lg mb-4">
+        <div class="container-fluid px-0">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-speedometer2 fs-2"></i>
+                <div>
+                    <h4 class="mb-0">Admin Dashboard</h4>
+                    <small>Overview of store performance</small>
+                </div>
+            </div>
+
+            <button class="navbar-toggler text-white border-0" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+                <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+                    {% if request.user.is_superuser %}
+                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'report_page' %}">Report</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'customer_list' %}">Customers</a></li>
+                    {% endif %}
+                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'order_list' %}">Orders</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'paid_orders' %}">Paid</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'pending_orders' %}">Pending</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'user_logout' %}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- METRICS -->
+    <div class="row g-4 mb-4 justify-content-center">
+        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Total Revenue</span><div class="stat-value">₹ {{ total_revenue }}</div></div></div>
+        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Today Revenue</span><div class="stat-value">₹ {{ today_revenue }}</div></div></div>
+        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Total Orders</span><div class="stat-value"><a href="{% url 'order_list' %}" class="text-dark text-decoration-none">{{ total_orders }}</a></div></div></div>
+        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Paid Orders</span><div class="stat-value"><a href="{% url 'paid_orders' %}" class="text-dark text-decoration-none">{{ paid_orders }}</a></div></div></div>
+        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Pending Orders</span><div class="stat-value"><a href="{% url 'pending_orders' %}" class="text-dark text-decoration-none">{{ pending_orders }}</a></div></div></div>
+        {% if request.user.is_superuser %}
+        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Customers</span><div class="stat-value"><a href="{% url 'customer_list' %}" class="text-dark text-decoration-none">{{ total_customers }}</a></div></div></div>
+        {% endif %}
+    </div>
+
+    <!-- CONTENT -->
+    <div class="row">
+        <!-- ALL ORDERS -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">All Orders</div>
+                <div class="card-body p-0">
+                    <table class="table mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Payment Method</th>
+                                <th>Payment Choice</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr onclick="window.location.href='{% url 'order_detail' order.id %}'">
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.first_name }}</td>
+                                    <td>₹ {{ order.total }}</td>
+                                    <td>
+                                        {% if order.is_pos_order %}
+                                            {% if order.payment_status %}
+                                                <span style="color: #0d6efd; font-weight: 600;">Retail Shop</span>
+                                            {% else %}
+                                                <span style="color: #0d6efd; font-weight: 600;">POS Pending</span>
+                                            {% endif %}
+                                        {% elif request.user.is_superuser %}
+                                            {% if order.payment_method == "razorpay" %}
+                                                <span style="color: green; font-weight: 600;">Razorpay</span>
+                                            {% elif order.payment_method == "cod" %}
+                                                <span style="color: #ff9800; font-weight: 600;">COD</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.is_pos_order %}
+                                            {% if order.payment_status %}
+                                                <span style="font-weight: 500;">{{ order.pos_payment_type|capfirst }}</span>
+                                            {% else %}
+                                                <span style="color: gray;">—</span>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if order.payment_choice %}
+                                                <span style="font-weight: 500;">{{ order.payment_choice|capfirst }}</span>
+                                            {% else %}
+                                                <span style="color: gray;">—</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.is_cancelled %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% elif order.is_delivered %}
+                                            <span class="badge bg-success">Delivered</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order.created_at|date:"d M Y" }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="7" class="text-center py-4 text-muted">No Orders Yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">Quick Actions</div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{% url 'pos_page' %}" class="quick-btn"><i class="bi bi-receipt"></i> POS Billing</a>
+                    <a href="{% url 'add_category' %}" class="quick-btn"><i class="bi bi-plus-square"></i> Add Category</a>
+                    <a href="{% url 'category_list' %}" class="quick-btn"><i class="bi bi-card-list"></i> View Category</a>
+                    <a href="{% url 'add_subcategory' %}" class="quick-btn"><i class="bi bi-folder-plus"></i> Add SubCategory</a>
+                    <a href="{% url 'subcategory_list' %}" class="quick-btn"><i class="bi bi-folder2-open"></i> View SubCategory</a>
+                    <a href="{% url 'add_product' %}" class="quick-btn"><i class="bi bi-box-arrow-in-up"></i> Add Product</a>
+                    <a href="{% url 'product_list' %}" class="quick-btn"><i class="bi bi-box-seam"></i> View Product</a>
+                    <a href="{% url 'add_size' %}" class="quick-btn"><i class="bi bi-arrows-fullscreen"></i> Add Size</a>
+                    <a href="{% url 'size_list' %}" class="quick-btn"><i class="bi bi-arrows-angle-expand"></i> View Size</a>
+                    <a href="{% url 'add_color' %}" class="quick-btn"><i class="bi bi-droplet"></i> Add Color</a>
+                    <a href="{% url 'color_list' %}" class="quick-btn"><i class="bi bi-palette"></i> View Color</a>
+                    <a href="{% url 'add_coupon' %}" class="quick-btn"><i class="bi bi-tag-plus"></i> Add Coupon</a>
+                    <a href="{% url 'coupon_list' %}" class="quick-btn"><i class="bi bi-tags"></i> View Coupon</a>
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'review_list' %}" class="quick-btn"><i class="bi bi-chat-square-text"></i> View Reviews</a>
+                    <a href="{% url 'add_article' %}" class="quick-btn"><i class="bi bi-newspaper"></i> Add Article</a>
+                    <a href="{% url 'article_list' %}" class="quick-btn"><i class="bi bi-card-text"></i> View Articles</a>
+                    <a href="{% url 'add_terms' %}" class="quick-btn"><i class="bi bi-file-earmark-plus"></i> Add Terms</a>
+                    <a href="{% url 'terms_list' %}" class="quick-btn"><i class="bi bi-file-earmark-text"></i> View Terms</a>
+                    <a href="{% url 'add_privacy' %}" class="quick-btn"><i class="bi bi-shield-lock"></i> Add Privacy</a>
+                    <a href="{% url 'privacy_list' %}" class="quick-btn"><i class="bi bi-shield-check"></i> View Privacy</a>
+                    <a href="{% url 'add_faq' %}" class="quick-btn"><i class="bi bi-question-circle"></i> Add FAQ</a>
+                    <a href="{% url 'faq_list' %}" class="quick-btn"><i class="bi bi-chat-dots"></i> View FAQ</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

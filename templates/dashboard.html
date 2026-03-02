@@ -18,37 +18,32 @@
             min-height: 100vh; 
         }
 
-    
-    /* Navbar styling */
-    .dashboard-header { 
-        background: #000; /* solid black */
-        color: #fff; 
-        padding: 25px 30px; 
-        border-radius: 12px; 
-        margin-bottom: 40px; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-    }
+        .dashboard-header { 
+            background: #000;
+            color: #fff; 
+            padding: 25px 30px; 
+            border-radius: 12px; 
+            margin-bottom: 40px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+        }
 
-    .dashboard-header h4,
-    .dashboard-header small {
-        color: #fff;
-    }
+        .dashboard-header h4,
+        .dashboard-header small {
+            color: #fff;
+        }
 
-    .dashboard-header .nav-link {
-        color: #fff;
-        font-weight: 500;
-        transition: color 0.3s ease;
-    }
+        .dashboard-header .nav-link {
+            color: #fff;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
 
-    .dashboard-header .nav-link:hover {
-        color: #4f46e5; /* nice hover accent */
-    }
+        .dashboard-header .nav-link:hover {
+            color: #4f46e5;
+        }
 
-    .navbar-toggler-icon {
-        filter: invert(1); /* make toggler visible on black */
-    }
+        .navbar-toggler-icon { filter: invert(1); }
 
-        /* STAT CARDS */
         .stat-card { 
             background: #fff; 
             border-radius: 20px; 
@@ -64,54 +59,22 @@
         .stat-title { font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { font-size: 24px; font-weight: 700; margin-top: 5px; color: #111827; }
 
-        /* TABLE */
-        .table thead th { 
-            background: #e0e7ff; 
-            font-weight: 600; 
-            color: #1e293b; 
-            border: none; 
-        }
-        .table tbody tr { 
-            background: #fff; 
-            border-radius: 12px; 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05); 
-            transition: all 0.3s ease; 
-        }
-        .table tbody tr:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
-            cursor: pointer; 
-        }
+        .table thead th { background: #e0e7ff; font-weight: 600; color: #1e293b; border: none; }
+        .table tbody tr { background: #fff; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+        .table tbody tr:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); cursor: pointer; }
         .table tbody td { vertical-align: middle; }
 
-        /* QUICK ACTIONS */
         .quick-btn { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            padding: 12px 18px; 
-            border-radius: 15px; 
-            transition: all 0.3s; 
-            font-weight: 500; 
-            color: #1e293b; 
-            background: #f8fafc; 
+            display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 15px;
+            transition: all 0.3s; font-weight: 500; color: #1e293b; background: #f8fafc;
             box-shadow: 0 3px 10px rgba(0,0,0,0.05);
         }
         .quick-btn i { font-size: 18px; }
-        .quick-btn:hover { 
-            background: #4f46e5; 
-            color: #fff; 
-            transform: translateX(4px); 
-            box-shadow: 0 10px 25px rgba(79,70,229,0.3);
-        }
+        .quick-btn:hover { background: #4f46e5; color: #fff; transform: translateX(4px); box-shadow: 0 10px 25px rgba(79,70,229,0.3); }
 
         .card { border-radius: 20px; }
         .card-header { background: #fff; font-weight: 600; border-bottom: none; font-size: 16px; }
         .card-body { background: #f9fafb; border-radius: 0 0 20px 20px; }
-
-        @media(max-width: 768px){ 
-            .stat-card { margin-bottom: 15px; } 
-        }
     </style>
 </head>
 
@@ -163,7 +126,6 @@
 
     <!-- CONTENT -->
     <div class="row">
-        <!-- ALL ORDERS -->
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">All Orders</div>
@@ -178,6 +140,7 @@
                                 <th>Payment Choice</th>
                                 <th>Status</th>
                                 <th>Date</th>
+                                <th>Edit</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -189,15 +152,15 @@
                                     <td>
                                         {% if order.is_pos_order %}
                                             {% if order.payment_status %}
-                                                <span style="color: #0d6efd; font-weight: 600;">Retail Shop</span>
+                                                <span style="color:#0d6efd;font-weight:600;">Retail Shop</span>
                                             {% else %}
-                                                <span style="color: #0d6efd; font-weight: 600;">POS Pending</span>
+                                                <span style="color:#0d6efd;font-weight:600;">POS Pending</span>
                                             {% endif %}
                                         {% elif request.user.is_superuser %}
                                             {% if order.payment_method == "razorpay" %}
                                                 <span style="color: green; font-weight: 600;">Razorpay</span>
                                             {% elif order.payment_method == "cod" %}
-                                                <span style="color: #ff9800; font-weight: 600;">COD</span>
+                                                <span style="color:#ff9800;font-weight:600;">COD</span>
                                             {% endif %}
                                         {% endif %}
                                     </td>
@@ -226,9 +189,20 @@
                                         {% endif %}
                                     </td>
                                     <td>{{ order.created_at|date:"d M Y" }}</td>
+                                    <td>
+                                        {% if order.is_pos_order %}
+                                            <a href="{% url 'pos_edit_page' order.id %}" 
+                                               class="btn btn-sm btn-warning"
+                                               onclick="event.stopPropagation();">
+                                               <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% empty %}
-                                <tr><td colspan="7" class="text-center py-4 text-muted">No Orders Yet</td></tr>
+                                <tr><td colspan="8" class="text-center py-4 text-muted">No Orders Yet</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -236,7 +210,7 @@
             </div>
         </div>
 
-        <!-- QUICK ACTIONS -->
+        <!-- QUICK ACTIONS (UNCHANGED) -->
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">Quick Actions</div>

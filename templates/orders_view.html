@@ -114,11 +114,12 @@ body.print-bill #billArea{display:block!important;}
 <th>Customer</th>
 <th>Shipping</th>
 <th>Total</th>
-<th>Payment Method</th> <!-- Original Payment Column -->
-<th>Payment </th> <!-- New Column -->
+<th>Payment Method</th>
+<th>Payment</th>
 <th>Status</th>
 <th>Date</th>
 <th>Print</th>
+<th>Edit</th>
 </tr>
 </thead>
 
@@ -134,11 +135,8 @@ body.print-bill #billArea{display:block!important;}
 
 <td>₹ {{ order.total }}</td>
 
-<!-- Original Payment Column -->
 <td>
-
 {% if request.user.is_superuser %}
-
     {% if order.is_pos_order %}
         {% if order.payment_status %}
             Retail Shop
@@ -152,16 +150,11 @@ body.print-bill #billArea{display:block!important;}
     {% else %}
         {{ order.get_payment_method_display }}
     {% endif %}
-
 {% else %}
-
     Retail Shop
-
 {% endif %}
-
 </td>
 
-<!-- Payment Choice Column -->
 <td>
 {% if order.is_pos_order %}
     {% if order.payment_status %}
@@ -199,6 +192,19 @@ body.print-bill #billArea{display:block!important;}
 <span class="text-muted">—</span>
 {% endif %}
 </td>
+
+<td>
+{% if order.is_pos_order and not order.is_cancelled %}
+<a href="{% url 'pos_edit_page' order.id %}" 
+   class="btn btn-sm btn-warning"
+   onclick="event.stopPropagation();">
+   <i class="bi bi-pencil-square"></i>
+</a>
+{% else %}
+<span class="text-muted">—</span>
+{% endif %}
+</td>
+
 </tr>
 {% endfor %}
 </tbody>
@@ -206,6 +212,7 @@ body.print-bill #billArea{display:block!important;}
 </div>
 </div>
 </div>
+
 
 <!-- SLIP -->
 <div id="printArea">
@@ -385,6 +392,5 @@ function printBill(id){
   setTimeout(()=>{ window.print(); document.body.className=""; }, 200);
 }
 </script>
-
 </body>
 </html>

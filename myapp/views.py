@@ -1515,4 +1515,69 @@ def pos_create_order(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
 
-    return JsonResponse({"status": "error", "message": "Invalid method"})
+    return JsonResponse({"status": "error", "message": "Invalid method"})\
+
+@staff_member_required
+def pos_edit_page(request, order_id):
+    order = Order.objects.get(id=order_id, is_pos_order=True)
+    products = Product.objects.filter(status=True)
+    order_items = OrderItem.objects.filter(order=order)
+
+    return render(request, "pos_edit.html", {
+        "order": order,
+        "products": products,
+        "order_items": order_items
+    })
+
+
+@require_POST
+@staff_member_required
+@transaction.atomic
+def pos_update_order(request, order_id):
+    try:
+        data = json.loads(request.body)
+        items = data.get("items", [])
+        pos_payment_type = data.get("pos_payment_type")
+
+        order = Order.objects.select_for_update().get(id=order_id, is_pos_order=True)
+
+        # 1️⃣ Return previous stock
+        for old_item in OrderItem.objects.filter(order=order):
+            product = old_item.product
+            product.stock += old_item.quantity
+            product.save()
+
+        # 2️⃣ Delete old items
+        OrderItem.objects.filter(order=order).delete()
+
+        subtotal = Decimal("0.00")
+
+        # 3️⃣ Apply new items
+        for item in items:
+            product = Product.objects.select_for_update().get(id=item["id"])
+
+            if product.stock < item["quantity"]:
+                raise Exception(f"{product.name} stock not enough")
+
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=item["quantity"],
+                price=product.price
+            )
+
+            product.stock -= item["quantity"]
+            product.save()
+
+            subtotal += product.price * item["quantity"]
+
+        # 4️⃣ Update order totals & payment
+        order.subtotal = subtotal
+        order.total = subtotal
+        order.pos_payment_type = pos_payment_type
+        order.save()
+
+        return JsonResponse({"status": "success"})
+
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
