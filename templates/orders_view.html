@@ -56,18 +56,31 @@ body.print-bill #billArea{display:block!important;}
     font-size:12px;
     padding:8px;
     border:2px solid #000;
-    box-sizing:border-box;
 }
 .thermal-bill h2{text-align:center;letter-spacing:3px;margin:0;}
 .row-flex{display:flex;justify-content:space-between;}
 .center{text-align:center;}
 .bold{font-weight:bold;}
-.line{border-top:1px solid #000;margin:6px 0;}
+.line{
+    border-top:1px dashed #000;
+    margin:4px 0;  
+}
 .small{font-size:11px;}
+
+
+.payment-line{
+    font-size:11px;
+    font-weight:bold;
+    white-space:nowrap;
+    display:block;
+    margin:0;
+    padding:0;
+}
 </style>
 </head>
 
 <body>
+
 
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
@@ -111,6 +124,7 @@ body.print-bill #billArea{display:block!important;}
 <table class="table mb-0 align-middle">
 <thead class="table-light">
 <tr>
+<th>ID</th>
 <th>Customer</th>
 <th>Shipping</th>
 <th>Total</th>
@@ -126,6 +140,7 @@ body.print-bill #billArea{display:block!important;}
 <tbody>
 {% for order in orders %}
 <tr class="order-row" onclick="window.location.href='{% url 'order_detail' order.id %}'">
+<td class="fw-bold">#{{ order.id }}</td>
 <td>{{ order.first_name }}</td>
 <td>
 {{ order.address }}<br>
@@ -259,54 +274,60 @@ body.print-bill #billArea{display:block!important;}
 <!-- 58MM BILL -->
 <div id="billArea">
 <div class="thermal-bill">
-<h2>DVIVE</h2>
-<div class="center small">Calicut, Kerala</div>
-<div class="line"></div>
 
-<div class="row-flex small">
-<div id="billDate"></div>
-<div>#<span id="billOrderId"></span></div>
-</div>
-<div class="line"></div>
+    <div class="center bold">DVIVE</div>
+    <div class="center small">Calicut, Kerala</div>
+    <div class="center small">Kunnamangalam</div>
+    <div class="center small">673571</div>
+    <div class="center small">Ph: 89218 30429</div>
 
-<div class="row-flex bold small">
-<div style="width:40%">ITEM</div>
-<div style="width:15%;text-align:center;">QTY</div>
-<div style="width:20%;text-align:right;">PRICE</div>
-<div style="width:25%;text-align:right;">TOTAL</div>
-</div>
-<div class="line"></div>
+    <div class="line"></div>
 
-<div id="billItems"></div>
-<div class="line"></div>
+    <div class="small">Bill No: <span id="billOrderId"></span></div>
+    <div class="small">Date: <span id="billDate"></span></div>
+    <div class="small">Time: <span id="billTime"></span></div>
 
-<div class="row-flex">
-<div>Subtotal</div>
-<div>₹ <span id="billSubtotal"></span></div>
-</div>
-<div class="line"></div>
+    <div class="line"></div>
 
-<div class="row-flex bold">
-<div>Total</div>
-<div>₹ <span id="billTotal"></span></div>
-</div>
-<div class="line"></div>
+    <div class="row-flex bold small">
+        <div style="width:40%">Item</div>
+        <div style="width:15%;text-align:center;">Qty</div>
+        <div style="width:20%;text-align:right;">Rate</div>
+        <div style="width:25%;text-align:right;">Amt</div>
+    </div>
 
-<div class="row-flex">
-<div>Payment</div>
-<div id="billPayment"></div>
-</div>
+    <div class="line"></div>
 
-<br>
-<div class="center">
-Thank you for shopping!
-</div>
+    <div id="billItems"></div>
+
+    <div class="line"></div>
+
+    <div class="row-flex small">
+        <div>Subtotal:</div>
+        <div>₹ <span id="billSubtotal"></span></div>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="row-flex bold">
+        <div>Total Amount:</div>
+        <div>₹ <span id="billTotal"></span></div>
+    </div>
+
+  <div class="line"></div>
+
+  <div class="payment-line" id="billPaymentLine" style="margin:0; line-height:1.2;"></div>
+
+  <div class="line" style="margin-top:4px;"></div>
+
+    <div class="center small bold" style="margin-top:4px;">Thank You Visit Again!</div>
+    <div class="center small">Instagram: @DVIVE_CLOTHINGS</div>
 
 </div>
 </div>
 
 <script>
-const ordersData = {
+  const ordersData = {
 {% for order in orders %}
 {{ order.id }}:{
 id:"{{ order.id }}",
@@ -315,10 +336,9 @@ phone:"{{ order.phone|escapejs }}",
 shipping:`{{ order.address|escapejs }}, {{ order.town|escapejs }}, {{ order.state|escapejs }} - {{ order.pincode|escapejs }}`,
 landmark:"{{ order.land_mark|default:''|escapejs }}",
 total:"{{ order.total }}",
-date:"{{ order.created_at|date:'d/m/Y' }}",
 payment:`{% if order.is_pos_order %}
     {% if order.payment_status %}
-        {{ order.pos_payment_type|default:"Retail Shop" }}
+        {{ order.pos_payment_type|default:"Cash" }}
     {% else %}
         POS Pending
     {% endif %}
@@ -328,7 +348,8 @@ payment:`{% if order.is_pos_order %}
     COD
 {% else %}
     {{ order.get_payment_method_display }}
-{% endif %}`,items:[
+{% endif %}`,
+items:[
 {% for item in order.items.all %}
 {
 name:"{{ item.product.name|escapejs }}",
@@ -357,31 +378,36 @@ function printOrder(id){
   let itemsHtml = "";
   o.items.forEach(i => {
     itemsHtml += `<div><strong>${i.name}</strong><br>
-      <small class="text-muted">Brand: ${i.brand} | Code: ${i.code} | Qty: ${i.qty}</small>
-    </div><br>`;
+      <small>Brand: ${i.brand} | Code: ${i.code} | Qty: ${i.qty}</small>
+    </div>`;
   });
+
   document.getElementById("printItems").innerHTML = itemsHtml;
   window.print();
 }
-
 function printBill(id){
   const o = ordersData[id];
   document.body.className="print-bill";
 
-  document.getElementById("billDate").innerText = o.date;
-  document.getElementById("billOrderId").innerText = o.id;
-  document.getElementById("billPayment").innerText = o.payment;
+  const now = new Date();
+
+  document.getElementById("billOrderId").innerText = String(o.id).padStart(5, "0");
+  document.getElementById("billDate").innerText = now.toLocaleDateString("en-GB");
+  document.getElementById("billTime").innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
   let subtotal = 0;
   let itemsHtml = "";
+
   o.items.forEach(i => {
-    let total = i.price*i.qty;
+    let total = i.price * i.qty;
     subtotal += total;
-    itemsHtml += `<div class="row-flex small">
-      <div style="width:40%">${i.name}</div>
-      <div style="width:15%;text-align:center;">${i.qty}</div>
-      <div style="width:20%;text-align:right;">₹${i.price}</div>
-      <div style="width:25%;text-align:right;">₹${total}</div>
+
+    itemsHtml += `
+    <div class="row-flex small" style="margin:0;padding:0;line-height:1.2;">
+        <div style="width:40%">${i.name}</div>
+        <div style="width:15%;text-align:center;">${i.qty}</div>
+        <div style="width:20%;text-align:right;">₹${i.price}</div>
+        <div style="width:25%;text-align:right;">₹${total}</div>
     </div>`;
   });
 
@@ -389,7 +415,13 @@ function printBill(id){
   document.getElementById("billSubtotal").innerText = subtotal;
   document.getElementById("billTotal").innerText = subtotal;
 
-  setTimeout(()=>{ window.print(); document.body.className=""; }, 200);
+  document.getElementById("billPaymentLine").innerText =
+    "Payment Mode: " + (o.payment || "Cash").toUpperCase();
+
+  setTimeout(()=>{ 
+      window.print(); 
+      document.body.className=""; 
+  }, 150);
 }
 </script>
 </body>
