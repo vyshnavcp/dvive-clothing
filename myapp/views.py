@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 from django.contrib import messages
 from django.contrib.auth.models import User,Group
 from django.contrib.auth import authenticate,login,logout
-from django.db.models import Count
+from django.db.models import Q, Count
 from django.contrib.auth.decorators import login_required
 import razorpay
 from django.db import transaction
@@ -1192,10 +1192,12 @@ def paid_orders(request):
         'orders': orders,
         'title': 'Paid Orders'
     })
-
 @login_required(login_url='user_login')
 def pending_orders(request):
-    orders = Order.objects.filter(payment_status=False).order_by('-created_at')
+    orders = Order.objects.filter(
+        Q(payment_status=False) | Q(is_pos_order=True, payment_status=False),
+        is_cancelled=False
+    ).order_by('-created_at')
     return render(request, 'orders_view.html', {
         'orders': orders,
         'title': 'Pending Orders'

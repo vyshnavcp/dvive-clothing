@@ -23,7 +23,7 @@
         .stat-value { font-size: 22px; font-weight: 600; margin-top: 5px; }
 
         .table thead th { background: #e0e7ff; font-weight: 600; color: #1e293b; border: none; }
-        .table tbody tr:hover { background: #f1f5ff; }
+        .table tbody tr:hover { background: #f1f5ff; cursor: pointer; }
 
         .quick-btn { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; transition: all 0.3s; font-weight: 500; color: #1e293b; background: #f8fafc; }
         .quick-btn:hover { background: #4f46e5; color: #fff; transform: translateX(4px); }
@@ -89,17 +89,20 @@
                                 <th>ID</th>
                                 <th>Customer</th>
                                 <th>Total</th>
-                                <th>Payment</th>
+                                <th>Payment Method</th>
+                                <th>Payment Choice</th>
                                 <th>Status</th>
                                 <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for order in orders %}
-                                <tr>
+                                <tr onclick="window.location.href='{% url 'order_detail' order.id %}'">
                                     <td>#{{ order.id }}</td>
-                                    <td><a href="{% url 'order_detail' order.id %}" class="fw-semibold text-decoration-none">{{ order.first_name }}</a></td>
-                                    <td class="fw-semibold">₹ {{ order.total }}</td>
+                                    <td>{{ order.first_name }}</td>
+                                    <td>₹ {{ order.total }}</td>
+
+                                    <!-- Payment Method -->
                                     <td>
                                         {% if order.is_pos_order %}
                                             {% if order.payment_status %}
@@ -116,22 +119,38 @@
                                         {% endif %}
                                     </td>
 
+                                    <!-- Payment Choice -->
+                                    <td>
+                                        {% if order.is_pos_order %}
+                                            {% if order.payment_status %}
+                                                <span style="font-weight: 500;">{{ order.pos_payment_type|capfirst }}</span>
+                                            {% else %}
+                                                <span style="color: gray;">—</span>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if order.payment_choice %}
+                                                <span style="font-weight: 500;">{{ order.payment_choice|capfirst }}</span>
+                                            {% else %}
+                                                <span style="color: gray;">—</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- Status -->
                                     <td>
                                         {% if order.is_cancelled %}
                                             <span class="badge bg-danger">Cancelled</span>
-
                                         {% elif order.is_delivered %}
                                             <span class="badge bg-success">Delivered</span>
-
                                         {% else %}
                                             <span class="badge bg-warning text-dark">Pending</span>
                                         {% endif %}
-                                        </td>
+                                    </td>
 
                                     <td>{{ order.created_at|date:"d M Y" }}</td>
                                 </tr>
                             {% empty %}
-                                <tr><td colspan="5" class="text-center py-4 text-muted">No Orders Yet</td></tr>
+                                <tr><td colspan="7" class="text-center py-4 text-muted">No Orders Yet</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
