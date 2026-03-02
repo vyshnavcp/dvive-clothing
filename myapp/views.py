@@ -1433,6 +1433,14 @@ def delete_faq(request, pk):
 def faq_page(request):
     faqs = FAQ.objects.all().order_by("created_at")
     return render(request, "faq_page.html", {"faqs": faqs})
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import render
+from decimal import Decimal
+import json
 
 @staff_member_required
 def pos_page(request):
@@ -1446,16 +1454,18 @@ def pos_create_order(request):
             data = json.loads(request.body)
             items = data.get("items", [])
             payment_method = data.get("payment_method", "cod")
-            pos_payment_type = data.get("pos_payment_type")  # get POS type if provided
+            pos_payment_type = data.get("pos_payment_type")
+
+            # ✅ NEW: customer details from POS
+            customer_name = data.get("customer_name", "POS Customer")
+            customer_phone = data.get("customer_phone", "0000000000")
 
             if not items:
                 return JsonResponse({"status": "error", "message": "Cart empty"})
 
-            # Ensure POS payment type is only set for POS orders
             if payment_method != "pos":
                 pos_payment_type = None
 
-            # Get or create registration
             registration, _ = Registration.objects.get_or_create(
                 authuser=request.user,
                 defaults={
@@ -1467,12 +1477,11 @@ def pos_create_order(request):
 
             subtotal = Decimal("0.00")
 
-            # Create the order
             order = Order.objects.create(
                 registration=registration,
-                first_name=registration.user_name,
+                first_name=customer_name,          # ✅ updated
                 email=registration.email,
-                phone=registration.phone,
+                phone=customer_phone,              # ✅ updated
                 address="POS Store Sale",
                 town="Store",
                 state="Store",
@@ -1480,15 +1489,15 @@ def pos_create_order(request):
                 subtotal=Decimal("0.00"),
                 total=Decimal("0.00"),
                 payment_method=payment_method,
-                pos_payment_type=pos_payment_type,  # ✅ save cash/upi/card
+                pos_payment_type=pos_payment_type,
                 payment_status=True,
                 is_completed=True,
                 is_pos_order=True
             )
 
-            # Add order items
             for item in items:
                 product = Product.objects.get(id=item["id"])
+
                 if product.stock < item["quantity"]:
                     return JsonResponse({
                         "status": "error",
@@ -1515,7 +1524,8 @@ def pos_create_order(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
 
-    return JsonResponse({"status": "error", "message": "Invalid method"})\
+    return JsonResponse({"status": "error", "message": "Invalid method"})
+
 
 @staff_member_required
 def pos_edit_page(request, order_id):
@@ -1529,7 +1539,6 @@ def pos_edit_page(request, order_id):
         "order_items": order_items
     })
 
-
 @require_POST
 @staff_member_required
 @transaction.atomic
@@ -1539,9 +1548,13 @@ def pos_update_order(request, order_id):
         items = data.get("items", [])
         pos_payment_type = data.get("pos_payment_type")
 
+        # ✅ NEW: get name & phone from frontend
+        customer_name = data.get("customer_name")
+        customer_phone = data.get("customer_phone")
+
         order = Order.objects.select_for_update().get(id=order_id, is_pos_order=True)
 
-        # 1️⃣ Return previous stock
+        # 1️⃣ Restore previous stock
         for old_item in OrderItem.objects.filter(order=order):
             product = old_item.product
             product.stock += old_item.quantity
@@ -1571,10 +1584,18 @@ def pos_update_order(request, order_id):
 
             subtotal += product.price * item["quantity"]
 
-        # 4️⃣ Update order totals & payment
+        # 4️⃣ Update totals & payment type
         order.subtotal = subtotal
         order.total = subtotal
         order.pos_payment_type = pos_payment_type
+
+        # ✅ NEW: update name & phone
+        if customer_name:
+            order.first_name = customer_name
+
+        if customer_phone:
+            order.phone = customer_phone
+
         order.save()
 
         return JsonResponse({"status": "success"})

@@ -164,6 +164,18 @@ Add
 <div class="col-lg-4">
 <div class="card p-3 cart-card">
 <h5 class="mb-3">Cart</h5>
+
+<!-- NEW FIELDS -->
+<div class="mb-2">
+    <label class="form-label">Customer Name</label>
+    <input type="text" id="customerName" class="form-control" placeholder="Enter customer name">
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Phone Number</label>
+    <input type="text" id="customerPhone" class="form-control" placeholder="Enter phone number">
+</div>
+
 <ul id="cart-list" class="list-group mb-3"></ul>
 
 <div class="total-box mb-3">
@@ -261,6 +273,13 @@ function checkout() {
     if (cart.length === 0) return;
 
     const posPaymentType = document.getElementById("paymentMethod").value;
+    const customerName = document.getElementById("customerName").value.trim();
+    const customerPhone = document.getElementById("customerPhone").value.trim();
+
+    if (!customerName || !customerPhone) {
+        alert("Please enter customer name and phone number");
+        return;
+    }
 
     fetch("{% url 'pos_create_order' %}", {
         method: "POST",
@@ -270,8 +289,10 @@ function checkout() {
         },
         body: JSON.stringify({ 
             items: cart,
-            payment_method: "pos",          // always pos
-            pos_payment_type: posPaymentType // cash/upi/card
+            payment_method: "pos",
+            pos_payment_type: posPaymentType,
+            customer_name: customerName,
+            customer_phone: customerPhone
         })
     })
     .then(response => response.json())

@@ -74,6 +74,16 @@ body{
 
 <h4 class="section-title">Edit POS Billing</h4>
 
+<!-- ✅ Customer Info -->
+<div class="row mb-3">
+    <div class="col-md-6 mb-2">
+        <input type="text" id="customerName" class="form-control" placeholder="Customer Name" value="{{ order.first_name }}">
+    </div>
+    <div class="col-md-6 mb-2">
+        <input type="text" id="customerPhone" class="form-control" placeholder="Phone Number" value="{{ order.phone }}">
+    </div>
+</div>
+
 <div class="row mb-3">
     <div class="col-md-6">
         <input type="text" id="productSearch" class="form-control" placeholder="Search product name or code" onkeyup="filterProducts()">
@@ -215,7 +225,9 @@ function updateOrder() {
         },
         body: JSON.stringify({ 
             items: cart,
-            pos_payment_type: document.getElementById("paymentMethod").value
+            pos_payment_type: document.getElementById("paymentMethod").value,
+            customer_name: document.getElementById("customerName").value,
+            customer_phone: document.getElementById("customerPhone").value
         })
     })
     .then(r => r.json())

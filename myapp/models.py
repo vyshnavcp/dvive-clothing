@@ -263,12 +263,6 @@ class Coupon(models.Model):
 
 
 
- # make sure Registration is imported
-from decimal import Decimal
-from django.db import models
-from decimal import Decimal
-from django.db import models
-
 class Order(models.Model):
     PAYMENT_CHOICES = (
         ("razorpay", "Razorpay"),
