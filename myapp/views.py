@@ -1133,6 +1133,7 @@ def dashboard(request):
     }
     return render(request, "dashboard.html", context)
 
+@login_required(login_url='user_login')
 def report_page(request):
     orders = Order.objects.all()
     from_date = request.GET.get('from_date')
@@ -1161,10 +1162,12 @@ def report_page(request):
             orders = orders.filter(is_delivered=True)
         elif status == "cancelled":
             orders = orders.filter(is_cancelled=True)
+
     total_orders = orders.count()
     total_revenue = orders.aggregate(Sum('total'))['total__sum'] or 0
     total_paid_orders = orders.filter(is_delivered=True).count()
     pending_orders = orders.filter(is_delivered=False, is_cancelled=False).count()
+
     return render(request, "report_page.html", {
         "title": "Order Report",
         "orders": orders.order_by("-created_at"),
@@ -1183,12 +1186,12 @@ def order_list(request):
 
 @login_required(login_url='user_login')
 def paid_orders(request):
+    # Only POS paid orders will have pos_payment_type; razorpay/cod can stay blank
     orders = Order.objects.filter(payment_status=True).order_by('-created_at')
     return render(request, 'orders_view.html', {
         'orders': orders,
         'title': 'Paid Orders'
     })
-
 
 @login_required(login_url='user_login')
 def pending_orders(request):
@@ -1198,12 +1201,28 @@ def pending_orders(request):
         'title': 'Pending Orders'
     })
 
+
+@login_required(login_url='user_login')
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+    # Show POS payment complete button only if POS order and not paid
     show_pos_payment_buttons = order.is_pos_order and not order.payment_status
+
+    # Determine payment display
+    if order.is_pos_order:
+        payment_display = order.pos_payment_type.capitalize() if order.pos_payment_type else "Pending POS"
+    else:
+        if order.payment_method == "razorpay":
+            payment_display = "Razorpay"
+        elif order.payment_method == "cod":
+            payment_display = "Cash on Delivery"
+        else:
+            payment_display = order.get_payment_method_display()
+
     return render(request, "order_detail.html", {
         "order": order,
         "show_pos_payment_buttons": show_pos_payment_buttons,
+        "payment_display": payment_display,
     })
 
 @login_required(login_url='user_login')
@@ -1403,8 +1422,17 @@ def pos_create_order(request):
         try:
             data = json.loads(request.body)
             items = data.get("items", [])
+            payment_method = data.get("payment_method", "cod")
+            pos_payment_type = data.get("pos_payment_type")  # get POS type if provided
+
             if not items:
                 return JsonResponse({"status": "error", "message": "Cart empty"})
+
+            # Ensure POS payment type is only set for POS orders
+            if payment_method != "pos":
+                pos_payment_type = None
+
+            # Get or create registration
             registration, _ = Registration.objects.get_or_create(
                 authuser=request.user,
                 defaults={
@@ -1413,7 +1441,10 @@ def pos_create_order(request):
                     "phone": "0000000000"
                 }
             )
+
             subtotal = Decimal("0.00")
+
+            # Create the order
             order = Order.objects.create(
                 registration=registration,
                 first_name=registration.user_name,
@@ -1425,11 +1456,14 @@ def pos_create_order(request):
                 pincode="000000",
                 subtotal=Decimal("0.00"),
                 total=Decimal("0.00"),
-                payment_method="cod",
+                payment_method=payment_method,
+                pos_payment_type=pos_payment_type,  # ✅ save cash/upi/card
                 payment_status=True,
                 is_completed=True,
                 is_pos_order=True
             )
+
+            # Add order items
             for item in items:
                 product = Product.objects.get(id=item["id"])
                 if product.stock < item["quantity"]:
@@ -1437,12 +1471,14 @@ def pos_create_order(request):
                         "status": "error",
                         "message": f"{product.name} stock not enough"
                     })
+
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     quantity=item["quantity"],
                     price=product.price
                 )
+
                 subtotal += product.price * item["quantity"]
                 product.stock -= item["quantity"]
                 product.save()
@@ -1452,6 +1488,7 @@ def pos_create_order(request):
             order.save()
 
             return JsonResponse({"status": "success"})
+
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
 

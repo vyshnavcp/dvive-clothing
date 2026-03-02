@@ -264,16 +264,26 @@ class Coupon(models.Model):
 
 
  # make sure Registration is imported
+from decimal import Decimal
+from django.db import models
+from decimal import Decimal
+from django.db import models
 
 class Order(models.Model):
     PAYMENT_CHOICES = (
         ("razorpay", "Razorpay"),
         ("cod", "Cash on Delivery"),
-        ("POS", "POS Billing"),
+        ("pos", "POS Billing"),
+    )
+
+    POS_PAYMENT_CHOICES = (
+        ("cash", "Cash"),
+        ("upi", "UPI"),
+        ("card", "Card"),
     )
 
     # Customer registration
-    registration = models.ForeignKey(Registration, on_delete=models.CASCADE)
+    registration = models.ForeignKey("Registration", on_delete=models.CASCADE)
 
     # Customer info
     first_name = models.CharField(max_length=50)
@@ -299,14 +309,21 @@ class Order(models.Model):
     payment_method = models.CharField(
         max_length=20, choices=PAYMENT_CHOICES, default="razorpay"
     )
+    pos_payment_type = models.CharField(
+        max_length=20,
+        choices=POS_PAYMENT_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Only for POS Billing"
+    )
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
     payment_status = models.BooleanField(default=False)   # True if payment done
 
     # Admin & delivery status
-    is_completed = models.BooleanField(default=False)     # Admin marked completed
-    is_delivered = models.BooleanField(default=False)     # Delivery status
-    is_cancelled = models.BooleanField(default=False)     # Cancelled by admin
+    is_completed = models.BooleanField(default=False)     
+    is_delivered = models.BooleanField(default=False)     
+    is_cancelled = models.BooleanField(default=False)     
 
     # POS order flag
     is_pos_order = models.BooleanField(default=False)
@@ -315,21 +332,21 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        if self.is_pos_order and self.pos_payment_type:
+            return f"Order #{self.id} - POS ({self.pos_payment_type})"
         return f"Order #{self.id} - {self.get_payment_method_display()}"
 
-    # Shortcut property to check if POS order is pending payment
+    # Only POS orders have pending payment
     @property
     def pos_payment_pending(self):
         return self.is_pos_order and not self.payment_status
 
-    # Shortcut to check if order is fully completed (paid & delivered or admin completed)
     @property
     def fully_completed(self):
         if self.is_pos_order:
             return self.payment_status and self.is_completed
         return self.is_completed
 
-    # Optional: human readable display
     def get_status_display(self):
         if self.is_cancelled:
             return "Cancelled"
@@ -340,7 +357,6 @@ class Order(models.Model):
         if not self.is_completed:
             return "Pending"
         return "Completed"
-
 
 
 class OrderItem(models.Model):

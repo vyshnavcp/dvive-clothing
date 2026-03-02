@@ -9,11 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            background: #f4f6fb;
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-        }
+        body { background: #f4f6fb; font-family: 'Poppins', sans-serif; margin: 0; }
         .header-with-topbar { background: #000; box-shadow: 0 4px 20px rgba(0,0,0,0.35); }
         .dashboard-header { padding: 18px 24px; }
         .dashboard-header h4, .dashboard-header small, .dashboard-header i { color: #fff; }
@@ -45,8 +41,7 @@
             </div>
         </div>
 
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -79,27 +74,19 @@
             <small>{{ order.created_at|date:"d M Y - h:i A" }}</small>
         </div>
 
-        {% if order.is_pos_order %}
-            {% if order.payment_status %}
-                <span class="status-badge completed"><i class="bi bi-check-circle"></i> Paid</span>
+        <span class="status-badge {% if order.fully_completed %}completed{% else %}pending{% endif %}">
+            {% if order.is_pos_order %}
+                {% if order.payment_status %} Paid {% else %} Pending Payment {% endif %}
             {% else %}
-                <span class="status-badge pending"><i class="bi bi-clock"></i> Pending Payment</span>
+                {{ order.get_status_display }}
             {% endif %}
-        {% else %}
-            {% if order.is_delivered %}
-                <span class="status-badge completed"><i class="bi bi-check-circle"></i> Delivered</span>
-            {% elif order.is_cancelled %}
-                <span class="status-badge pending"><i class="bi bi-x-circle"></i> Cancelled</span>
-            {% else %}
-                <span class="status-badge pending"><i class="bi bi-clock"></i> Pending</span>
-            {% endif %}
-        {% endif %}
+        </span>
     </div>
 
     <div class="row">
 
+        <!-- LEFT SIDE -->
         <div class="col-md-8">
-
             <div class="card shadow-sm p-4 mb-4">
                 <h5 class="info-title">Customer Information</h5>
                 <hr>
@@ -135,55 +122,36 @@
                     <p class="text-muted">No products found.</p>
                 {% endfor %}
             </div>
-
         </div>
 
+        <!-- RIGHT SIDE -->
         <div class="col-md-4">
-
             <div class="card shadow-sm p-4 mb-4">
                 <h5 class="info-title">Order Summary</h5>
                 <hr>
-
                 <p><strong>Subtotal:</strong> ₹ {{ order.subtotal }}</p>
-
                 {% if order.coupon_code %}
                     <p><strong>Coupon:</strong> {{ order.coupon_code }}</p>
                     <p><strong>Discount:</strong> ₹ {{ order.coupon_discount }}</p>
                 {% endif %}
-
                 <p><strong>Total:</strong> ₹ {{ order.total }}</p>
                 <hr>
 
-                <p><strong>Status:</strong> 
-                    {% if order.is_pos_order %}
-                        {% if order.payment_status %}
-                            Paid
-                        {% else %}
-                            Pending Payment
-                        {% endif %}
-                    {% else %}
-                        {% if order.is_delivered %}
-                            Delivered
-                        {% elif order.is_cancelled %}
-                            Cancelled
-                        {% else %}
-                            Pending
-                        {% endif %}
-                    {% endif %}
-                </p>
+                <p><strong>Payment Method:</strong> {{ payment_display }}</p>
+                <hr>
+
+                <p><strong>Status:</strong> {{ order.get_status_display }}</p>
                 <hr>
 
                 {% if not order.is_delivered and not order.is_cancelled %}
-                    {% if order.is_pos_order and not order.payment_status %}
-                        <!-- POS order pending payment -->
+                    {% if show_pos_payment_buttons %}
                         <form method="POST" action="{% url 'pos_payment_complete' order.id %}" class="mb-2">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-cash-stack"></i> Mark Payment Complete
+                                <i class="bi bi-cash-stack"></i> Mark POS Payment Complete
                             </button>
                         </form>
                     {% else %}
-                        <!-- Regular order or POS already paid -->
                         <form method="POST" action="{% url 'mark_order_completed' order.id %}" class="mb-2">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-success w-100">
@@ -191,24 +159,19 @@
                             </button>
                         </form>
                     {% endif %}
-
                     <form method="POST" action="{% url 'cancel_order' order.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger w-100 mt-2">
                             <i class="bi bi-x-circle"></i> Cancel Order
                         </button>
                     </form>
-
                 {% elif order.is_cancelled %}
                     <div class="alert alert-danger text-center mt-2">Order Cancelled</div>
                 {% else %}
                     <div class="alert alert-success text-center mt-2">Order Already Completed</div>
                 {% endif %}
-
             </div>
-
         </div>
-
     </div>
 
 </div>

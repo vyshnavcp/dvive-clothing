@@ -31,7 +31,6 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 
 <body>
 
-<!-- NAVBAR -->
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
 <div class="container-fluid px-0">
@@ -80,7 +79,7 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
         <input type="date" name="to_date" class="form-control" value="{{ request.GET.to_date }}">
     </div>
     <div class="col-md-3">
-        <label class="form-label">Payment</label>
+        <label class="form-label">Payment Method</label>
         <select name="payment" class="form-select">
             <option value="">All</option>
             <option value="cod" {% if request.GET.payment == 'cod' %}selected{% endif %}>COD</option>
@@ -114,7 +113,8 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 <th>Order ID</th>
 <th>Customer</th>
 <th>Total</th>
-<th>Payment</th>
+<th>Payment Method</th>
+<th>Payment Choice</th>
 <th>Status</th>
 <th>Date</th>
 </tr>
@@ -125,6 +125,8 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 <td>#{{ order.id }}</td>
 <td>{{ order.first_name }}</td>
 <td>₹ {{ order.total }}</td>
+
+<!-- Payment Method Column -->
 <td>
 {% if order.is_pos_order %}
     Retail Shop
@@ -136,16 +138,31 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
     {{ order.get_payment_method_display }}
 {% endif %}
 </td>
+
+<!-- Payment Choice Column -->
+<td>
+{% if order.is_pos_order %}
+    {% if order.payment_status %}
+        {{ order.pos_payment_type|capfirst }}
+    {% else %}
+        —
+    {% endif %}
+{% else %}
+    —
+{% endif %}
+</td>
+
 <td>
 {% if order.is_cancelled %}<span class="status-badge cancelled">Cancelled</span>
 {% elif order.is_delivered %}<span class="status-badge completed">Delivered</span>
 {% else %}<span class="status-badge pending">Pending</span>{% endif %}
 </td>
+
 <td>{{ order.created_at|date:"d M Y" }}</td>
 </tr>
 {% empty %}
 <tr>
-<td colspan="6" class="text-center text-muted">No orders found.</td>
+<td colspan="7" class="text-center text-muted">No orders found.</td>
 </tr>
 {% endfor %}
 </tbody>
