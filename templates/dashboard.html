@@ -136,11 +136,13 @@
 
             <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
                 <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+                    {% if request.user.is_superuser %}
                     <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'report_page' %}">Report</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'customer_list' %}">Customers</a></li>
+                    {% endif %}
                     <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'order_list' %}">Orders</a></li>
                     <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'paid_orders' %}">Paid</a></li>
                     <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'pending_orders' %}">Pending</a></li>
-                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'customer_list' %}">Customers</a></li>
                     <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'user_logout' %}">Logout</a></li>
                 </ul>
             </div>
@@ -154,7 +156,9 @@
         <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Total Orders</span><div class="stat-value"><a href="{% url 'order_list' %}" class="text-dark text-decoration-none">{{ total_orders }}</a></div></div></div>
         <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Paid Orders</span><div class="stat-value"><a href="{% url 'paid_orders' %}" class="text-dark text-decoration-none">{{ paid_orders }}</a></div></div></div>
         <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Pending Orders</span><div class="stat-value"><a href="{% url 'pending_orders' %}" class="text-dark text-decoration-none">{{ pending_orders }}</a></div></div></div>
+        {% if request.user.is_superuser %}
         <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Customers</span><div class="stat-value"><a href="{% url 'customer_list' %}" class="text-dark text-decoration-none">{{ total_customers }}</a></div></div></div>
+        {% endif %}
     </div>
 
     <!-- CONTENT -->
@@ -189,12 +193,12 @@
                                             {% else %}
                                                 <span style="color: #0d6efd; font-weight: 600;">POS Pending</span>
                                             {% endif %}
-                                        {% elif order.payment_method == "razorpay" %}
-                                            <span style="color: green; font-weight: 600;">Razorpay</span>
-                                        {% elif order.payment_method == "cod" %}
-                                            <span style="color: #ff9800; font-weight: 600;">COD</span>
-                                        {% else %}
-                                            <span style="color: gray; font-weight: 600;">{{ order.get_payment_method_display }}</span>
+                                        {% elif request.user.is_superuser %}
+                                            {% if order.payment_method == "razorpay" %}
+                                                <span style="color: green; font-weight: 600;">Razorpay</span>
+                                            {% elif order.payment_method == "cod" %}
+                                                <span style="color: #ff9800; font-weight: 600;">COD</span>
+                                            {% endif %}
                                         {% endif %}
                                     </td>
                                     <td>
@@ -237,28 +241,30 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header">Quick Actions</div>
                 <div class="card-body d-grid gap-2">
+                    <a href="{% url 'pos_page' %}" class="quick-btn"><i class="bi bi-receipt"></i> POS Billing</a>
                     <a href="{% url 'add_category' %}" class="quick-btn"><i class="bi bi-plus-square"></i> Add Category</a>
                     <a href="{% url 'category_list' %}" class="quick-btn"><i class="bi bi-card-list"></i> View Category</a>
                     <a href="{% url 'add_subcategory' %}" class="quick-btn"><i class="bi bi-folder-plus"></i> Add SubCategory</a>
                     <a href="{% url 'subcategory_list' %}" class="quick-btn"><i class="bi bi-folder2-open"></i> View SubCategory</a>
                     <a href="{% url 'add_product' %}" class="quick-btn"><i class="bi bi-box-arrow-in-up"></i> Add Product</a>
                     <a href="{% url 'product_list' %}" class="quick-btn"><i class="bi bi-box-seam"></i> View Product</a>
-                    <a href="{% url 'add_article' %}" class="quick-btn"><i class="bi bi-newspaper"></i> Add Article</a>
-                    <a href="{% url 'article_list' %}" class="quick-btn"><i class="bi bi-card-text"></i> View Articles</a>
                     <a href="{% url 'add_size' %}" class="quick-btn"><i class="bi bi-arrows-fullscreen"></i> Add Size</a>
                     <a href="{% url 'size_list' %}" class="quick-btn"><i class="bi bi-arrows-angle-expand"></i> View Size</a>
                     <a href="{% url 'add_color' %}" class="quick-btn"><i class="bi bi-droplet"></i> Add Color</a>
                     <a href="{% url 'color_list' %}" class="quick-btn"><i class="bi bi-palette"></i> View Color</a>
                     <a href="{% url 'add_coupon' %}" class="quick-btn"><i class="bi bi-tag-plus"></i> Add Coupon</a>
                     <a href="{% url 'coupon_list' %}" class="quick-btn"><i class="bi bi-tags"></i> View Coupon</a>
+                    {% if request.user.is_superuser %}
                     <a href="{% url 'review_list' %}" class="quick-btn"><i class="bi bi-chat-square-text"></i> View Reviews</a>
-                    <a href="{% url 'pos_page' %}" class="quick-btn"><i class="bi bi-receipt"></i> POS Billing</a>
+                    <a href="{% url 'add_article' %}" class="quick-btn"><i class="bi bi-newspaper"></i> Add Article</a>
+                    <a href="{% url 'article_list' %}" class="quick-btn"><i class="bi bi-card-text"></i> View Articles</a>
                     <a href="{% url 'add_terms' %}" class="quick-btn"><i class="bi bi-file-earmark-plus"></i> Add Terms</a>
                     <a href="{% url 'terms_list' %}" class="quick-btn"><i class="bi bi-file-earmark-text"></i> View Terms</a>
                     <a href="{% url 'add_privacy' %}" class="quick-btn"><i class="bi bi-shield-lock"></i> Add Privacy</a>
                     <a href="{% url 'privacy_list' %}" class="quick-btn"><i class="bi bi-shield-check"></i> View Privacy</a>
                     <a href="{% url 'add_faq' %}" class="quick-btn"><i class="bi bi-question-circle"></i> Add FAQ</a>
                     <a href="{% url 'faq_list' %}" class="quick-btn"><i class="bi bi-chat-dots"></i> View FAQ</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

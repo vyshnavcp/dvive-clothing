@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User,Group
 from django.contrib.auth import authenticate,login,logout
 from django.db.models import Q, Count
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,user_passes_test
 import razorpay
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
@@ -31,6 +31,8 @@ import json
 from django.utils.dateparse import parse_date 
 from django.views.decorators.http import require_POST
 from .forms import ArticleForm, TermsForm
+def staff_required(user):
+    return user.is_staff
 
 
 def home(request):
@@ -1102,15 +1104,19 @@ def my_orders(request):
     return render(request, "my_orders.html", {
         "orders": orders
     })
-from django.contrib.auth.decorators import user_passes_test
+
 from .decorators import role_required
 @user_passes_test(
     lambda u: u.is_authenticated and u.is_staff,
     login_url='user_login'
 )
+
 def dashboard(request):
     today = now().date()
-    orders = Order.objects.all().order_by('-created_at')
+    if request.user.is_superuser:
+        orders = Order.objects.all().order_by('-created_at')
+    else:
+        orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
     paid_orders = orders.filter(payment_status=True, is_cancelled=False)
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
     today_revenue = paid_orders.filter(created_at__date=today).aggregate(total=Sum("total"))["total"] or 0
@@ -1176,33 +1182,48 @@ def report_page(request):
         "total_paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
     })
-
+@login_required(login_url='user_login')
+@user_passes_test(staff_required, login_url='home')
 def order_list(request):
-    orders = Order.objects.all().order_by('-created_at')
+    if request.user.is_superuser:
+        orders = Order.objects.all()
+    else:
+        orders = Order.objects.filter(is_pos_order=True)
+
+    orders = orders.order_by('-created_at')
+
     return render(request, 'orders_view.html', {
         'orders': orders,
         'title': 'All Orders'
     })
 
+
 @login_required(login_url='user_login')
+@user_passes_test(staff_required, login_url='home')
 def paid_orders(request):
-    # Only POS paid orders will have pos_payment_type; razorpay/cod can stay blank
-    orders = Order.objects.filter(payment_status=True).order_by('-created_at')
+    if request.user.is_superuser:
+        orders = Order.objects.filter(payment_status=True, is_cancelled=False)
+    else:
+        orders = Order.objects.filter(is_pos_order=True, payment_status=True, is_cancelled=False)
+
     return render(request, 'orders_view.html', {
-        'orders': orders,
+        'orders': orders.order_by('-created_at'),
         'title': 'Paid Orders'
     })
+
+
 @login_required(login_url='user_login')
+@user_passes_test(staff_required, login_url='home')
 def pending_orders(request):
-    orders = Order.objects.filter(
-        Q(payment_status=False) | Q(is_pos_order=True, payment_status=False),
-        is_cancelled=False
-    ).order_by('-created_at')
+    if request.user.is_superuser:
+        orders = Order.objects.filter(payment_status=False, is_cancelled=False)
+    else:
+        orders = Order.objects.filter(is_pos_order=True, payment_status=False, is_cancelled=False)
+
     return render(request, 'orders_view.html', {
-        'orders': orders,
+        'orders': orders.order_by('-created_at'),
         'title': 'Pending Orders'
     })
-
 
 @login_required(login_url='user_login')
 def order_detail(request, order_id):

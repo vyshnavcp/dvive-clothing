@@ -90,7 +90,9 @@ body.print-bill #billArea{display:block!important;}
 <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
 <li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
 <li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
+{% if request.user.is_superuser %}
 <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
+{% endif %}
 <li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
 </ul>
 </div>
@@ -134,19 +136,29 @@ body.print-bill #billArea{display:block!important;}
 
 <!-- Original Payment Column -->
 <td>
-{% if order.is_pos_order %}
-    {% if order.payment_status %}
-        Retail Shop
+
+{% if request.user.is_superuser %}
+
+    {% if order.is_pos_order %}
+        {% if order.payment_status %}
+            Retail Shop
+        {% else %}
+            POS Pending
+        {% endif %}
+    {% elif order.payment_method == "razorpay" %}
+        Razorpay
+    {% elif order.payment_method == "cod" %}
+        COD
     {% else %}
-        POS Pending
+        {{ order.get_payment_method_display }}
     {% endif %}
-{% elif order.payment_method == "razorpay" %}
-    Razorpay
-{% elif order.payment_method == "cod" %}
-    COD
+
 {% else %}
-    {{ order.get_payment_method_display }}
+
+    Retail Shop
+
 {% endif %}
+
 </td>
 
 <!-- Payment Choice Column -->
@@ -297,8 +309,19 @@ shipping:`{{ order.address|escapejs }}, {{ order.town|escapejs }}, {{ order.stat
 landmark:"{{ order.land_mark|default:''|escapejs }}",
 total:"{{ order.total }}",
 date:"{{ order.created_at|date:'d/m/Y' }}",
-payment:`{% if order.is_pos_order %}{{ order.pos_payment_type|default:"Retail Shop" }}{% elif order.payment_method == "razorpay" %}Razorpay{% elif order.payment_method == "cod" %}COD{% else %}{{ order.get_payment_method_display }}{% endif %}`,
-items:[
+payment:`{% if order.is_pos_order %}
+    {% if order.payment_status %}
+        {{ order.pos_payment_type|default:"Retail Shop" }}
+    {% else %}
+        POS Pending
+    {% endif %}
+{% elif order.payment_method == "razorpay" %}
+    Razorpay
+{% elif order.payment_method == "cod" %}
+    COD
+{% else %}
+    {{ order.get_payment_method_display }}
+{% endif %}`,items:[
 {% for item in order.items.all %}
 {
 name:"{{ item.product.name|escapejs }}",
