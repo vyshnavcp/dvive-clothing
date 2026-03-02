@@ -56,31 +56,26 @@ body.print-bill #billArea{display:block!important;}
     font-size:12px;
     padding:8px;
     border:2px solid #000;
+    box-sizing:border-box;
 }
 .thermal-bill h2{text-align:center;letter-spacing:3px;margin:0;}
-.row-flex{display:flex;justify-content:space-between;}
 .center{text-align:center;}
 .bold{font-weight:bold;}
-.line{
-    border-top:1px dashed #000;
-    margin:4px 0;  
-}
-.small{font-size:11px;}
-
-
+.line{border-top:1px solid #000;margin:6px 0;}
 .payment-line{
     font-size:11px;
     font-weight:bold;
     white-space:nowrap;
     display:block;
-    margin:0;
-    padding:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
+.row-flex{display:flex;justify-content:space-between;gap:4px;}
+.small{font-size:10.5px;}
 </style>
 </head>
 
 <body>
-
 
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
@@ -103,9 +98,7 @@ body.print-bill #billArea{display:block!important;}
 <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
 <li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
 <li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
-{% if request.user.is_superuser %}
 <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
-{% endif %}
 <li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
 </ul>
 </div>
@@ -124,23 +117,19 @@ body.print-bill #billArea{display:block!important;}
 <table class="table mb-0 align-middle">
 <thead class="table-light">
 <tr>
-<th>ID</th>
 <th>Customer</th>
 <th>Shipping</th>
 <th>Total</th>
-<th>Payment Method</th>
 <th>Payment</th>
 <th>Status</th>
 <th>Date</th>
 <th>Print</th>
-<th>Edit</th>
 </tr>
 </thead>
 
 <tbody>
 {% for order in orders %}
 <tr class="order-row" onclick="window.location.href='{% url 'order_detail' order.id %}'">
-<td class="fw-bold">#{{ order.id }}</td>
 <td>{{ order.first_name }}</td>
 <td>
 {{ order.address }}<br>
@@ -150,35 +139,20 @@ body.print-bill #billArea{display:block!important;}
 
 <td>₹ {{ order.total }}</td>
 
-<td>
-{% if request.user.is_superuser %}
-    {% if order.is_pos_order %}
-        {% if order.payment_status %}
-            Retail Shop
-        {% else %}
-            POS Pending
-        {% endif %}
-    {% elif order.payment_method == "razorpay" %}
-        Razorpay
-    {% elif order.payment_method == "cod" %}
-        COD
-    {% else %}
-        {{ order.get_payment_method_display }}
-    {% endif %}
-{% else %}
-    Retail Shop
-{% endif %}
-</td>
-
+<!-- Fixed Payment Column -->
 <td>
 {% if order.is_pos_order %}
     {% if order.payment_status %}
-        {{ order.pos_payment_type|default:"Cash/UPI" }}
+        Retail Shop
     {% else %}
-        — 
+        POS Pending
     {% endif %}
+{% elif order.payment_method == "razorpay" %}
+    Razorpay
+{% elif order.payment_method == "cod" %}
+    COD
 {% else %}
-    — 
+    {{ order.get_payment_method_display }}
 {% endif %}
 </td>
 
@@ -207,19 +181,6 @@ body.print-bill #billArea{display:block!important;}
 <span class="text-muted">—</span>
 {% endif %}
 </td>
-
-<td>
-{% if order.is_pos_order and not order.is_cancelled %}
-<a href="{% url 'pos_edit_page' order.id %}" 
-   class="btn btn-sm btn-warning"
-   onclick="event.stopPropagation();">
-   <i class="bi bi-pencil-square"></i>
-</a>
-{% else %}
-<span class="text-muted">—</span>
-{% endif %}
-</td>
-
 </tr>
 {% endfor %}
 </tbody>
@@ -227,7 +188,6 @@ body.print-bill #billArea{display:block!important;}
 </div>
 </div>
 </div>
-
 
 <!-- SLIP -->
 <div id="printArea">
@@ -264,7 +224,8 @@ body.print-bill #billArea{display:block!important;}
       <div class="slip-col">
         <strong>FROM:</strong><br>
         DVIVE CLOTHINGS<br>
-        Calicut, Kerala<br>
+        Calicut, Kerala, <br>
+        Kunnamangalam <br>
         📞 8921830429
       </div>
     </div>
@@ -279,7 +240,7 @@ body.print-bill #billArea{display:block!important;}
     <div class="center small">Calicut, Kerala</div>
     <div class="center small">Kunnamangalam</div>
     <div class="center small">673571</div>
-    <div class="center small">Ph: 89218 30429</div>
+    <div class="center small">Ph: 8921830429</div>
 
     <div class="line"></div>
 
@@ -327,7 +288,7 @@ body.print-bill #billArea{display:block!important;}
 </div>
 
 <script>
-  const ordersData = {
+const ordersData = {
 {% for order in orders %}
 {{ order.id }}:{
 id:"{{ order.id }}",
@@ -336,19 +297,8 @@ phone:"{{ order.phone|escapejs }}",
 shipping:`{{ order.address|escapejs }}, {{ order.town|escapejs }}, {{ order.state|escapejs }} - {{ order.pincode|escapejs }}`,
 landmark:"{{ order.land_mark|default:''|escapejs }}",
 total:"{{ order.total }}",
-payment:`{% if order.is_pos_order %}
-    {% if order.payment_status %}
-        {{ order.pos_payment_type|default:"Cash" }}
-    {% else %}
-        POS Pending
-    {% endif %}
-{% elif order.payment_method == "razorpay" %}
-    Razorpay
-{% elif order.payment_method == "cod" %}
-    COD
-{% else %}
-    {{ order.get_payment_method_display }}
-{% endif %}`,
+date:"{{ order.created_at|date:'d/m/Y' }}",
+payment:"{% if order.is_pos_order %}{% if order.payment_status %}{{ order.pos_payment_type|default:'Cash' }}{% else %}POS Pending{% endif %}{% elif order.payment_method == 'razorpay' %}Razorpay{% elif order.payment_method == 'cod' %}COD{% else %}{{ order.get_payment_method_display }}{% endif %}",
 items:[
 {% for item in order.items.all %}
 {
@@ -378,10 +328,9 @@ function printOrder(id){
   let itemsHtml = "";
   o.items.forEach(i => {
     itemsHtml += `<div><strong>${i.name}</strong><br>
-      <small>Brand: ${i.brand} | Code: ${i.code} | Qty: ${i.qty}</small>
-    </div>`;
+      <small class="text-muted">Brand: ${i.brand} | Code: ${i.code} | Qty: ${i.qty}</small>
+    </div><br>`;
   });
-
   document.getElementById("printItems").innerHTML = itemsHtml;
   window.print();
 }
@@ -424,5 +373,6 @@ function printBill(id){
   }, 150);
 }
 </script>
+
 </body>
 </html>
