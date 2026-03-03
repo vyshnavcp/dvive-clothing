@@ -34,10 +34,7 @@ class SubCategoryAdmin(ModelAdmin):
     list_filter = ('category',)                 
     search_fields = ('name',)
 
-@admin.register(ProductColor)
-class ProductColorAdmin(ModelAdmin):
-    list_display = ('product', 'name', 'hex_code')
-    search_fields = ('name',)
+
 @admin.register(Size)
 class SizeAdmin(ModelAdmin):
     list_display = ('name', 'order')
@@ -60,7 +57,7 @@ class ProductAdmin(ModelAdmin):
 
     search_fields = ('name', 'brand', 'product_code')
     prepopulated_fields = {'slug': ('name',)}
-    filter_horizontal = ('sizes',)
+ 
 
     readonly_fields = (
         'style_type_display',

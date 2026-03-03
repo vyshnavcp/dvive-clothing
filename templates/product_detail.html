@@ -292,11 +292,11 @@ input[type="radio"]:checked + .size-circle {
                                 {% endif %}
 
                             <!-- Size selector -->
-                            {% if product.sizes.exists %}
+                            {% if sizes %}
                             <div class="d-flex align-items-center mb-35px">
                                 <label class="text-dark-gray me-15px fw-500">Size</label>
                                 <ul class="shop-size mb-0">
-                                    {% for size in product.sizes.all %}
+                                    {% for size in sizes %}
                                     <li>
                                         <input type="radio" id="size-{{ size.id }}" name="size" value="{{ size.id }}" class="visually-hidden">
                                         <label for="size-{{ size.id }}" class="size-circle">{{ size.name }}</label>

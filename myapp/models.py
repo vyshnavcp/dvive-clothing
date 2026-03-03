@@ -112,8 +112,7 @@ class Product(models.Model):
     # Stock
     stock = models.PositiveIntegerField(default=0)
 
-    # Sizes
-    sizes = models.ManyToManyField('Size', blank=True)
+ 
 
     # Images
     image1 = models.ImageField(upload_to='products/', blank=True, null=True)
@@ -157,17 +156,23 @@ class Product(models.Model):
 
 class ProductColor(models.Model):
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='colors')
-    name = models.CharField(max_length=50)      # e.g. Yellow
-    hex_code = models.CharField(max_length=7)   # e.g. #F2C94C
+    name = models.CharField(max_length=50)      
+    hex_code = models.CharField(max_length=7)   
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
 class Size(models.Model):
-    name = models.CharField(max_length=10)  # S, M, L, XL
+    name = models.CharField(max_length=10)  
     order = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.name
+    
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
+    size = models.ForeignKey(Size, on_delete=models.CASCADE)
+    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE)
+    stock = models.PositiveIntegerField(default=0)
 
 
 

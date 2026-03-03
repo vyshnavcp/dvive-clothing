@@ -5,170 +5,53 @@
 <title>Edit Product</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Bootstrap + Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body{
-    background:#f6f6f6;
-    font-family: "Inter", system-ui;
-    margin:0;
-}
-
-/* ================= NAVBAR ================= */
-
-.header-with-topbar{
-    background:#000;
-    box-shadow:0 4px 20px rgba(0,0,0,0.35);
-}
-
-.dashboard-header{
-    padding:18px 24px;
-}
-
-.dashboard-header h4,
-.dashboard-header small,
-.dashboard-header i{
-    color:#fff;
-}
-
-.dashboard-header .nav-link{
-    color:#fff !important;
-    font-weight:500;
-    transition:0.3s;
-}
-
-.dashboard-header .nav-link:hover{
-    color:#bdbdbd !important;
-}
-
-.navbar-toggler{
-    border:0;
-}
-
-.navbar-toggler-icon{
-    filter:invert(1);
-}
-
-/* ================= PAGE CONTENT ================= */
-
-.page-wrapper{
-    padding:40px 20px;
-}
-
-.card{
-    border:none;
-    border-radius:16px;
-    box-shadow:0 15px 40px rgba(0,0,0,.08);
-}
-
-.form-control, .form-select{
-    border-radius:10px;
-    padding:12px;
-}
-
-.section-title{
-    font-weight:600;
-    margin-bottom:10px;
-    border-left:4px solid #000;
-    padding-left:10px;
-}
-
-.btn-dark{
-    border-radius:12px;
-    padding:14px;
-    font-weight:600;
-}
-
-.badge-json{
-    background:#000;
-    color:#fff;
-    border-radius:6px;
-    padding:3px 8px;
-    font-size:12px;
-}
-
-.preview-img{
-    height:130px;
-    object-fit:cover;
-    border-radius:10px;
-    border:1px solid #ddd;
-}
+body{background:#f6f6f6;font-family:'Poppins', sans-serif;}
+.header-with-topbar{background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.35);}
+.dashboard-header{padding:18px 24px;}
+.dashboard-header h4,.dashboard-header small,.dashboard-header i,.dashboard-header .nav-link{color:#fff!important;}
+.page-wrapper{padding:40px 20px;}
+.card{border:none;border-radius:16px;box-shadow:0 15px 40px rgba(0,0,0,.08);}
+.form-control,.form-select{border-radius:10px;padding:12px;}
+.section-title{font-weight:600;border-left:4px solid #111;padding-left:10px;margin-bottom:10px;}
+.variant-box{background:#fafafa;border:1px dashed #ccc;padding:15px;border-radius:12px;margin-bottom:15px;}
+.color-pill{display:flex;gap:10px;align-items:center;}
+.size-stock-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;}
+.remove-btn{background:#dc3545;color:#fff;border:0;border-radius:8px;padding:6px 10px;}
+.btn-black{background:#111;color:#fff;border-radius:12px;padding:14px;width:100%;}
+.badge-json{background:#111;color:#fff;border-radius:6px;padding:3px 8px;font-size:12px;}
+.font-monospace{font-family:monospace;}
+.preview-img{width:80px;height:80px;object-fit:cover;border-radius:8px;margin-bottom:10px;}
 </style>
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
-
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
     <div class="container-fluid px-0">
-
         <div class="d-flex align-items-center gap-3">
             <i class="bi bi-speedometer2 fs-2"></i>
             <div>
                 <h4 class="mb-0">Admin Dashboard</h4>
-                <small>Manage Products</small>
+                <small>Edit Product</small>
             </div>
         </div>
-
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
-                        Logout
-                    </a>
-                </li>
-
-            </ul>
-        </div>
-
     </div>
 </nav>
 </header>
 
-<!-- ================= PAGE CONTENT ================= -->
-
 <div class="page-wrapper">
 <div class="container">
 <div class="row justify-content-center">
-<div class="col-lg-9">
+<div class="col-lg-10">
 
 <div class="card p-4">
 <h4 class="fw-bold mb-4">Edit Product</h4>
-
-{% if messages %}
-{% for message in messages %}
-<div class="alert alert-{{ message.tags }}">{{ message }}</div>
-{% endfor %}
-{% endif %}
 
 <form method="POST" enctype="multipart/form-data">
 {% csrf_token %}
@@ -177,176 +60,205 @@ body{
 <div class="section-title">Basic Information</div>
 <div class="row g-3 mb-4">
     <div class="col-md-6">
-        <label>Product Name</label>
-        <input type="text" name="name" id="product_name"
-               value="{{ product.name }}" class="form-control" required>
+        <input type="text" name="name" id="product_name" value="{{ product.name }}" class="form-control" required>
     </div>
     <div class="col-md-6">
-        <label>Slug</label>
-        <input type="text" name="slug" id="slug"
-               value="{{ product.slug }}" class="form-control">
+        <input type="text" name="slug" id="slug" value="{{ product.slug }}" class="form-control">
     </div>
     <div class="col-md-6">
-        <label>Brand</label>
-        <input type="text" name="brand"
-               value="{{ product.brand }}" class="form-control">
+        <input type="text" name="brand" value="{{ product.brand }}" class="form-control">
     </div>
     <div class="col-md-6">
-        <label>Product Code</label>
-        <input type="text" name="product_code"
-               value="{{ product.product_code }}" class="form-control" required>
+        <input type="text" name="product_code" value="{{ product.product_code }}" class="form-control" required>
     </div>
 </div>
 
 <!-- CATEGORY -->
 <div class="mb-4">
-    <label>Sub Category</label>
-    <select name="subcategory" class="form-select" required>
-        {% for sub in subcategories %}
-        <option value="{{ sub.id }}"
-            {% if product.subcategory_id == sub.id %}selected{% endif %}>
-            {{ sub.name }}
-        </option>
-        {% endfor %}
-    </select>
+<select name="subcategory" class="form-select" required>
+{% for sub in subcategories %}
+<option value="{{ sub.id }}" {% if product.subcategory_id == sub.id %}selected{% endif %}>
+{{ sub.name }}
+</option>
+{% endfor %}
+</select>
 </div>
 
 <!-- PRICING -->
 <div class="section-title">Pricing</div>
 <div class="row g-3 mb-4">
     <div class="col-md-4">
-        <label>Price</label>
-        <input type="number" name="price"
-               value="{{ product.price }}" class="form-control" required>
+        <input type="number" name="price" value="{{ product.price }}" class="form-control" required>
     </div>
     <div class="col-md-4">
-        <label>Old Price</label>
-        <input type="number" name="old_price"
-               value="{{ product.old_price }}" class="form-control">
+        <input type="number" name="old_price" value="{{ product.old_price }}" class="form-control">
     </div>
     <div class="col-md-4">
-        <label>Stock</label>
-        <input type="number" name="stock"
-               value="{{ product.stock }}" class="form-control" required>
+        <input type="number" name="stock" id="totalStock" value="{{ product.stock }}" class="form-control" readonly>
     </div>
 </div>
 
-<!-- SIZES -->
-<div class="section-title">Sizes</div>
-<div class="mb-4">
-    {% for size in sizes %}
-    <div class="form-check form-check-inline">
-        <input class="form-check-input" type="checkbox" name="sizes"
-               value="{{ size.id }}"
-               {% if size in product.sizes.all %}checked{% endif %}>
-        <label class="form-check-label">{{ size.name }}</label>
+<!-- VARIANTS -->
+<div class="section-title">Color + Size + Stock</div>
+<div id="variantWrapper">
+
+{% if variants %}
+    {% for variant in variants %}
+    <div class="variant-box">
+
+        <div class="color-pill mb-2">
+            <input type="text"
+                   name="color_name[]"
+                   value="{{ variant.color.name }}"
+                   class="form-control"
+                   required>
+
+            <input type="color"
+                   name="color_hex[]"
+                   value="{{ variant.color.hex_code }}"
+                   class="form-control form-control-color">
+
+            <button type="button"
+                    class="remove-btn"
+                    onclick="this.closest('.variant-box').remove();calculateTotalStock()">
+                ✖
+            </button>
+        </div>
+
+        <div class="size-stock-row">
+            <select name="variant_size[]" class="form-select" required>
+                {% for size in sizes %}
+                <option value="{{ size.id }}"
+                        {% if variant.size.id == size.id %}selected{% endif %}>
+                    {{ size.name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <input type="number"
+                   name="variant_stock[]"
+                   value="{{ variant.stock }}"
+                   class="form-control stock-input"
+                   oninput="calculateTotalStock()"
+                   required>
+        </div>
+
     </div>
     {% endfor %}
+{% else %}
+    <p class="text-muted">No variants added yet.</p>
+{% endif %}
+
 </div>
+</div>
+
+<button type="button" onclick="addColorVariant()" class="btn btn-outline-dark w-100 mb-4">
+➕ Add More Variant
+</button>
 
 <!-- FLAGS -->
 <div class="section-title">Flags</div>
 <div class="mb-4">
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="status"
-               {% if product.status %}checked{% endif %}>
-        <label>Status</label>
+        <input class="form-check-input" type="checkbox" name="status" {% if product.status %}checked{% endif %}> Status
     </div>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="is_signature_collection"
-               {% if product.is_signature_collection %}checked{% endif %}>
-        <label>Signature Collection</label>
+        <input class="form-check-input" type="checkbox" name="is_signature_collection" {% if product.is_signature_collection %}checked{% endif %}> Signature
     </div>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="is_featured"
-               {% if product.is_featured %}checked{% endif %}>
-        <label>Featured</label>
+        <input class="form-check-input" type="checkbox" name="is_featured" {% if product.is_featured %}checked{% endif %}> Featured
     </div>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" name="is_best_seller"
-               {% if product.is_best_seller %}checked{% endif %}>
-        <label>Best Seller</label>
+        <input class="form-check-input" type="checkbox" name="is_best_seller" {% if product.is_best_seller %}checked{% endif %}> Best Seller
     </div>
 </div>
 
 <!-- DESCRIPTION -->
 <div class="mb-4">
-    <label>Description</label>
-    <textarea name="description" rows="4"
-              class="form-control">{{ product.description }}</textarea>
+<textarea name="description" rows="4" class="form-control">{{ product.description }}</textarea>
 </div>
 
 <!-- ADDITIONAL INFO -->
-<div class="section-title">
-    Additional Info <span class="badge-json">JSON</span>
-</div>
+<div class="section-title">Additional Info</div>
 <div class="mb-4">
-<textarea name="additional_info"
-    rows="6"
-    class="form-control font-monospace">{{ additional_info_json }}</textarea>
+<textarea name="additional_info" rows="6" class="form-control font-monospace">{{ product.additional_info }}</textarea>
 </div>
-
-<!-- IMAGES -->
+<!-- IMAGE PREVIEW -->
 <div class="section-title">Images</div>
 <div class="row g-3 mb-4">
 
-{% if product.image1 %}
-<div class="col-md-4">
-<img src="{{ product.image1.url }}" class="preview-img w-100 mb-2">
-<input type="file" name="image1" class="form-control">
-</div>
-{% endif %}
+    <div class="col-md-4">
+        {% if product.image1 %}
+        <img src="{{ product.image1.url }}" class="preview-img">
+        {% endif %}
+        <input type="file" name="image1" class="form-control">
+    </div>
 
-{% if product.image2 %}
-<div class="col-md-4">
-<img src="{{ product.image2.url }}" class="preview-img w-100 mb-2">
-<input type="file" name="image2" class="form-control">
-</div>
-{% endif %}
+    <div class="col-md-4">
+        {% if product.image2 %}
+        <img src="{{ product.image2.url }}" class="preview-img">
+        {% endif %}
+        <input type="file" name="image2" class="form-control">
+    </div>
 
-{% if product.image3 %}
-<div class="col-md-4">
-<img src="{{ product.image3.url }}" class="preview-img w-100 mb-2">
-<input type="file" name="image3" class="form-control">
-</div>
-{% endif %}
+    <div class="col-md-4">
+        {% if product.image3 %}
+        <img src="{{ product.image3.url }}" class="preview-img">
+        {% endif %}
+        <input type="file" name="image3" class="form-control">
+    </div>
 
-{% if product.image4 %}
-<div class="col-md-4">
-<img src="{{ product.image4.url }}" class="preview-img w-100 mb-2">
-<input type="file" name="image4" class="form-control">
-</div>
-{% endif %}
+    <div class="col-md-4">
+        {% if product.image4 %}
+        <img src="{{ product.image4.url }}" class="preview-img">
+        {% endif %}
+        <input type="file" name="image4" class="form-control">
+    </div>
 
-{% if product.image5 %}
-<div class="col-md-4">
-<img src="{{ product.image5.url }}" class="preview-img w-100 mb-2">
-<input type="file" name="image5" class="form-control">
-</div>
-{% endif %}
+    <div class="col-md-4">
+        {% if product.image5 %}
+        <img src="{{ product.image5.url }}" class="preview-img">
+        {% endif %}
+        <input type="file" name="image5" class="form-control">
+    </div>
 
 </div>
-
-<button class="btn btn-dark w-100">Update Product</button>
+<button class="btn-black">Update Product</button>
 
 </form>
 </div>
-
 </div>
 </div>
 </div>
 </div>
 
 <script>
-document.getElementById("product_name").addEventListener("keyup", function(){
-    const slug = this.value.toLowerCase()
-        .replace(/[^a-z0-9]+/g,"-")
-        .replace(/(^-|-$)/g,"");
-    document.getElementById("slug").value = slug;
-});
-</script>
+function addColorVariant(){
+    const html = `
+    <div class="variant-box">
+        <div class="color-pill mb-2">
+            <input type="text" name="color_name[]" class="form-control" placeholder="Color Name" required>
+            <input type="color" name="color_hex[]" class="form-control form-control-color" value="#000000">
+            <button type="button" class="remove-btn" onclick="this.closest('.variant-box').remove();calculateTotalStock()">✖</button>
+        </div>
+        <div class="size-stock-row">
+            <select name="variant_size[]" class="form-select" required>
+                {% for size in sizes %}
+                <option value="{{ size.id }}">{{ size.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="variant_stock[]" class="form-control stock-input" placeholder="Stock" oninput="calculateTotalStock()" required>
+        </div>
+    </div>`;
+    document.getElementById("variantWrapper").insertAdjacentHTML("beforeend", html);
+}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+function calculateTotalStock(){
+    let total = 0;
+    document.querySelectorAll(".stock-input").forEach(i => total += parseInt(i.value || 0));
+    document.getElementById("totalStock").value = total;
+}
+</script>
 
 </body>
 </html>

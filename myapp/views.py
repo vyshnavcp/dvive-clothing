@@ -104,18 +104,31 @@ def contact(request):
             "message": "Message sent successfully!"
         })
     return render(request, "contact.html")
+from django.core.paginator import Paginator
+from django.db.models import Count
+from django.urls import reverse
+
+
 
 def product(request, slug=None):
-    products = Product.objects.all()
+
+    products = Product.objects.filter(status=True).distinct()
+
+    # SEARCH
     query = request.GET.get('q')
     if query:
         products = products.filter(name__icontains=query)
+
+    # CATEGORY COUNT
     subcategory_counts = SubCategory.objects.annotate(
-        product_count=Count('products')
+        product_count=Count('products', distinct=True)
     )
+
+    # SIZE COUNT (through variants)
     size_counts = Size.objects.annotate(
-        product_count=Count('product')
-    )
+    product_count=Count('productvariant__product', distinct=True))
+
+    # CATEGORY FILTER
     if slug:
         products = products.filter(subcategory__slug=slug)
         pagination_base = reverse('filter_by_subcategory', args=[slug])
@@ -123,17 +136,23 @@ def product(request, slug=None):
     else:
         pagination_base = reverse('product')
         active_slug = None
+
+    # SIZE FILTER (IMPORTANT FIX HERE)
     size_filter = request.GET.get('size')
     if size_filter:
-        products = products.filter(sizes__name=size_filter).distinct()
+        products = products.filter(
+            variants__size__name=size_filter).distinct()
+
+    # SIGNATURE FILTER
     if request.GET.get('signature') == '1':
         products = products.filter(
-            is_signature_collection=True,
-            status=True
+            is_signature_collection=True
         )
+
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     return render(request, 'product.html', {
         'page_obj': page_obj,
         'subcategory_counts': subcategory_counts,
@@ -141,7 +160,7 @@ def product(request, slug=None):
         'pagination_base': pagination_base,
         'active_slug': active_slug,
         'active_size': size_filter,
-        'search_query': query,  
+        'search_query': query,
     })
 
 @staff_member_required
@@ -213,50 +232,78 @@ def delete_subcategory(request, id):
     return redirect("subcategory_list")
 
 @staff_member_required
+@transaction.atomic
 def add_product(request):
     subcategories = SubCategory.objects.all()
     sizes = Size.objects.all()
+
     if request.method == "POST":
-        additional_info_raw = request.POST.get("additional_info", "").strip()
-        try:
-            additional_info = json.loads(additional_info_raw) if additional_info_raw else {}
-            if not isinstance(additional_info, dict):
-                raise ValueError
-        except Exception:
-            messages.error(request, "Additional Info must be valid JSON.")
-            return render(request, "add_product.html", {
-                "subcategories": subcategories,
-                "sizes": sizes,
-            })
+
         product = Product.objects.create(
             name=request.POST.get("name"),
             brand=request.POST.get("brand"),
             product_code=request.POST.get("product_code"),
-            slug=request.POST.get("slug") or slugify(request.POST.get("name")),
-            description=request.POST.get("description"),
+            subcategory_id=request.POST.get("subcategory"),
             price=request.POST.get("price"),
             old_price=request.POST.get("old_price") or None,
-            stock=request.POST.get("stock"),
-            subcategory_id=request.POST.get("subcategory"),
-            status=bool(request.POST.get("status")),
-            is_signature_collection=bool(request.POST.get("is_signature_collection")),
-            is_featured=bool(request.POST.get("is_featured")),
-            is_best_seller=bool(request.POST.get("is_best_seller")),
-            additional_info=additional_info,
+            description=request.POST.get("description"),
+            additional_info=request.POST.get("additional_info") or {},
             image1=request.FILES.get("image1"),
             image2=request.FILES.get("image2"),
             image3=request.FILES.get("image3"),
             image4=request.FILES.get("image4"),
             image5=request.FILES.get("image5"),
+            status=bool(request.POST.get("status")),
+            is_signature_collection=bool(request.POST.get("is_signature_collection")),
+            is_featured=bool(request.POST.get("is_featured")),
+            is_best_seller=bool(request.POST.get("is_best_seller")),
         )
-        product.sizes.set(request.POST.getlist("sizes"))
-        messages.success(request, "Product added successfully.")
+
+        color_names = request.POST.getlist("color_name[]")
+        color_hexes = request.POST.getlist("color_hex[]")
+        size_ids = request.POST.getlist("variant_size[]")
+        stocks = request.POST.getlist("variant_stock[]")
+
+        total_stock = 0
+        created_colors = {}
+
+        for i in range(len(color_names)):
+
+            if not color_names[i] or not size_ids[i]:
+                continue
+
+            # Avoid duplicate colors
+            if color_names[i] not in created_colors:
+                color = ProductColor.objects.create(
+                    product=product,
+                    name=color_names[i],
+                    hex_code=color_hexes[i]
+                )
+                created_colors[color_names[i]] = color
+            else:
+                color = created_colors[color_names[i]]
+
+            stock_value = int(stocks[i] or 0)
+
+            ProductVariant.objects.create(
+                product=product,
+                color=color,
+                size_id=size_ids[i],
+                stock=stock_value
+            )
+
+            total_stock += stock_value
+
+        product.stock = total_stock
+        product.save()
+
         return redirect("product_list")
 
     return render(request, "add_product.html", {
         "subcategories": subcategories,
-        "sizes": sizes,
+        "sizes": sizes
     })
+
 @staff_member_required
 def product_list(request):
     products = Product.objects.select_related("subcategory").all()
@@ -265,55 +312,88 @@ def product_list(request):
     })
 
 @staff_member_required
+@transaction.atomic
 def edit_product(request, slug):
+
     product = get_object_or_404(Product, slug=slug)
     subcategories = SubCategory.objects.all()
     sizes = Size.objects.all()
-    additional_info_json = json.dumps(
-        product.additional_info or {},
-        indent=4
-    )
+
     if request.method == "POST":
-        raw_json = request.POST.get("additional_info", "").strip()
-        try:
-            additional_info = json.loads(raw_json) if raw_json else {}
-            if not isinstance(additional_info, dict):
-                raise ValueError
-        except Exception:
-            messages.error(request, "Additional Info must be valid JSON")
-            return render(request, "edit_product.html", {
-                "product": product,
-                "subcategories": subcategories,
-                "sizes": sizes,
-                "additional_info_json": raw_json,  # keep user input
-            })
+
+        # BASIC FIELDS
         product.name = request.POST.get("name")
-        product.slug = request.POST.get("slug") or slugify(product.name)
         product.brand = request.POST.get("brand")
         product.product_code = request.POST.get("product_code")
         product.subcategory_id = request.POST.get("subcategory")
         product.price = request.POST.get("price")
         product.old_price = request.POST.get("old_price") or None
-        product.stock = request.POST.get("stock")
         product.description = request.POST.get("description")
+
         product.status = bool(request.POST.get("status"))
         product.is_signature_collection = bool(request.POST.get("is_signature_collection"))
         product.is_featured = bool(request.POST.get("is_featured"))
         product.is_best_seller = bool(request.POST.get("is_best_seller"))
-        product.additional_info = additional_info
+
+        # IMAGE UPDATE
         for i in range(1, 6):
-            image = request.FILES.get(f"image{i}")
-            if image:
-                setattr(product, f"image{i}", image)
+            img = request.FILES.get(f"image{i}")
+            if img:
+                setattr(product, f"image{i}", img)
+
         product.save()
-        product.sizes.set(request.POST.getlist("sizes"))
-        messages.success(request, "Product updated successfully")
+
+        # DELETE OLD VARIANTS & COLORS
+        ProductVariant.objects.filter(product=product).delete()
+        ProductColor.objects.filter(product=product).delete()
+
+        color_names = request.POST.getlist("color_name[]")
+        color_hexes = request.POST.getlist("color_hex[]")
+        size_ids = request.POST.getlist("variant_size[]")
+        stocks = request.POST.getlist("variant_stock[]")
+
+        total_stock = 0
+        created_colors = {}
+
+        for i in range(len(color_names)):
+
+            if not color_names[i] or not size_ids[i]:
+                continue
+
+            # Avoid duplicate colors
+            if color_names[i] not in created_colors:
+                color = ProductColor.objects.create(
+                    product=product,
+                    name=color_names[i],
+                    hex_code=color_hexes[i]
+                )
+                created_colors[color_names[i]] = color
+            else:
+                color = created_colors[color_names[i]]
+
+            stock_value = int(stocks[i] or 0)
+
+            ProductVariant.objects.create(
+                product=product,
+                color=color,
+                size_id=size_ids[i],
+                stock=stock_value
+            )
+
+            total_stock += stock_value
+
+        product.stock = total_stock
+        product.save()
+
         return redirect("product_list")
+
+    variants = ProductVariant.objects.filter(product=product).select_related("color", "size")
+
     return render(request, "edit_product.html", {
         "product": product,
         "subcategories": subcategories,
         "sizes": sizes,
-        "additional_info_json": additional_info_json,
+        "variants": variants
     })
 
 @staff_member_required
@@ -358,57 +438,6 @@ def delete_size(request, id):
     size.delete()
     return redirect("size_list")
 
-@staff_member_required
-def add_color(request):
-    products = Product.objects.all()
-    if request.method == "POST":
-        product_id = request.POST.get("product")
-        name = request.POST.get("name")
-        hex_code = request.POST.get("hex_code")
-        print(product_id, name, hex_code)
-        if not product_id or not name or not hex_code:
-            messages.error(request, "All fields are required.")
-            return redirect("add_color")
-        ProductColor.objects.create(
-            product_id=product_id,
-            name=name,
-            hex_code=hex_code
-        )
-        messages.success(request, "Color added successfully.")
-        return redirect("color_list")
-
-    return render(request, "add_color.html", {
-        "products": products
-    })
-@staff_member_required
-def color_list(request):
-    colors = ProductColor.objects.select_related("product").all()
-    return render(request, "color_list.html", {
-        "colors": colors
-    })
-
-@staff_member_required
-def edit_color(request, id):
-    color = get_object_or_404(ProductColor, id=id)
-    products = Product.objects.all()
-    if request.method == "POST":
-        color.product_id = request.POST.get("product")
-        color.name = request.POST.get("name")
-        color.hex_code = request.POST.get("hex_code")
-        color.save()
-        messages.success(request, "Color updated successfully.")
-        return redirect("color_list")
-    return render(request, "edit_color.html", {
-        "color": color,
-        "products": products
-    })
-
-@staff_member_required
-def delete_color(request, id):
-    color = get_object_or_404(ProductColor, id=id)
-    color.delete()
-    messages.success(request, "Color deleted.")
-    return redirect("color_list")
 
 @staff_member_required
 def add_coupon(request):
@@ -480,45 +509,46 @@ def delete_article(request, slug):
     messages.success(request, "Article Deleted Successfully")
     return redirect('article_list')
 
+
 def product_detail(request, slug):
-    product = Product.objects.filter(slug=slug).first()
-    if product:
-        colors = product.colors.all()
-        sizes = product.sizes.all().order_by('order')
-        reviews = Review.objects.filter(product=product).order_by('-id')
-        first_three_reviews = reviews[:3]
-        remaining_reviews = reviews[3:]
-        average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
-        total_reviews = reviews.count()
-        rating_counts = reviews.values('rating').annotate(count=Count('rating'))
-        rating_dict = {i: 0 for i in range(1, 6)}
-        for item in rating_counts:
-            rating_dict[item['rating']] = item['count']
-        rating_percent = {}
-        for i in range(1, 6):
-            if total_reviews > 0:
-                rating_percent[i] = round((rating_dict[i] / total_reviews) * 100)
-            else:
-                rating_percent[i] = 0
-        related_products = Product.objects.filter(
-            subcategory=product.subcategory
-        ).exclude(id=product.id)[:4]
-        product_images = []
-        for img_field in ['image1', 'image2', 'image3', 'image4', 'image5']:
-            img = getattr(product, img_field)
-            if img and hasattr(img, 'url'):
-                product_images.append(img.url)
-    else:
-        colors = []
-        sizes = []
-        reviews = []
-        first_three_reviews = []
-        remaining_reviews = []
-        average_rating = 0
-        total_reviews = 0
-        rating_percent = {i: 0 for i in range(1, 6)}
-        related_products = []
-        product_images = []
+
+    product = get_object_or_404(Product, slug=slug)
+
+    # GET VARIANTS
+    variants = product.variants.select_related('size', 'color')
+
+    # UNIQUE COLORS & SIZES FROM VARIANTS
+    colors = list({v.color for v in variants if v.color})
+    sizes = list({v.size for v in variants if v.size})
+
+    reviews = Review.objects.filter(product=product).order_by('-id')
+    first_three_reviews = reviews[:3]
+    remaining_reviews = reviews[3:]
+
+    average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+    total_reviews = reviews.count()
+
+    rating_counts = reviews.values('rating').annotate(count=Count('rating'))
+    rating_dict = {i: 0 for i in range(1, 6)}
+
+    for item in rating_counts:
+        rating_dict[item['rating']] = item['count']
+
+    rating_percent = {}
+    for i in range(1, 6):
+        rating_percent[i] = round((rating_dict[i] / total_reviews) * 100) if total_reviews else 0
+
+    related_products = Product.objects.filter(
+        subcategory=product.subcategory
+    ).exclude(id=product.id)[:4]
+
+    # PRODUCT IMAGES
+    product_images = []
+    for img_field in ['image1', 'image2', 'image3', 'image4', 'image5']:
+        img = getattr(product, img_field)
+        if img:
+            product_images.append(img.url)
+
     return render(request, 'product_detail.html', {
         'product': product,
         'colors': colors,
@@ -530,7 +560,7 @@ def product_detail(request, slug):
         'total_reviews': total_reviews,
         'rating_percent': rating_percent,
         'related_products': related_products,
-        'product_images': product_images,  
+        'product_images': product_images,
     })
 
 @login_required
@@ -706,43 +736,56 @@ def review_post(request, slug):
         'status': 'error',
         'message': '⚠ Invalid request method.'
     })
-
 def add_to_cart(request, product_id):
+
     if not request.user.is_authenticated:
         return JsonResponse({"success": False, "message": "Please login to add items to your cart."})
+
     product = get_object_or_404(Product, id=product_id)
+
     size_id = request.POST.get("size")
     color_id = request.POST.get("color")
     quantity = int(request.POST.get("quantity", 1))
-    if product.colors.exists():
-        if not color_id:
-            return JsonResponse({"success": False, "message": "Please select a color."})
-        color = get_object_or_404(ProductColor, id=color_id)
-    else:
-        color = None
 
-    if product.sizes.exists():
-        if not size_id:
-            return JsonResponse({"success": False, "message": "Please select a size."})
-        size = get_object_or_404(Size, id=size_id)
-    else:
-        size = None
-    if quantity > product.stock:
-        return JsonResponse({"success": False, "message": f"Only {product.stock} item(s) available."})
+    # FIND VARIANT
+    variant = product.variants.filter(
+        size_id=size_id,
+        color_id=color_id
+    ).first()
+
+    if not variant:
+        return JsonResponse({"success": False, "message": "Invalid size/color combination."})
+
+    # STOCK VALIDATION PER VARIANT
+    if quantity > variant.stock:
+        return JsonResponse({
+            "success": False,
+            "message": f"Only {variant.stock} item(s) available for this variant."
+        })
+
     registration = get_object_or_404(Registration, authuser=request.user)
     cart, _ = Cart.objects.get_or_create(registration=registration)
+
     item, created = CartItem.objects.get_or_create(
         cart=cart,
         product=product,
-        color=color,
-        size=size,
-        defaults={"quantity": quantity, "price": product.price}
+        variant=variant,
+        defaults={
+            "quantity": quantity,
+            "price": variant.price if hasattr(variant, 'price') else product.price
+        }
     )
+
     if not created:
-        if item.quantity + quantity > product.stock:
-            return JsonResponse({"success": False, "message": f"Only {product.stock} item(s) available."})
+        if item.quantity + quantity > variant.stock:
+            return JsonResponse({
+                "success": False,
+                "message": f"Only {variant.stock} item(s) available for this variant."
+            })
+
         item.quantity += quantity
         item.save()
+
     cart_count = CartItem.objects.filter(cart=cart).count()
 
     return JsonResponse({
