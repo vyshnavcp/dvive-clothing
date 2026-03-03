@@ -103,8 +103,14 @@ body{
 <option value="{{ variant.id }}"
         data-stock="{{ variant.stock }}"
         data-color="{{ variant.color.name }}"
-        data-size="{{ variant.size.name }}">
-{{ variant.color.name }} - {{ variant.size.name }} ({{ variant.stock }})
+        data-size="{{ variant.size.name }}"
+        {% if variant.stock == 0 %}disabled{% endif %}>
+    {{ variant.color.name }} - {{ variant.size.name }}
+    {% if variant.stock > 0 %}
+        ({{ variant.stock }})
+    {% else %}
+        (Out of Stock)
+    {% endif %}
 </option>
 {% endfor %}
 </select>
@@ -183,26 +189,30 @@ function addToCart(id, name, price, btn) {
 
     let quantity = parseInt(qtyInput.value) || 1;
     let variant = null;
+    let stock = null;
 
     if (variantSelect) {
 
-        if (!variantSelect.value) return;
+        if (!variantSelect.value) {
+            alert("Please select variant");
+            return;
+        }
 
-            const selected = variantSelect.options[variantSelect.selectedIndex];
-            const stock = parseInt(selected.dataset.stock);
+        const selected = variantSelect.options[variantSelect.selectedIndex];
+        stock = parseInt(selected.dataset.stock);
 
+        if (stock <= 0) {
+            alert("Out of stock");
+            return;
+        }
 
-            qtyInput.setAttribute("max", stock);
+        if (quantity > stock) {
+            alert("Only " + stock + " items available");
+            qtyInput.value = stock;
+            return;
+        }
 
-            if (quantity > stock) {
-                quantity = stock;
-                qtyInput.value = stock;}
-
-            if (stock <= 0) {
-                alert("Out of stock");
-                return;}
-
-            variant = {
+        variant = {
             id: variantSelect.value,
             color: selected.dataset.color,
             size: selected.dataset.size
@@ -215,6 +225,10 @@ function addToCart(id, name, price, btn) {
     );
 
     if (existing) {
+        if (existing.quantity + quantity > stock) {
+            alert("Stock limit exceeded");
+            return;
+        }
         existing.quantity += quantity;
     } else {
         cart.push({ id, name, price, quantity, variant });
