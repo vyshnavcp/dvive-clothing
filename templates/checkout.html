@@ -179,59 +179,88 @@
                             <span class="fs-26 alt-font fw-600 text-dark-gray mb-5px d-block">Your order</span>
                             <table class="w-100 total-price-table your-order-table">
                                 <tbody>
+
+                                    <!-- Header -->
                                     <tr>
-                                        <th class="w-60 lg-w-55 xs-w-50 fw-600 text-dark-gray alt-font">Product</th>
-                                        <td class="fw-600 text-dark-gray alt-font">Total</td>
+                                        <th class="w-60 lg-w-55 xs-w-50 fw-600 text-dark-gray alt-font">
+                                            Product
+                                        </th>
+                                        <td class="fw-600 text-dark-gray alt-font">
+                                            Total
+                                        </td>
                                     </tr>
+
+                                    <!-- Products -->
                                     {% for item in items %}
                                     <tr class="product">
                                         <td class="product-thumbnail">
-                                            <a href="demo-jewellery-store-single-product.html" class="text-dark-gray fw-500 d-block lh-initial">{{item.product.name}}</a>
-                                            <span class="fs-14 d-block">Color: {{ item.color.name }}</span>
+                                            <a href="#" class="text-dark-gray fw-500 d-block lh-initial">
+                                                {{ item.product.name }}
+                                            </a>
+
+                                            <span class="fs-14 d-block">
+                                                Color: {{ item.variant.color.name }}
+                                            </span>
+
+                                            <span class="fs-14 d-block">
+                                                Size: {{ item.variant.size.name }}
+                                            </span>
+
+                                            <span class="fs-14 d-block">
+                                                Quantity: {{ item.quantity }}
+                                            </span>
                                         </td>
-                                        <td class="product-price" data-title="Price">₹{{item.price}}</td>
+
+                                        <td class="product-price" data-title="Price">
+                                            ₹{{ item.total_price }}
+                                        </td>
                                     </tr>
+                                    {% endfor %}
+
+                                    <!-- Subtotal -->
                                     <tr>
-                                        <th class="w-50 fw-600 text-dark-gray alt-font">Subtotal</th>
-                                        <td class="text-dark-gray fw-600">₹{{subtotal}}</td>
+                                        <th class="w-50 fw-600 text-dark-gray alt-font">
+                                            Subtotal
+                                        </th>
+                                        <td class="text-dark-gray fw-600">
+                                            ₹{{ subtotal }}
+                                        </td>
                                     </tr>
-                                   
+
+                                    <!-- Coupon Discount (only if exists) -->
+                                    {% if coupon_discount and coupon_discount > 0 %}
                                     <tr>
-                                        <th class="w-50 fw-600 text-dark-gray alt-font">Shipping Charge</th>
+                                        <th class="w-50 fw-600 text-dark-gray alt-font text-success">
+                                            Coupon Discount
+                                        </th>
+                                        <td class="text-success fw-600">
+                                            - ₹{{ coupon_discount }}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+
+                                    <!-- Shipping -->
+                                    <tr>
+                                        <th class="w-50 fw-600 text-dark-gray alt-font">
+                                            Shipping Charge
+                                        </th>
                                         <td class="text-dark-gray fw-600">
                                             ₹<span id="shipping_charge">0</span>
                                         </td>
                                     </tr>
 
-                                    <!-- <tr class="shipping">
-                                        <th class="fw-600 text-dark-gray alt-font">Shipping</th>
-                                        <td data-title="Shipping">
-                                            <ul class="p-0">
-                                                <li class="d-flex align-items-center">
-                                                    <input id="free_shipping" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0" checked="checked">
-                                                    <label class="md-line-height-18px" for="free_shipping">Free shipping</label>
-                                                </li>
-                                                <li class="d-flex align-items-center">
-                                                    <input id="flat" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0">
-                                                    <label class="md-line-height-18px" for="flat">Flat: $12.00</label>
-                                                </li>
-                                                <li class="d-flex align-items-center">
-                                                    <input id="local_pickup" type="radio" name="shipping-option" class="d-block w-auto mb-0 me-10px p-0">
-                                                    <label class="md-line-height-18px" for="local_pickup">Local pickup</label>
-                                                </li>
-                                            </ul>
-                                        </td>
-                                    </tr>  -->
+                                    <!-- Grand Total -->
                                     <tr class="total-amount">
-                                        <th class="fw-600 text-dark-gray alt-font">Total</th>
+                                        <th class="fw-600 text-dark-gray alt-font">
+                                            Total
+                                        </th>
                                         <td data-title="Total">
                                             <h6 class="d-block fw-700 mb-0 text-dark-gray alt-font">
                                                 ₹<span id="order_total">{{ total }}</span>
                                             </h6>
-                                            <!-- <span class="fs-14">(Includes $19.29 tax)</span> -->
                                         </td>
                                     </tr>
-                                    {% endfor %}
+
                                 </tbody>
                             </table>
                             <div class="p-40px lg-p-25px bg-white border-radius-6px box-shadow-large mt-10px mb-30px sm-mb-25px checkout-accordion">

@@ -129,7 +129,10 @@
                                                 <a href="demo-jewellery-store-single-product.html" class="text-dark-gray fw-500 d-block lh-initial">
                                                     {{ item.product.name }}
                                                 </a> 
-                                                <span class="fs-14">Color: {{ item.color.name }}</span>
+                                                <span class="fs-14">
+                                                    Color: {{ item.variant.color.name }} <br>
+                                                    Size: {{ item.variant.size.name }}
+                                                </span
                                             </td>
 
                                             <!-- Price -->

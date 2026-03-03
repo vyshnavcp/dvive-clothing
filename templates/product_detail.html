@@ -313,11 +313,9 @@ input[type="radio"]:checked + .size-circle {
 
                             <!-- Stock info -->
                             <div class="mb-20px fw-500">
-                                {% if product.stock > 0 %}
-                                    <span style="color: #28a745;">✅ In Stock ({{ product.stock }} available)</span>
-                                {% else %}
-                                    <span style="color: #dc3545;">❌ Out of Stock</span>
-                                {% endif %}
+                                <span id="stock-display" style="color:#6c757d;">
+                                    Select size and color
+                                </span>
                             </div>
 
                             <!-- Quantity + Add to Cart -->
@@ -348,8 +346,10 @@ input[type="radio"]:checked + .size-circle {
                             </div>
 
                             <!-- Message Box -->
+                             
                             <div id="cart-message" style="margin-top:10px;"></div>
                         </form>
+                        {{ variant_stock|json_script:"variantStockData" }}
 
                         <!-- Pass login status to JS safely -->
                         {{ user.is_authenticated|json_script:"isLoggedIn" }}
@@ -927,49 +927,58 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
-document.addEventListener("click", function(e){
+document.addEventListener("DOMContentLoaded", function () {
 
-    if (e.target.closest(".delete-review")) {
+    const variantStock = JSON.parse(
+        document.getElementById("variantStockData").textContent
+    );
 
-        const button = e.target.closest(".delete-review");
-        const reviewItem = button.closest(".review-item");
-        const reviewId = button.dataset.id;
+    const colorInputs = document.querySelectorAll('input[name="color"]');
+    const sizeInputs = document.querySelectorAll('input[name="size"]');
+    const stockDisplay = document.getElementById("stock-display");
+    const addToCartBtn = document.querySelector(".btn-cart");
 
-        // Disable button instantly
-        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        button.disabled = true;
+    function updateStock() {
+        const selectedColor = document.querySelector('input[name="color"]:checked');
+        const selectedSize = document.querySelector('input[name="size"]:checked');
 
-        fetch(`/delete-review/${reviewId}/`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
+        if (!selectedColor || !selectedSize) {
+            stockDisplay.innerHTML = "Select size and color";
+            stockDisplay.style.color = "#6c757d";
+            addToCartBtn.disabled = false;
+            return;
+        }
 
-            if (data.status === "success") {
+        const key = selectedColor.value + "-" + selectedSize.value;
+        const stock = variantStock[key];
 
-                // Smooth fade out animation
-                reviewItem.style.transition = "all 0.4s ease";
-                reviewItem.style.opacity = "0";
-                reviewItem.style.transform = "translateY(-10px)";
+        if (stock === undefined) {
+            stockDisplay.innerHTML = "❌ This combination is not available";
+            stockDisplay.style.color = "#dc3545";
+            addToCartBtn.disabled = true;
+            return;
+        }
 
-                setTimeout(() => {
-                    reviewItem.remove();
-                }, 400);
-
-            } else {
-                button.innerHTML = '<i class="bi bi-trash"></i>';
-                button.disabled = false;
-            }
-
-        });
-
+        if (stock > 0) {
+            stockDisplay.innerHTML = "✅ In Stock (" + stock + " available)";
+            stockDisplay.style.color = "#28a745";
+            addToCartBtn.disabled = false;
+        } else {
+            stockDisplay.innerHTML = "❌ Out of Stock";
+            stockDisplay.style.color = "#dc3545";
+            addToCartBtn.disabled = true;
+        }
     }
 
-});
+    colorInputs.forEach(input => {
+        input.addEventListener("change", updateStock);
+    });
 
+    sizeInputs.forEach(input => {
+        input.addEventListener("change", updateStock);
+    });
+
+});
 
 
 

@@ -548,6 +548,12 @@ def product_detail(request, slug):
         img = getattr(product, img_field)
         if img:
             product_images.append(img.url)
+    # 🔥 VARIANT STOCK MAP FOR JS
+    variant_stock = {}
+    for v in variants:
+        if v.size_id and v.color_id:
+            key = f"{v.color_id}-{v.size_id}"
+            variant_stock[key] = v.stock
 
     return render(request, 'product_detail.html', {
         'product': product,
@@ -561,6 +567,7 @@ def product_detail(request, slug):
         'rating_percent': rating_percent,
         'related_products': related_products,
         'product_images': product_images,
+        'variant_stock': variant_stock,
     })
 
 @login_required
@@ -736,31 +743,55 @@ def review_post(request, slug):
         'status': 'error',
         'message': '⚠ Invalid request method.'
     })
+
 def add_to_cart(request, product_id):
 
     if not request.user.is_authenticated:
-        return JsonResponse({"success": False, "message": "Please login to add items to your cart."})
+        return JsonResponse({
+            "success": False,
+            "message": "Please login to add items to your cart."
+        })
 
     product = get_object_or_404(Product, id=product_id)
 
     size_id = request.POST.get("size")
     color_id = request.POST.get("color")
-    quantity = int(request.POST.get("quantity", 1))
 
-    # FIND VARIANT
+    try:
+        quantity = int(request.POST.get("quantity", 1))
+    except (TypeError, ValueError):
+        quantity = 1
+
+    if quantity < 1:
+        quantity = 1
+
+    if not size_id or not color_id:
+        return JsonResponse({
+            "success": False,
+            "message": "Please select size and color."
+        })
+
     variant = product.variants.filter(
         size_id=size_id,
         color_id=color_id
     ).first()
 
     if not variant:
-        return JsonResponse({"success": False, "message": "Invalid size/color combination."})
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid size/color combination."
+        })
 
-    # STOCK VALIDATION PER VARIANT
+    if variant.stock <= 0:
+        return JsonResponse({
+            "success": False,
+            "message": "This variant is out of stock."
+        })
+
     if quantity > variant.stock:
         return JsonResponse({
             "success": False,
-            "message": f"Only {variant.stock} item(s) available for this variant."
+            "message": f"Only {variant.stock} item(s) available."
         })
 
     registration = get_object_or_404(Registration, authuser=request.user)
@@ -772,21 +803,23 @@ def add_to_cart(request, product_id):
         variant=variant,
         defaults={
             "quantity": quantity,
-            "price": variant.price if hasattr(variant, 'price') else product.price
+            "price": product.price  # ✅ FIXED HERE
         }
     )
 
     if not created:
-        if item.quantity + quantity > variant.stock:
+        new_quantity = item.quantity + quantity
+
+        if new_quantity > variant.stock:
             return JsonResponse({
                 "success": False,
-                "message": f"Only {variant.stock} item(s) available for this variant."
+                "message": f"Only {variant.stock} item(s) available."
             })
 
-        item.quantity += quantity
+        item.quantity = new_quantity
         item.save()
 
-    cart_count = CartItem.objects.filter(cart=cart).count()
+    cart_count = cart.items.count()
 
     return JsonResponse({
         "success": True,
@@ -796,41 +829,61 @@ def add_to_cart(request, product_id):
 
 @login_required(login_url='user_login')
 def cart_page(request):
+
     if request.user.is_staff:
-        return redirect("home")  
+        return redirect("home")
+
     try:
         registration = Registration.objects.get(authuser=request.user)
     except Registration.DoesNotExist:
         messages.warning(request, "Only customers can access cart.")
         return redirect("home")
+
     cart, _ = Cart.objects.get_or_create(registration=registration)
     items = cart.items.all()
     has_items = items.exists()
     message = None
+
     if request.method == "POST" and has_items:
+
+        # Remove coupon
         if "remove_coupon" in request.POST:
             cart.coupon_code = None
             cart.coupon_discount = Decimal("0.00")
             cart.save()
             message = "Coupon removed"
+
+        # Apply coupon
         elif "coupon_code" in request.POST:
             coupon_code = request.POST.get("coupon_code", "").strip()
+
             if coupon_code:
                 try:
-                    coupon = Coupon.objects.get(code__iexact=coupon_code, active=True)
+                    coupon = Coupon.objects.get(
+                        code__iexact=coupon_code,
+                        active=True
+                    )
+
                     if coupon.expiry_date and coupon.expiry_date < date.today():
+                        cart.coupon_code = None
                         cart.coupon_discount = Decimal("0.00")
                         message = "Coupon expired"
+
                     else:
                         cart.coupon_code = coupon.code
                         cart.coupon_discount = coupon.discount_amount
                         message = "Coupon applied!"
+
                 except Coupon.DoesNotExist:
+                    cart.coupon_code = None
                     cart.coupon_discount = Decimal("0.00")
                     message = "Invalid coupon"
 
                 cart.save()
+
+    # Always update totals after any change
     cart.update_totals()
+
     return render(request, "cart.html", {
         "cart": cart,
         "items": items,
@@ -887,38 +940,56 @@ def empty_cart(request):
         cart.coupon_discount = Decimal("0.00")
         cart.save()
     return redirect("cart_page")
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import transaction
+from django.conf import settings
+import razorpay
+from decimal import Decimal
+
 
 @login_required
 def checkout(request):
     registration = get_object_or_404(Registration, authuser=request.user)
     cart = get_object_or_404(Cart, registration=registration)
     profile, created = UserProfile.objects.get_or_create(user=request.user)
-    items = cart.items.all()
+
+    items = cart.items.select_related("product", "variant")
+
     if not items.exists():
         messages.warning(request, "Your cart is empty")
         return redirect("cart_page")
+
     return render(request, "checkout.html", {
         "cart": cart,
         "items": items,
         "subtotal": cart.subtotal(),
         "total": cart.total(),
         "coupon_discount": cart.coupon_discount,
-        "profile_address": profile.address, 
+        "profile_address": profile.address,
         "profile_phone": profile.phone,
     })
+
 
 @login_required
 @transaction.atomic
 def checkout_post(request):
+
     if request.method != "POST":
         return redirect("home")
 
     registration = get_object_or_404(Registration, authuser=request.user)
     cart = get_object_or_404(Cart, registration=registration)
     profile, created = UserProfile.objects.get_or_create(user=request.user)
-    if not cart.items.exists():
+
+    items = cart.items.select_related("product", "variant")
+
+    if not items.exists():
         messages.warning(request, "Your cart is empty")
         return redirect("cart_page")
+
+    # 🔹 Billing Details
     first_name = request.POST.get("first_name")
     email = request.POST.get("email")
     phone = request.POST.get("phone")
@@ -928,17 +999,26 @@ def checkout_post(request):
     pincode = request.POST.get("pincode")
     land_mark = request.POST.get("land_mark")
     payment_method = request.POST.get("payment-option")
+
+    # Save profile info
     profile.address = address
     profile.phone = phone
     profile.save()
-    for item in cart.items.select_related("product"):
-        if item.quantity > item.product.stock:
+
+    # 🔴 STOCK VALIDATION (VARIANT BASED)
+    for item in items:
+        if item.quantity > item.variant.stock:
             messages.error(
                 request,
-                f"{item.product.name} only {item.product.stock} item(s) available."
+                f"{item.product.name} "
+                f"({item.variant.color.name} - {item.variant.size.name}) "
+                f"only {item.variant.stock} item(s) available."
             )
             return redirect("cart_page")
 
+    # ===============================
+    # ✅ CASH ON DELIVERY
+    # ===============================
     if payment_method == "cod":
 
         order = Order.objects.create(
@@ -958,34 +1038,45 @@ def checkout_post(request):
             payment_method="cod",
             payment_status=False
         )
-        for item in cart.items.select_related("product"):
-            product = item.product
-            product.stock -= item.quantity
-            product.save()
+
+        for item in items:
+
+            # ✅ Reduce VARIANT stock
+            variant = item.variant
+            variant.stock -= item.quantity
+            variant.save()
 
             OrderItem.objects.create(
                 order=order,
-                product=product,
-                color=item.color,
-                size=item.size,
+                product=item.product,
+                variant=item.variant,  # ✅ store full variant
                 quantity=item.quantity,
                 price=item.price
             )
+
+        # Clear cart
         cart.items.all().delete()
         cart.coupon_code = None
-        cart.coupon_discount = 0
+        cart.coupon_discount = Decimal("0.00")
         cart.save()
 
         return redirect("cash_on_delivery_success", order_id=order.id)
+
+    # ===============================
+    # ✅ RAZORPAY PAYMENT
+    # ===============================
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
+
     amount = int(cart.total() * 100)
+
     razorpay_order = client.order.create({
         "amount": amount,
         "currency": "INR",
         "payment_capture": "1"
     })
+
     order = Order.objects.create(
         registration=registration,
         first_name=first_name,
@@ -1004,15 +1095,16 @@ def checkout_post(request):
         razorpay_order_id=razorpay_order["id"],
         payment_status=False
     )
-    for item in cart.items.select_related("product"):
+
+    for item in items:
         OrderItem.objects.create(
             order=order,
             product=item.product,
-            color=item.color,
-            size=item.size,
+            variant=item.variant,  # ✅ store variant
             quantity=item.quantity,
             price=item.price
         )
+
     return render(request, "checkout_payment.html", {
         "order": order,
         "razorpay_order_id": razorpay_order["id"],
