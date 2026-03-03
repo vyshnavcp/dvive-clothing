@@ -1425,24 +1425,48 @@ def pos_payment_complete(request, order_id):
 
 def cancel_pos_payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, is_pos_order=True)
-    if order.payment_status:
-        order.payment_status = False
-        order.is_completed = False
-        order.is_cancelled = True
-        order.save()
-        messages.warning(request, f"POS Payment for Order #{order.id} has been canceled.")
-    return redirect("order_detail", order_id=order.id)
 
+    if order.is_cancelled:
+        messages.warning(request, "Order already cancelled.")
+        return redirect("order_detail", order_id=order.id)
+
+    # 🔥 RESTORE STOCK
+    for item in order.items.all():
+        if hasattr(item, "variant") and item.variant:
+            item.variant.stock = F('stock') + item.quantity
+            item.variant.save(update_fields=["stock"])
+        else:
+            item.product.stock = F('stock') + item.quantity
+            item.product.save(update_fields=["stock"])
+
+    order.payment_status = False
+    order.is_completed = False
+    order.is_cancelled = True
+    order.save(update_fields=["payment_status", "is_completed", "is_cancelled"])
+
+    messages.warning(request, f"POS Payment for Order #{order.id} has been canceled and stock restored.")
+    return redirect("order_detail", order_id=order.id)
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    if not order.is_delivered and not order.is_cancelled:
+
+    if order.is_cancelled:
+        messages.warning(request, "Order already cancelled.")
+        return redirect("order_detail", order_id=order.id)
+
+    if not order.is_delivered:
         for item in order.items.all():
-            product = item.product
-            product.stock = F('stock') + item.quantity
-            product.save(update_fields=["stock"])
+            if hasattr(item, "variant") and item.variant:
+                item.variant.stock = F('stock') + item.quantity
+                item.variant.save(update_fields=["stock"])
+            else:
+                item.product.stock = F('stock') + item.quantity
+                item.product.save(update_fields=["stock"])
+
         order.is_cancelled = True
         order.save(update_fields=["is_cancelled"])
+
         messages.success(request, "Order cancelled and stock restored.")
+
     return redirect("order_detail", order_id=order.id)
 
 @login_required(login_url='user_login')
