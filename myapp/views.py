@@ -28,6 +28,7 @@ from django.db import IntegrityError
 from .forms import FAQForm, PrivacyForm,TermsForm
 import re
 import json
+from django.db.models import Sum, F, DecimalField, ExpressionWrapper
 from django.utils.dateparse import parse_date 
 from django.views.decorators.http import require_POST
 from .forms import ArticleForm, TermsForm
@@ -1246,34 +1247,54 @@ from .decorators import role_required
     login_url='user_login'
 )
 
+
 def dashboard(request):
     today = now().date()
+
     if request.user.is_superuser:
         orders = Order.objects.all().order_by('-created_at')
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
+
     paid_orders = orders.filter(payment_status=True, is_cancelled=False)
+
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
     today_revenue = paid_orders.filter(created_at__date=today).aggregate(total=Sum("total"))["total"] or 0
+
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
     pending_orders = orders.filter(payment_status=False, is_cancelled=False).count()
     pos_pending_payment = orders.filter(is_pos_order=True, payment_status=False, is_cancelled=False).count()
     total_customers = Registration.objects.count()
     total_products = Product.objects.count()
+
+    # ✅ ADDING TOTAL INCOME (Profit)
+    total_income = Decimal("0.00")
+
+    order_items = OrderItem.objects.filter(
+        order__payment_status=True,
+        order__is_cancelled=False
+    ).select_related("product")
+
+    for item in order_items:
+        if item.product and item.product.cost_price:
+            profit = (item.price - item.product.cost_price) * item.quantity
+            total_income += profit
+
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
+        "total_income": total_income,  # ✅ NEW
         "total_orders": total_orders,
         "paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
-        "pos_pending_payment": pos_pending_payment,  # NEW
+        "pos_pending_payment": pos_pending_payment,
         "total_customers": total_customers,
         "total_products": total_products,
         "orders": orders,
     }
-    return render(request, "dashboard.html", context)
 
+    return render(request, "dashboard.html", context)
 @login_required(login_url='user_login')
 def report_page(request):
     orders = Order.objects.all()
@@ -1568,99 +1589,94 @@ def delete_faq(request, pk):
 def faq_page(request):
     faqs = FAQ.objects.all().order_by("created_at")
     return render(request, "faq_page.html", {"faqs": faqs})
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.db import transaction
-from django.http import JsonResponse
-from django.shortcuts import render
-from decimal import Decimal
-import json
 
 @staff_member_required
 def pos_page(request):
-    products = Product.objects.filter(status=True)
+    products = Product.objects.filter(status=True).prefetch_related(
+        "variants__color",
+        "variants__size"
+    )
     return render(request, "pos.html", {"products": products})
-
-@login_required
+@staff_member_required
+@csrf_exempt
+@transaction.atomic
 def pos_create_order(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            items = data.get("items", [])
-            payment_method = data.get("payment_method", "cod")
-            pos_payment_type = data.get("pos_payment_type")
 
-            # ✅ NEW: customer details from POS
-            customer_name = data.get("customer_name", "POS Customer")
-            customer_phone = data.get("customer_phone", "0000000000")
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid request"})
 
-            if not items:
-                return JsonResponse({"status": "error", "message": "Cart empty"})
+    try:
+        data = json.loads(request.body)
 
-            if payment_method != "pos":
-                pos_payment_type = None
+        items = data.get("items", [])
+        customer_name = data.get("customer_name")
+        customer_phone = data.get("customer_phone")
+        pos_payment_type = data.get("pos_payment_type")
 
-            registration, _ = Registration.objects.get_or_create(
-                authuser=request.user,
-                defaults={
-                    "user_name": request.user.username,
-                    "email": request.user.email or "pos@store.com",
-                    "phone": "0000000000"
-                }
-            )
+        if not items:
+            return JsonResponse({"status": "error", "message": "Cart is empty"})
 
-            subtotal = Decimal("0.00")
+        if not customer_name or not customer_phone:
+            return JsonResponse({"status": "error", "message": "Customer details required"})
 
-            order = Order.objects.create(
-                registration=registration,
-                first_name=customer_name,          # ✅ updated
-                email=registration.email,
-                phone=customer_phone,              # ✅ updated
-                address="POS Store Sale",
-                town="Store",
-                state="Store",
-                pincode="000000",
-                subtotal=Decimal("0.00"),
-                total=Decimal("0.00"),
-                payment_method=payment_method,
-                pos_payment_type=pos_payment_type,
-                payment_status=True,
-                is_completed=True,
-                is_pos_order=True
-            )
+        # CREATE ORDER
+        order = Order.objects.create(
+            customer_name=customer_name,
+            customer_phone=customer_phone,
+            total=0,
+            payment_status=True,
+            is_pos_order=True,
+            pos_payment_type=pos_payment_type,
+        )
 
-            for item in items:
-                product = Product.objects.get(id=item["id"])
+        total_amount = 0
 
-                if product.stock < item["quantity"]:
+        for item in items:
+            product = Product.objects.get(id=item["id"])
+            quantity = int(item["quantity"])
+            price = float(item["price"])
+            variant_data = item.get("variant")
+
+            if variant_data:
+                # VARIANT PRODUCT
+                variant = ProductVariant.objects.get(id=variant_data["id"])
+
+                if variant.stock < quantity:
                     return JsonResponse({
                         "status": "error",
-                        "message": f"{product.name} stock not enough"
+                        "message": f"Not enough stock for {product.name}"
                     })
 
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    quantity=item["quantity"],
-                    price=product.price
-                )
+                variant.stock -= quantity
+                variant.save()
 
-                subtotal += product.price * item["quantity"]
-                product.stock -= item["quantity"]
+            else:
+                # NORMAL PRODUCT
+                if product.stock < quantity:
+                    return JsonResponse({
+                        "status": "error",
+                        "message": f"Not enough stock for {product.name}"
+                    })
+
+                product.stock -= quantity
                 product.save()
 
-            order.subtotal = subtotal
-            order.total = subtotal
-            order.save()
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=quantity,
+                price=price
+            )
 
-            return JsonResponse({"status": "success"})
+            total_amount += price * quantity
 
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)})
+        order.total = total_amount
+        order.save()
 
-    return JsonResponse({"status": "error", "message": "Invalid method"})
+        return JsonResponse({"status": "success"})
 
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)})
 
 @staff_member_required
 def pos_edit_page(request, order_id):
@@ -1737,3 +1753,40 @@ def pos_update_order(request, order_id):
 
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
+
+
+@staff_member_required
+def total_income_page(request):
+
+    # Only completed/delivered orders
+    order_items = OrderItem.objects.filter(
+        order__is_cancelled=False,
+        order__is_delivered=True
+    ).select_related("product")
+
+    product_data = []
+
+    total_income = 0
+
+    for item in order_items:
+        if item.product.cost_price:
+
+            profit_per_item = item.price - item.product.cost_price
+            total_profit = profit_per_item * item.quantity
+
+            total_income += total_profit
+
+            product_data.append({
+                "product": item.product,
+                "quantity": item.quantity,
+                "selling_price": item.price,
+                "cost_price": item.product.cost_price,
+                "profit_per_item": profit_per_item,
+                "total_profit": total_profit
+            })
+
+    return render(request, "total_income.html", {
+        "title": "Total Income Report",
+        "products": product_data,
+        "total_income": total_income
+    })

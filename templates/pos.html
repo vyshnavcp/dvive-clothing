@@ -15,87 +15,37 @@ body{
     background: linear-gradient(135deg,#eef2f7,#f9fbfd);
     font-family:'Poppins',sans-serif;
 }
-
-/* NAVBAR */
-.header-with-topbar{
-    background:#0d0d0d;
-    box-shadow:0 6px 25px rgba(0,0,0,0.4);
-} 
-.dashboard-header{padding:18px 28px;} 
-.dashboard-header h4,.dashboard-header small,.dashboard-header i{color:#fff;} 
-.dashboard-header .nav-link{color:#e6e6e6 !important;font-weight:500;transition:.25s;} 
-.dashboard-header .nav-link:hover{color:#fff !important;opacity:.8;} 
-.navbar-toggler{border:0;} 
-.navbar-toggler-icon{filter:invert(1);} 
-
-/* PAGE */
-.page-wrapper{padding:40px 20px;} 
-.section-title{font-weight:600;margin-bottom:18px;} 
-.card{
-    border:none;
-    border-radius:18px;
-    box-shadow:0 14px 40px rgba(0,0,0,.08);
-}
-
-/* PRODUCT CARD */
-.product-card .card{
-    transition:.25s;
-    padding:16px;
-}
-.product-card .card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 16px 40px rgba(0,0,0,.12);
-}
-.product-name{font-weight:500;font-size:.95rem;height:38px;overflow:hidden;} 
-.product-price{font-weight:600;color:#111;} 
-.stock{font-size:.8rem;color:#777;} 
-
-/* CART */
-.cart-card{
-    position:sticky;
-    top:20px;
-}
-.cart-item{
-    font-size:.9rem;
-}
-
-/* BUTTONS */
-.btn-black{
-    background:#000;
-    color:#fff;
-    border-radius:12px;
-    padding:10px 14px;
-    font-size:.85rem;
-    font-weight:500;
-}
-.btn-black:hover{background:#1a1a1a;color:#fff;} 
-.btn-success{
-    border-radius:14px;
-    font-weight:600;
-    padding:14px;
-}
-
-.quantity-input{
-    width:60px;
-    text-align:center;
-}
-
-.total-box{
-    background:#f4f6f9;
-    border-radius:12px;
-    padding:12px;
-    font-weight:600;
-}
+.header-with-topbar{background:#0d0d0d;box-shadow:0 6px 25px rgba(0,0,0,0.4);}
+.dashboard-header{padding:18px 28px;}
+.dashboard-header h4,.dashboard-header small,.dashboard-header i{color:#fff;}
+.dashboard-header .nav-link{color:#e6e6e6 !important;font-weight:500;transition:.25s;}
+.dashboard-header .nav-link:hover{color:#fff !important;opacity:.8;}
+.navbar-toggler{border:0;}
+.navbar-toggler-icon{filter:invert(1);}
+.page-wrapper{padding:40px 20px;}
+.section-title{font-weight:600;margin-bottom:18px;}
+.card{border:none;border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.08);}
+.product-card .card{transition:.25s;padding:16px;}
+.product-card .card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.12);}
+.product-name{font-weight:500;font-size:.95rem;height:38px;overflow:hidden;}
+.product-price{font-weight:600;color:#111;}
+.stock{font-size:.8rem;color:#777;}
+.cart-card{position:sticky;top:20px;}
+.cart-item{font-size:.9rem;}
+.btn-black{background:#000;color:#fff;border-radius:12px;padding:10px 14px;font-size:.85rem;font-weight:500;}
+.btn-black:hover{background:#1a1a1a;color:#fff;}
+.btn-success{border-radius:14px;font-weight:600;padding:14px;}
+.quantity-input{width:60px;text-align:center;}
+.total-box{background:#f4f6f9;border-radius:12px;padding:12px;font-weight:600;}
+.variant-select{font-size:.8rem;margin-top:8px;}
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
 <div class="container-fluid px-0">
-
 <div class="d-flex align-items-center gap-3">
 <i class="bi bi-speedometer2 fs-2"></i>
 <div>
@@ -115,12 +65,10 @@ body{
 <li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
 </ul>
 </div>
-
 </div>
 </nav>
 </header>
 
-<!-- PAGE CONTENT -->
 <div class="page-wrapper">
 <div class="container-fluid">
 
@@ -138,22 +86,46 @@ body{
 <div class="col-lg-8">
 <div class="row" id="productGrid">
 {% for product in products %}
-<div class="col-md-4 mb-3 product-card" data-name="{{ product.name|lower }}" data-code="{{ product.product_code|lower }}">
+<div class="col-md-4 mb-3 product-card"
+     data-name="{{ product.name|lower }}"
+     data-code="{{ product.product_code|lower }}">
 <div class="card text-center">
+
 <div class="product-name">{{ product.name }}</div>
 <div class="product-price">₹ {{ product.price }}</div>
-<div class="stock">Stock: {{ product.stock }}</div>
 
-{% if product.stock > 0 %}
+{% if product.variants.all %}
+<div class="stock">Select Variant</div>
+
+<select class="form-select variant-select variant-dropdown">
+<option value="">Select Color & Size</option>
+{% for variant in product.variants.all %}
+<option value="{{ variant.id }}"
+        data-stock="{{ variant.stock }}"
+        data-color="{{ variant.color.name }}"
+        data-size="{{ variant.size.name }}">
+{{ variant.color.name }} - {{ variant.size.name }} ({{ variant.stock }})
+</option>
+{% endfor %}
+</select>
+{% else %}
+<div class="stock">Stock: {{ product.stock }}</div>
+{% endif %}
+
+{% if product.stock > 0 or product.productvariant_set.all %}
 <div class="d-flex justify-content-center gap-2 align-items-center mt-2">
-<input type="number" min="1" max="{{ product.stock }}" value="1" class="form-control form-control-sm quantity-input">
-<button class="btn btn-black btn-sm" onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }}, {{ product.stock }}, this)">
+<input type="number" min="1" value="1"
+       class="form-control form-control-sm quantity-input">
+
+<button class="btn btn-black btn-sm"
+onclick="addToCart({{ product.id }}, '{{ product.name }}', {{ product.price }}, this)">
 Add
 </button>
 </div>
 {% else %}
 <button class="btn btn-secondary btn-sm mt-2" disabled>Out of Stock</button>
 {% endif %}
+
 </div>
 </div>
 {% endfor %}
@@ -165,15 +137,14 @@ Add
 <div class="card p-3 cart-card">
 <h5 class="mb-3">Cart</h5>
 
-<!-- NEW FIELDS -->
 <div class="mb-2">
-    <label class="form-label">Customer Name</label>
-    <input type="text" id="customerName" class="form-control" placeholder="Enter customer name">
+<label class="form-label">Customer Name</label>
+<input type="text" id="customerName" class="form-control">
 </div>
 
 <div class="mb-3">
-    <label class="form-label">Phone Number</label>
-    <input type="text" id="customerPhone" class="form-control" placeholder="Enter phone number">
+<label class="form-label">Phone Number</label>
+<input type="text" id="customerPhone" class="form-control">
 </div>
 
 <ul id="cart-list" class="list-group mb-3"></ul>
@@ -201,49 +172,84 @@ Complete Order
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
 let cart = [];
 
-// ADD TO CART
-function addToCart(id, name, price, stock, btn) {
-    const qtyInput = btn.previousElementSibling;
-    let quantity = parseInt(qtyInput.value) || 1;
-    if(quantity > stock) quantity = stock;
+function addToCart(id, name, price, btn) {
 
-    let item = cart.find(p => p.id === id);
-    if(item){
-        if(item.quantity + quantity <= stock) item.quantity += quantity;
-        else item.quantity = stock;
+    const card = btn.closest(".card");
+    const qtyInput = card.querySelector(".quantity-input");
+    const variantSelect = card.querySelector(".variant-dropdown");
+
+    let quantity = parseInt(qtyInput.value) || 1;
+    let variant = null;
+
+    if (variantSelect) {
+        if (!variantSelect.value) {
+            alert("Please select color & size");
+            return;
+        }
+
+        const selected = variantSelect.options[variantSelect.selectedIndex];
+        const stock = parseInt(selected.dataset.stock);
+
+        if (stock <= 0) {
+            alert("This combination is out of stock");
+            return;
+        }
+
+        if (quantity > stock) {
+            alert("Not enough stock for selected combination");
+            return;
+        }
+
+        variant = {
+            id: variantSelect.value,
+            color: selected.dataset.color,
+            size: selected.dataset.size
+        };
+    }
+
+    let existing = cart.find(item =>
+        item.id === id &&
+        JSON.stringify(item.variant) === JSON.stringify(variant)
+    );
+
+    if (existing) {
+        existing.quantity += quantity;
     } else {
-        cart.push({id, name, price, quantity, stock});
+        cart.push({ id, name, price, quantity, variant });
     }
 
     renderCart();
     qtyInput.value = 1;
 }
 
-// REMOVE FROM CART
-function removeFromCart(id) {
-    cart = cart.filter(item => item.id !== id);
+function removeFromCart(index) {
+    cart.splice(index, 1);
     renderCart();
 }
 
-// RENDER CART
 function renderCart() {
     let list = document.getElementById("cart-list");
     let total = 0;
     list.innerHTML = "";
 
-    cart.forEach(item => {
+    cart.forEach((item, index) => {
         total += item.price * item.quantity;
+
+        let variantText = "";
+        if (item.variant) {
+            variantText = ` (${item.variant.color} / ${item.variant.size})`;
+        }
+
         list.innerHTML += `
         <li class="list-group-item d-flex justify-content-between align-items-center cart-item">
-            <span>${item.name} x ${item.quantity}</span>
+            <span>${item.name}${variantText} x ${item.quantity}</span>
             <div>
                 ₹ ${item.price * item.quantity}
-                <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeFromCart(${item.id})">&times;</button>
+                <button class="btn btn-sm btn-outline-danger ms-2"
+                onclick="removeFromCart(${index})">&times;</button>
             </div>
         </li>`;
     });
@@ -251,7 +257,6 @@ function renderCart() {
     document.getElementById("total").innerText = total;
 }
 
-// SEARCH PRODUCTS
 function filterProducts() {
     const query = document.getElementById("productSearch").value.toLowerCase();
     const products = document.querySelectorAll(".product-card");
@@ -259,51 +264,10 @@ function filterProducts() {
     products.forEach(card => {
         const name = card.dataset.name;
         const code = card.dataset.code;
-        card.style.display = (name.includes(query) || code.includes(query)) ? "block" : "none";
+        card.style.display =
+            (name.includes(query) || code.includes(query))
+            ? "block" : "none";
     });
-}
-
-// GET CSRF
-function getCSRFToken() {
-    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-}
-
-// CHECKOUT
-function checkout() {
-    if (cart.length === 0) return;
-
-    const posPaymentType = document.getElementById("paymentMethod").value;
-    const customerName = document.getElementById("customerName").value.trim();
-    const customerPhone = document.getElementById("customerPhone").value.trim();
-
-    if (!customerName || !customerPhone) {
-        alert("Please enter customer name and phone number");
-        return;
-    }
-
-    fetch("{% url 'pos_create_order' %}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken()
-        },
-        body: JSON.stringify({ 
-            items: cart,
-            payment_method: "pos",
-            pos_payment_type: posPaymentType,
-            customer_name: customerName,
-            customer_phone: customerPhone
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "success") {
-            window.location.href = "{% url 'dashboard' %}";
-        } else {
-            alert(data.message || "Error processing order");
-        }
-    })
-    .catch(err => console.error(err));
 }
 </script>
 

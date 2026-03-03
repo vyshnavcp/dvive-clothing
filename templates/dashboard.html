@@ -114,14 +114,67 @@
 
     <!-- METRICS -->
     <div class="row g-4 mb-4 justify-content-center">
-        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Total Revenue</span><div class="stat-value">₹ {{ total_revenue }}</div></div></div>
-        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Today Revenue</span><div class="stat-value">₹ {{ today_revenue }}</div></div></div>
-        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Total Orders</span><div class="stat-value"><a href="{% url 'order_list' %}" class="text-dark text-decoration-none">{{ total_orders }}</a></div></div></div>
-        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Paid Orders</span><div class="stat-value"><a href="{% url 'paid_orders' %}" class="text-dark text-decoration-none">{{ paid_orders }}</a></div></div></div>
-        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Pending Orders</span><div class="stat-value"><a href="{% url 'pending_orders' %}" class="text-dark text-decoration-none">{{ pending_orders }}</a></div></div></div>
+
+        
+
         {% if request.user.is_superuser %}
-        <div class="col-md-2 col-6"><div class="stat-card"><span class="stat-title">Customers</span><div class="stat-value"><a href="{% url 'customer_list' %}" class="text-dark text-decoration-none">{{ total_customers }}</a></div></div></div>
+        <div class="col-md-2 col-6">
+            <div class="stat-card">
+                <span class="stat-title">Total Revenue</span>
+                <div class="stat-value">₹ {{ total_revenue }}</div>
+            </div>
+        </div>
+
+        <div class="col-md-2 col-6">
+            <div class="stat-card">
+                <span class="stat-title">Today Revenue</span>
+                <div class="stat-value">₹ {{ today_revenue }}</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <a href="{% url 'total_income' %}" class="text-decoration-none">
+                <div class="stat-card">
+                    <span class="stat-title">Total Income</span>
+                    <div class="stat-value">₹ {{ total_income }}</div>
+                </div>
+            </a>
+        </div>
         {% endif %}
+
+
+        <div class="col-md-2 col-6">
+            <div class="stat-card">
+                <span class="stat-title">Total Orders</span>
+                <div class="stat-value">
+                    <a href="{% url 'order_list' %}" class="text-dark text-decoration-none">
+                        {{ total_orders }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2 col-6">
+            <div class="stat-card">
+                <span class="stat-title">Paid Orders</span>
+                <div class="stat-value">
+                    <a href="{% url 'paid_orders' %}" class="text-dark text-decoration-none">
+                        {{ paid_orders }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2 col-6">
+            <div class="stat-card">
+                <span class="stat-title">Pending Orders</span>
+                <div class="stat-value">
+                    <a href="{% url 'pending_orders' %}" class="text-dark text-decoration-none">
+                        {{ pending_orders }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- CONTENT -->
@@ -236,6 +289,7 @@
                     <a href="{% url 'privacy_list' %}" class="quick-btn"><i class="bi bi-shield-check"></i> View Privacy</a>
                     <a href="{% url 'add_faq' %}" class="quick-btn"><i class="bi bi-question-circle"></i> Add FAQ</a>
                     <a href="{% url 'faq_list' %}" class="quick-btn"><i class="bi bi-chat-dots"></i> View FAQ</a>
+                    <a href="{% url 'total_income' %}" class="quick-btn"><i class="bi bi-currency-rupee"></i> Total Income</a>
                     {% endif %}
                 </div>
             </div>
