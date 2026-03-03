@@ -74,9 +74,21 @@ body{background:#f6f6f6;font-family:'Poppins', sans-serif;}
 
 <div class="section-title">Pricing</div>
 <div class="row g-3 mb-4">
-    <div class="col-md-4"><input type="number" name="price" class="form-control" placeholder="Price" required></div>
-    <div class="col-md-4"><input type="number" name="old_price" class="form-control" placeholder="Old Price"></div>
-    <div class="col-md-4"><input type="number" name="stock" id="totalStock" class="form-control" placeholder="Total Stock" readonly></div>
+    <div class="col-md-3">
+    <input type="number" step="0.01" name="price" class="form-control" placeholder="Selling Price" required>
+</div>
+
+<div class="col-md-3">
+    <input type="number" step="0.01" name="cost_price" class="form-control" placeholder="Cost Price">
+</div>
+
+<div class="col-md-3">
+    <input type="number" step="0.01" name="old_price" class="form-control" placeholder="Old Price">
+</div>
+
+<div class="col-md-3">
+    <input type="number" name="stock" id="totalStock" class="form-control" placeholder="Total Stock" readonly>
+</div>
 </div>
 
 <div class="section-title">Color + Size + Stock</div>

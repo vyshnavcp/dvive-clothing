@@ -245,6 +245,7 @@ def add_product(request):
             product_code=request.POST.get("product_code"),
             subcategory_id=request.POST.get("subcategory"),
             price=request.POST.get("price"),
+            cost_price=request.POST.get("cost_price") or None,
             old_price=request.POST.get("old_price") or None,
             description=request.POST.get("description"),
             additional_info=request.POST.get("additional_info") or {},
@@ -310,7 +311,6 @@ def product_list(request):
     return render(request, "product_list.html", {
         "products": products
     })
-
 @staff_member_required
 @transaction.atomic
 def edit_product(request, slug):
@@ -327,6 +327,7 @@ def edit_product(request, slug):
         product.product_code = request.POST.get("product_code")
         product.subcategory_id = request.POST.get("subcategory")
         product.price = request.POST.get("price")
+        product.cost_price = request.POST.get("cost_price") or None  # ✅ ADDED
         product.old_price = request.POST.get("old_price") or None
         product.description = request.POST.get("description")
 
@@ -395,7 +396,6 @@ def edit_product(request, slug):
         "sizes": sizes,
         "variants": variants
     })
-
 @staff_member_required
 def delete_product(request, slug):
     product = get_object_or_404(Product, slug=slug)

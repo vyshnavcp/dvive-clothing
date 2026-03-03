@@ -85,17 +85,47 @@ body{background:#f6f6f6;font-family:'Poppins', sans-serif;}
 </div>
 
 <!-- PRICING -->
+<!-- PRICING -->
 <div class="section-title">Pricing</div>
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <input type="number" name="price" value="{{ product.price }}" class="form-control" required>
+
+    <div class="col-md-3">
+        <input type="number"
+               step="0.01"
+               name="price"
+               value="{{ product.price }}"
+               class="form-control"
+               placeholder="Selling Price"
+               required>
     </div>
-    <div class="col-md-4">
-        <input type="number" name="old_price" value="{{ product.old_price }}" class="form-control">
+
+    <div class="col-md-3">
+        <input type="number"
+               step="0.01"
+               name="cost_price"
+               value="{{ product.cost_price }}"
+               class="form-control"
+               placeholder="Cost Price">
     </div>
-    <div class="col-md-4">
-        <input type="number" name="stock" id="totalStock" value="{{ product.stock }}" class="form-control" readonly>
+
+    <div class="col-md-3">
+        <input type="number"
+               step="0.01"
+               name="old_price"
+               value="{{ product.old_price }}"
+               class="form-control"
+               placeholder="Old Price">
     </div>
+
+    <div class="col-md-3">
+        <input type="number"
+               name="stock"
+               id="totalStock"
+               value="{{ product.stock }}"
+               class="form-control"
+               readonly>
+    </div>
+
 </div>
 
 <!-- VARIANTS -->

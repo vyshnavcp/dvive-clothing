@@ -100,8 +100,10 @@ class Product(models.Model):
     additional_info = models.JSONField(default=dict, blank=True)
 
     # Price
+# Price
     price = models.DecimalField(max_digits=10, decimal_places=2)
     old_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     # Flags
     status = models.BooleanField(default=True)
@@ -151,6 +153,11 @@ class Product(models.Model):
     @property
     def material_type(self):
         return self.additional_info.get("material_type", [])
+    @property
+    def profit(self):
+        if self.cost_price is not None:
+            return self.price - self.cost_price
+        return None
 
 
 

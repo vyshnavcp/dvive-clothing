@@ -467,12 +467,7 @@ input[type="radio"]:checked + .size-circle {
                                                     <small>{{ review.created_at|date:"h:i A" }}</small>
                                                 </div>
 
-                                               {% if user.is_authenticated and user.email == review.email or user.is_staff %}
-                                                <button class="btn btn-sm text-danger border-0 delete-review"
-                                                        data-id="{{ review.id }}">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                                {% endif %}
+                                              
 
 
                                             </div>
