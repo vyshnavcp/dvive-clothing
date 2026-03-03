@@ -172,7 +172,6 @@ Update Order
 </div>
 </div>
 </div>
-
 <script>
 let cart = [
 {% for item in order_items %}
@@ -180,14 +179,23 @@ let cart = [
 id: {{ item.product.id }},
 name: "{{ item.product.name|escapejs }}",
 price: {{ item.price }},
-quantity: {{ item.quantity }}
+quantity: {{ item.quantity }},
+variant: {% if item.variant %}
+{
+id: "{{ item.variant.id }}",
+color: "{{ item.variant.color.name|escapejs }}",
+size: "{{ item.variant.size.name|escapejs }}"
+}
+{% else %}
+null
+{% endif %}
 },
 {% endfor %}
 ];
 
 document.addEventListener("DOMContentLoaded", renderCart);
 
-/* ✅ SAME JS LOGIC AS POS PAGE */
+/* ✅ MERGE LOGIC FIXED */
 
 function addToCart(id, name, price, btn) {
 
@@ -216,7 +224,10 @@ size: selected.dataset.size
 
 let existing = cart.find(item =>
 item.id === id &&
-JSON.stringify(item.variant) === JSON.stringify(variant)
+(
+(!item.variant && !variant) ||
+(item.variant && variant && item.variant.id == variant.id)
+)
 );
 
 if (existing) {
@@ -240,6 +251,7 @@ let total = 0;
 list.innerHTML = "";
 
 cart.forEach((item, index) => {
+
 total += item.price * item.quantity;
 
 let variantText = "";
@@ -293,6 +305,5 @@ window.location.href = "{% url 'order_list' %}";
 });
 }
 </script>
-
 </body>
 </html>
