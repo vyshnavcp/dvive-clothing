@@ -292,7 +292,7 @@ class Order(models.Model):
     )
 
     # Customer registration
-    registration = models.ForeignKey("Registration", on_delete=models.CASCADE)
+    registration = models.ForeignKey("Registration", on_delete=models.CASCADE, null=True, blank=True)
 
     # Customer info
     first_name = models.CharField(max_length=50)

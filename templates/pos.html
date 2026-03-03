@@ -162,8 +162,8 @@ Total: ₹ <span id="total">0</span>
 </select>
 </div>
 
-<button class="btn btn-success w-100" onclick="checkout()">
-Complete Order
+<button type="button" class="btn btn-success w-100" onclick="checkout()">
+    Complete Order
 </button>
 </div>
 </div>
@@ -269,6 +269,54 @@ function filterProducts() {
             ? "block" : "none";
     });
 }
+function checkout() {
+
+    if (cart.length === 0) {
+        alert("Cart is empty");
+        return;
+    }
+
+    const customerName = document.getElementById("customerName").value.trim();
+    const customerPhone = document.getElementById("customerPhone").value.trim();
+    const paymentMethod = document.getElementById("paymentMethod").value;
+
+    if (!customerName || !customerPhone) {
+        alert("Enter customer details");
+        return;
+    }
+
+    fetch("{% url 'pos_create_order' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+        },
+        body: JSON.stringify({
+            items: cart,
+            customer_name: customerName,
+            customer_phone: customerPhone,
+            pos_payment_type: paymentMethod
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+
+            alert("Order Completed Successfully!");
+
+            // 🔥 REDIRECT TO DASHBOARD
+            window.location.href = "{% url 'dashboard' %}";
+
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Something went wrong");
+    });
+}
+
 </script>
 
 </body>

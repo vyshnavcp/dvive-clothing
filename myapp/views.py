@@ -1619,57 +1619,63 @@ def pos_create_order(request):
         if not customer_name or not customer_phone:
             return JsonResponse({"status": "error", "message": "Customer details required"})
 
-        # CREATE ORDER
+        total_amount = Decimal("0.00")
+
+        # CREATE ORDER FIRST
         order = Order.objects.create(
-            customer_name=customer_name,
-            customer_phone=customer_phone,
-            total=0,
-            payment_status=True,
-            is_pos_order=True,
+            registration=None,
+            first_name=customer_name,
+            phone=customer_phone,
+            payment_method="pos",
             pos_payment_type=pos_payment_type,
+            payment_status=True,
+            is_completed=True,
+            is_pos_order=True,
+            subtotal=0,
+            total=0
         )
 
-        total_amount = 0
-
         for item in items:
-            product = Product.objects.get(id=item["id"])
+            product = Product.objects.select_for_update().get(id=item["id"])
             quantity = int(item["quantity"])
-            price = float(item["price"])
+            price = Decimal(str(item["price"]))
+
             variant_data = item.get("variant")
 
             if variant_data:
-                # VARIANT PRODUCT
-                variant = ProductVariant.objects.get(id=variant_data["id"])
+                variant = ProductVariant.objects.select_for_update().get(id=variant_data["id"])
 
                 if variant.stock < quantity:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": f"Not enough stock for {product.name}"
-                    })
+                    raise Exception(f"{product.name} stock not enough")
 
                 variant.stock -= quantity
                 variant.save()
 
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    variant=variant,
+                    quantity=quantity,
+                    price=price
+                )
+
             else:
-                # NORMAL PRODUCT
                 if product.stock < quantity:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": f"Not enough stock for {product.name}"
-                    })
+                    raise Exception(f"{product.name} stock not enough")
 
                 product.stock -= quantity
                 product.save()
 
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=quantity,
-                price=price
-            )
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=quantity,
+                    price=price
+                )
 
             total_amount += price * quantity
 
+        order.subtotal = total_amount
         order.total = total_amount
         order.save()
 
