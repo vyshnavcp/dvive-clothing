@@ -1719,7 +1719,6 @@ def pos_edit_page(request, order_id):
         "products": products,
         "order_items": order_items
     })
-
 @require_POST
 @staff_member_required
 @transaction.atomic
@@ -1728,49 +1727,89 @@ def pos_update_order(request, order_id):
         data = json.loads(request.body)
         items = data.get("items", [])
         pos_payment_type = data.get("pos_payment_type")
-
-        # ✅ NEW: get name & phone from frontend
         customer_name = data.get("customer_name")
         customer_phone = data.get("customer_phone")
 
-        order = Order.objects.select_for_update().get(id=order_id, is_pos_order=True)
+        order = Order.objects.select_for_update().get(
+            id=order_id,
+            is_pos_order=True
+        )
 
-        # 1️⃣ Restore previous stock
-        for old_item in OrderItem.objects.filter(order=order):
-            product = old_item.product
-            product.stock += old_item.quantity
-            product.save()
+        # 1️⃣ Restore previous stock (variant safe)
+        old_items = OrderItem.objects.filter(order=order)
+
+        for old_item in old_items:
+            if hasattr(old_item, "variant") and old_item.variant:
+                old_item.variant.stock += old_item.quantity
+                old_item.variant.save()
+            else:
+                old_item.product.stock += old_item.quantity
+                old_item.product.save()
 
         # 2️⃣ Delete old items
-        OrderItem.objects.filter(order=order).delete()
+        old_items.delete()
 
         subtotal = Decimal("0.00")
 
         # 3️⃣ Apply new items
         for item in items:
-            product = Product.objects.select_for_update().get(id=item["id"])
 
-            if product.stock < item["quantity"]:
-                raise Exception(f"{product.name} stock not enough")
+            quantity = int(item.get("quantity", 0))
+            variant_data = item.get("variant")
 
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=item["quantity"],
-                price=product.price
-            )
+            if quantity <= 0:
+                continue
 
-            product.stock -= item["quantity"]
-            product.save()
+            # 🔥 If Variant Exists
+            if variant_data:
 
-            subtotal += product.price * item["quantity"]
+                variant = ProductVariant.objects.select_for_update().get(
+                    id=variant_data["id"]
+                )
 
-        # 4️⃣ Update totals & payment type
+                if variant.stock < quantity:
+                    raise Exception(f"{variant.product.name} stock not enough")
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=variant.product,
+                    variant=variant,
+                    quantity=quantity,
+                    price=variant.product.price
+                )
+
+                variant.stock -= quantity
+                variant.save()
+
+                subtotal += variant.product.price * quantity
+
+            # 🔥 Normal Product
+            else:
+                product = Product.objects.select_for_update().get(
+                    id=item["id"]
+                )
+
+                if product.stock < quantity:
+                    raise Exception(f"{product.name} stock not enough")
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=quantity,
+                    price=product.price
+                )
+
+                product.stock -= quantity
+                product.save()
+
+                subtotal += product.price * quantity
+
+        # 4️⃣ Update order totals
         order.subtotal = subtotal
         order.total = subtotal
         order.pos_payment_type = pos_payment_type
 
-        # ✅ NEW: update name & phone
+        # 5️⃣ Update customer info
         if customer_name:
             order.first_name = customer_name
 
@@ -1782,8 +1821,10 @@ def pos_update_order(request, order_id):
         return JsonResponse({"status": "success"})
 
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})
-
+        return JsonResponse({
+            "status": "error",
+            "message": str(e)
+        })
 
 @staff_member_required
 def total_income_page(request):
