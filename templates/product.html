@@ -165,27 +165,23 @@
                     data-anime='{ "el": "childs", "translateY": [-15, 0], "opacity": [0,1], "duration": 300, "delay": 0, "staggervalue": 300, "easing": "easeOutQuad" }'>
                     <div class="mb-30px">
                         <span class="alt-font fw-500 fs-19 text-dark-gray d-block mb-10px">
-                            Filter by size
+                            Filter by Category
                         </span>
 
                         <ul class="shop-filter fs-16">
 
-                            {% for size in size_counts %}
-                            {% if size.product_count > 0 %}
+                            {% for subcat in subcategory_counts %}
+                            {% if subcat.product_count > 0 %}
                             <li>
-                                <a href="{% if active_slug %}
-                                            {% url 'filter_by_subcategory' slug=active_slug %}
-                                        {% else %}
-                                            {% url 'product' %}
-                                        {% endif %}
-                                        ?size={{ size.name }}"
-                                class="{% if size.name == active_size %}active{% endif %}">
+                                <a href="{% url 'filter_by_subcategory' slug=subcat.slug %}"
+                                class="{% if subcat.slug == active_slug %}active{% endif %}">
+                                    
                                     <span class="product-cb product-category-cb"></span>
-                                    {{ size.name }}
+                                    {{ subcat.name }}
                                 </a>
 
                                 <span class="item-qty">
-                                    {{ size.product_count }}
+                                    {{ subcat.product_count }}
                                 </span>
                             </li>
                             {% endif %}
