@@ -1297,15 +1297,15 @@ def mark_order_completed(request, order_id):
 
         messages.success(request, "Order marked as completed.")
 
-        return redirect("order_detail", order_id=order.id)
+        return redirect("dashboard")
 
-    return redirect("order_detail", order_id=order.id)
+    return redirect("dashboard")
 
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     if order.is_cancelled:
         messages.warning(request, "Order already cancelled.")
-        return redirect("order_detail", order_id=order.id)
+        return redirect("dashboard")
 
     if not order.is_delivered:
         for item in order.items.all():
@@ -1318,7 +1318,7 @@ def cancel_order(request, order_id):
         order.is_cancelled = True
         order.save(update_fields=["is_cancelled"])
         messages.success(request, "Order cancelled and stock restored.")
-    return redirect("order_detail", order_id=order.id)
+    return redirect("dashboard")
 
 @login_required
 def pos_payment_complete(request, order_id):
@@ -1328,7 +1328,7 @@ def pos_payment_complete(request, order_id):
         order.is_completed = True
         order.save()
         messages.success(request, f"POS Payment for Order #{order.id} marked as complete.")
-    return redirect("order_detail", order_id=order.id)
+    return redirect("dashboard")
 
 def cancel_pos_payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, is_pos_order=True)
