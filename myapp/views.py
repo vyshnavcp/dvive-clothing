@@ -1300,6 +1300,19 @@ def mark_order_completed(request, order_id):
         return redirect("dashboard")
 
     return redirect("dashboard")
+@login_required
+def reference_detail(request, name):
+    orders = Order.objects.filter(reference=name)
+
+    total_orders = orders.count()
+    total_amount = orders.aggregate(total=Sum("total"))["total"] or 0
+
+    return render(request, "reference_detail.html", {
+        "reference_name": name,
+        "orders": orders,
+        "total_orders": total_orders,
+        "total_amount": total_amount,
+    })
 
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)

@@ -96,6 +96,11 @@
                     <strong>Reference:</strong>
                     {% if order.reference %}
                         {{ order.reference }}
+
+                        <a href="{% url 'reference_detail' order.reference %}" 
+                        class="btn btn-sm btn-dark ms-2">
+                        View Details
+                        </a>
                     {% else %}
                         <span class="text-muted">Not provided</span>
                     {% endif %}
