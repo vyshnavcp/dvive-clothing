@@ -32,8 +32,10 @@ from django.db.models import Sum, F, DecimalField, ExpressionWrapper
 from django.utils.dateparse import parse_date 
 from django.views.decorators.http import require_POST
 from .forms import ArticleForm, TermsForm
-def staff_required(user):
-    return user.is_staff
+from django.db import transaction
+from django.conf import settings
+from django.urls import reverse
+
 
 
 def home(request):
@@ -49,8 +51,7 @@ def about(request):
 
 def blog(request):
     blogs_list = Article.objects.all().order_by('-posted_on')
-    paginator = Paginator(blogs_list, 4)  # 4 blogs per page
-
+    paginator = Paginator(blogs_list, 4) 
     page_number = request.GET.get('page')
     blogs = paginator.get_page(page_number)
     return render(request, 'blog.html', {'blogs': blogs})
@@ -68,29 +69,21 @@ def contact(request):
         message = request.POST.get('comment', '').strip()
         if not name:
             return JsonResponse({"status": "error", "message": "Name is required"})
-
         if len(name) < 3:
             return JsonResponse({"status": "error", "message": "Name must be at least 3 characters"})
-
         if not re.match(r'^[A-Za-z ]+$', name):
             return JsonResponse({"status": "error", "message": "Name must contain only letters"})
-
         email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
         if not email:
             return JsonResponse({"status": "error", "message": "Email is required"})
-
         if not re.match(email_regex, email):
             return JsonResponse({"status": "error", "message": "Enter a valid email address"})
-
         if not phone:
             return JsonResponse({"status": "error", "message": "Phone number is required"})
-
         if not phone.isdigit():
             return JsonResponse({"status": "error", "message": "Phone must contain only numbers"})
-
         if len(phone) != 10:
             return JsonResponse({"status": "error", "message": "Phone must be exactly 10 digits"})
-
         if not message:
             return JsonResponse({"status": "error", "message": "Message cannot be empty"})
         Contact.objects.create(
@@ -107,29 +100,19 @@ def contact(request):
     return render(request, "contact.html")
 from django.core.paginator import Paginator
 from django.db.models import Count
-from django.urls import reverse
 
 
 
 def product(request, slug=None):
-
     products = Product.objects.filter(status=True).distinct()
-
-    # SEARCH
     query = request.GET.get('q')
     if query:
         products = products.filter(name__icontains=query)
-
-    # CATEGORY COUNT
     subcategory_counts = SubCategory.objects.annotate(
         product_count=Count('products', distinct=True)
     )
-
-    # SIZE COUNT (through variants)
     size_counts = Size.objects.annotate(
     product_count=Count('productvariant__product', distinct=True))
-
-    # CATEGORY FILTER
     if slug:
         products = products.filter(subcategory__slug=slug)
         pagination_base = reverse('filter_by_subcategory', args=[slug])
@@ -137,14 +120,10 @@ def product(request, slug=None):
     else:
         pagination_base = reverse('product')
         active_slug = None
-
-    # SIZE FILTER (IMPORTANT FIX HERE)
     size_filter = request.GET.get('size')
     if size_filter:
         products = products.filter(
             variants__size__name=size_filter).distinct()
-
-    # SIGNATURE FILTER
     if request.GET.get('signature') == '1':
         products = products.filter(
             is_signature_collection=True
@@ -237,9 +216,7 @@ def delete_subcategory(request, id):
 def add_product(request):
     subcategories = SubCategory.objects.all()
     sizes = Size.objects.all()
-
     if request.method == "POST":
-
         product = Product.objects.create(
             name=request.POST.get("name"),
             brand=request.POST.get("brand"),
@@ -260,7 +237,6 @@ def add_product(request):
             is_featured=bool(request.POST.get("is_featured")),
             is_best_seller=bool(request.POST.get("is_best_seller")),
         )
-
         color_names = request.POST.getlist("color_name[]")
         color_hexes = request.POST.getlist("color_hex[]")
         size_ids = request.POST.getlist("variant_size[]")
@@ -273,8 +249,6 @@ def add_product(request):
 
             if not color_names[i] or not size_ids[i]:
                 continue
-
-            # Avoid duplicate colors
             if color_names[i] not in created_colors:
                 color = ProductColor.objects.create(
                     product=product,
@@ -298,9 +272,7 @@ def add_product(request):
 
         product.stock = total_stock
         product.save()
-
         return redirect("product_list")
-
     return render(request, "add_product.html", {
         "subcategories": subcategories,
         "sizes": sizes
@@ -328,16 +300,13 @@ def edit_product(request, slug):
         product.product_code = request.POST.get("product_code")
         product.subcategory_id = request.POST.get("subcategory")
         product.price = request.POST.get("price")
-        product.cost_price = request.POST.get("cost_price") or None  # ✅ ADDED
+        product.cost_price = request.POST.get("cost_price") or None 
         product.old_price = request.POST.get("old_price") or None
         product.description = request.POST.get("description")
-
         product.status = bool(request.POST.get("status"))
         product.is_signature_collection = bool(request.POST.get("is_signature_collection"))
         product.is_featured = bool(request.POST.get("is_featured"))
         product.is_best_seller = bool(request.POST.get("is_best_seller"))
-
-        # IMAGE UPDATE
         for i in range(1, 6):
             img = request.FILES.get(f"image{i}")
             if img:
@@ -345,7 +314,6 @@ def edit_product(request, slug):
 
         product.save()
 
-        # DELETE OLD VARIANTS & COLORS
         ProductVariant.objects.filter(product=product).delete()
         ProductColor.objects.filter(product=product).delete()
 
@@ -361,8 +329,6 @@ def edit_product(request, slug):
 
             if not color_names[i] or not size_ids[i]:
                 continue
-
-            # Avoid duplicate colors
             if color_names[i] not in created_colors:
                 color = ProductColor.objects.create(
                     product=product,
@@ -512,13 +478,8 @@ def delete_article(request, slug):
 
 
 def product_detail(request, slug):
-
     product = get_object_or_404(Product, slug=slug)
-
-    # GET VARIANTS
     variants = product.variants.select_related('size', 'color')
-
-    # UNIQUE COLORS & SIZES FROM VARIANTS
     colors = list({v.color for v in variants if v.color})
     sizes = list({v.size for v in variants if v.size})
 
@@ -528,13 +489,10 @@ def product_detail(request, slug):
 
     average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
     total_reviews = reviews.count()
-
     rating_counts = reviews.values('rating').annotate(count=Count('rating'))
     rating_dict = {i: 0 for i in range(1, 6)}
-
     for item in rating_counts:
         rating_dict[item['rating']] = item['count']
-
     rating_percent = {}
     for i in range(1, 6):
         rating_percent[i] = round((rating_dict[i] / total_reviews) * 100) if total_reviews else 0
@@ -542,14 +500,11 @@ def product_detail(request, slug):
     related_products = Product.objects.filter(
         subcategory=product.subcategory
     ).exclude(id=product.id)[:4]
-
-    # PRODUCT IMAGES
     product_images = []
     for img_field in ['image1', 'image2', 'image3', 'image4', 'image5']:
         img = getattr(product, img_field)
         if img:
             product_images.append(img.url)
-    # 🔥 VARIANT STOCK MAP FOR JS
     variant_stock = {}
     for v in variants:
         if v.size_id and v.color_id:
@@ -664,34 +619,29 @@ def ajax_validate_register(request):
         elif not re.search(r'[!@#$%^&*]', password):
             data['password_error'] = 'Must contain at least 1 special character (!@#$%^&*)'
     return JsonResponse(data)
+def staff_required(user):
+    return user.is_staff
 
 def user_login(request):
     return render(request,'login.html')
 def login_post(request):
     login_input = request.POST.get('name', '').strip()
     password = request.POST.get('password', '').strip()
-
     if not login_input:
         messages.error(request, "Username or Email is required")
         return redirect('user_login')
-
     if not password:
         messages.error(request, "Password is required")
         return redirect('user_login')
-
-    # Find username if email is entered
     try:
         user_obj = User.objects.get(email__iexact=login_input)
         username = user_obj.username
     except User.DoesNotExist:
         username = login_input
-
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
         login(request, user)
-
-        # ✅ Allow admin & staff
         if user.is_staff:
             return redirect("dashboard")
         else:
@@ -746,13 +696,11 @@ def review_post(request, slug):
     })
 
 def add_to_cart(request, product_id):
-
     if not request.user.is_authenticated:
         return JsonResponse({
             "success": False,
             "message": "Please login to add items to your cart."
         })
-
     product = get_object_or_404(Product, id=product_id)
 
     size_id = request.POST.get("size")
@@ -771,24 +719,20 @@ def add_to_cart(request, product_id):
             "success": False,
             "message": "Please select size and color."
         })
-
     variant = product.variants.filter(
         size_id=size_id,
         color_id=color_id
     ).first()
-
     if not variant:
         return JsonResponse({
             "success": False,
             "message": "Invalid size/color combination."
         })
-
     if variant.stock <= 0:
         return JsonResponse({
             "success": False,
             "message": "This variant is out of stock."
         })
-
     if quantity > variant.stock:
         return JsonResponse({
             "success": False,
@@ -804,10 +748,9 @@ def add_to_cart(request, product_id):
         variant=variant,
         defaults={
             "quantity": quantity,
-            "price": product.price  # ✅ FIXED HERE
+            "price": product.price  
         }
     )
-
     if not created:
         new_quantity = item.quantity + quantity
 
@@ -819,9 +762,7 @@ def add_to_cart(request, product_id):
 
         item.quantity = new_quantity
         item.save()
-
     cart_count = cart.items.count()
-
     return JsonResponse({
         "success": True,
         "message": "Product added to cart!",
@@ -830,59 +771,45 @@ def add_to_cart(request, product_id):
 
 @login_required(login_url='user_login')
 def cart_page(request):
-
     if request.user.is_staff:
         return redirect("home")
-
     try:
         registration = Registration.objects.get(authuser=request.user)
     except Registration.DoesNotExist:
         messages.warning(request, "Only customers can access cart.")
         return redirect("home")
-
     cart, _ = Cart.objects.get_or_create(registration=registration)
     items = cart.items.all()
     has_items = items.exists()
     message = None
-
     if request.method == "POST" and has_items:
-
-        # Remove coupon
         if "remove_coupon" in request.POST:
             cart.coupon_code = None
             cart.coupon_discount = Decimal("0.00")
             cart.save()
             message = "Coupon removed"
-
-        # Apply coupon
         elif "coupon_code" in request.POST:
             coupon_code = request.POST.get("coupon_code", "").strip()
-
             if coupon_code:
                 try:
                     coupon = Coupon.objects.get(
                         code__iexact=coupon_code,
                         active=True
                     )
-
                     if coupon.expiry_date and coupon.expiry_date < date.today():
                         cart.coupon_code = None
                         cart.coupon_discount = Decimal("0.00")
                         message = "Coupon expired"
-
                     else:
                         cart.coupon_code = coupon.code
                         cart.coupon_discount = coupon.discount_amount
                         message = "Coupon applied!"
-
                 except Coupon.DoesNotExist:
                     cart.coupon_code = None
                     cart.coupon_discount = Decimal("0.00")
                     message = "Invalid coupon"
 
                 cart.save()
-
-    # Always update totals after any change
     cart.update_totals()
 
     return render(request, "cart.html", {
@@ -941,27 +868,15 @@ def empty_cart(request):
         cart.coupon_discount = Decimal("0.00")
         cart.save()
     return redirect("cart_page")
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.db import transaction
-from django.conf import settings
-import razorpay
-from decimal import Decimal
-
-
 @login_required
 def checkout(request):
     registration = get_object_or_404(Registration, authuser=request.user)
     cart = get_object_or_404(Cart, registration=registration)
     profile, created = UserProfile.objects.get_or_create(user=request.user)
-
     items = cart.items.select_related("product", "variant")
-
     if not items.exists():
         messages.warning(request, "Your cart is empty")
         return redirect("cart_page")
-
     return render(request, "checkout.html", {
         "cart": cart,
         "items": items,
@@ -972,14 +887,11 @@ def checkout(request):
         "profile_phone": profile.phone,
     })
 
-
 @login_required
 @transaction.atomic
 def checkout_post(request):
-
     if request.method != "POST":
         return redirect("home")
-
     registration = get_object_or_404(Registration, authuser=request.user)
     cart = get_object_or_404(Cart, registration=registration)
     profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -990,7 +902,6 @@ def checkout_post(request):
         messages.warning(request, "Your cart is empty")
         return redirect("cart_page")
 
-    # 🔹 Billing Details
     first_name = request.POST.get("first_name")
     email = request.POST.get("email")
     phone = request.POST.get("phone")
@@ -1001,12 +912,10 @@ def checkout_post(request):
     land_mark = request.POST.get("land_mark")
     payment_method = request.POST.get("payment-option")
 
-    # Save profile info
     profile.address = address
     profile.phone = phone
     profile.save()
 
-    # 🔴 STOCK VALIDATION (VARIANT BASED)
     for item in items:
         if item.quantity > item.variant.stock:
             messages.error(
@@ -1016,10 +925,7 @@ def checkout_post(request):
                 f"only {item.variant.stock} item(s) available."
             )
             return redirect("cart_page")
-
-    # ===============================
-    # ✅ CASH ON DELIVERY
-    # ===============================
+        
     if payment_method == "cod":
 
         order = Order.objects.create(
@@ -1041,8 +947,6 @@ def checkout_post(request):
         )
 
         for item in items:
-
-            # ✅ Reduce VARIANT stock
             variant = item.variant
             variant.stock -= item.quantity
             variant.save()
@@ -1050,22 +954,16 @@ def checkout_post(request):
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
-                variant=item.variant,  # ✅ store full variant
+                variant=item.variant,  
                 quantity=item.quantity,
                 price=item.price
             )
-
-        # Clear cart
         cart.items.all().delete()
         cart.coupon_code = None
         cart.coupon_discount = Decimal("0.00")
         cart.save()
 
         return redirect("cash_on_delivery_success", order_id=order.id)
-
-    # ===============================
-    # ✅ RAZORPAY PAYMENT
-    # ===============================
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
@@ -1101,11 +999,10 @@ def checkout_post(request):
         OrderItem.objects.create(
             order=order,
             product=item.product,
-            variant=item.variant,  # ✅ store variant
+            variant=item.variant,  
             quantity=item.quantity,
             price=item.price
         )
-
     return render(request, "checkout_payment.html", {
         "order": order,
         "razorpay_order_id": razorpay_order["id"],
@@ -1247,44 +1144,34 @@ from .decorators import role_required
     login_url='user_login'
 )
 
-
 def dashboard(request):
     today = now().date()
-
     if request.user.is_superuser:
         orders = Order.objects.all().order_by('-created_at')
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
-
     paid_orders = orders.filter(payment_status=True, is_cancelled=False)
-
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
     today_revenue = paid_orders.filter(created_at__date=today).aggregate(total=Sum("total"))["total"] or 0
-
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
     pending_orders = orders.filter(payment_status=False, is_cancelled=False).count()
     pos_pending_payment = orders.filter(is_pos_order=True, payment_status=False, is_cancelled=False).count()
     total_customers = Registration.objects.count()
     total_products = Product.objects.count()
-
-    # ✅ ADDING TOTAL INCOME (Profit)
     total_income = Decimal("0.00")
-
     order_items = OrderItem.objects.filter(
         order__payment_status=True,
         order__is_cancelled=False
     ).select_related("product")
-
     for item in order_items:
         if item.product and item.product.cost_price:
             profit = (item.price - item.product.cost_price) * item.quantity
             total_income += profit
-
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
-        "total_income": total_income,  # ✅ NEW
+        "total_income": total_income,  
         "total_orders": total_orders,
         "paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
@@ -1293,8 +1180,8 @@ def dashboard(request):
         "total_products": total_products,
         "orders": orders,
     }
-
     return render(request, "dashboard.html", context)
+
 @login_required(login_url='user_login')
 def report_page(request):
     orders = Order.objects.all()
@@ -1304,7 +1191,6 @@ def report_page(request):
         orders = orders.filter(created_at__date__gte=datetime.strptime(from_date, "%Y-%m-%d"))
     if to_date:
         orders = orders.filter(created_at__date__lte=datetime.strptime(to_date, "%Y-%m-%d"))
-
     payment = request.GET.get('payment')
     if payment:
         if payment == "cod":
@@ -1315,7 +1201,6 @@ def report_page(request):
             orders = orders.filter(is_pos_order=True, payment_status=True)
         elif payment == "pos_pending":
             orders = orders.filter(is_pos_order=True, payment_status=False)
-
     status = request.GET.get('status')
     if status:
         if status == "pending":
@@ -1324,12 +1209,10 @@ def report_page(request):
             orders = orders.filter(is_delivered=True)
         elif status == "cancelled":
             orders = orders.filter(is_cancelled=True)
-
     total_orders = orders.count()
     total_revenue = orders.aggregate(Sum('total'))['total__sum'] or 0
     total_paid_orders = orders.filter(is_delivered=True).count()
     pending_orders = orders.filter(is_delivered=False, is_cancelled=False).count()
-
     return render(request, "report_page.html", {
         "title": "Order Report",
         "orders": orders.order_by("-created_at"),
@@ -1338,6 +1221,7 @@ def report_page(request):
         "total_paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
     })
+
 @login_required(login_url='user_login')
 @user_passes_test(staff_required, login_url='home')
 def order_list(request):
@@ -1345,9 +1229,7 @@ def order_list(request):
         orders = Order.objects.all()
     else:
         orders = Order.objects.filter(is_pos_order=True)
-
     orders = orders.order_by('-created_at')
-
     return render(request, 'orders_view.html', {
         'orders': orders,
         'title': 'All Orders'
@@ -1361,7 +1243,6 @@ def paid_orders(request):
         orders = Order.objects.filter(payment_status=True, is_cancelled=False)
     else:
         orders = Order.objects.filter(is_pos_order=True, payment_status=True, is_cancelled=False)
-
     return render(request, 'orders_view.html', {
         'orders': orders.order_by('-created_at'),
         'title': 'Paid Orders'
@@ -1375,7 +1256,6 @@ def pending_orders(request):
         orders = Order.objects.filter(payment_status=False, is_cancelled=False)
     else:
         orders = Order.objects.filter(is_pos_order=True, payment_status=False, is_cancelled=False)
-
     return render(request, 'orders_view.html', {
         'orders': orders.order_by('-created_at'),
         'title': 'Pending Orders'
@@ -1384,10 +1264,7 @@ def pending_orders(request):
 @login_required(login_url='user_login')
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    # Show POS payment complete button only if POS order and not paid
     show_pos_payment_buttons = order.is_pos_order and not order.payment_status
-
-    # Determine payment display
     if order.is_pos_order:
         payment_display = order.pos_payment_type.capitalize() if order.pos_payment_type else "Pending POS"
     else:
@@ -1397,7 +1274,6 @@ def order_detail(request, order_id):
             payment_display = "Cash on Delivery"
         else:
             payment_display = order.get_payment_method_display()
-
     return render(request, "order_detail.html", {
         "order": order,
         "show_pos_payment_buttons": show_pos_payment_buttons,
@@ -1425,12 +1301,9 @@ def pos_payment_complete(request, order_id):
 
 def cancel_pos_payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, is_pos_order=True)
-
     if order.is_cancelled:
         messages.warning(request, "Order already cancelled.")
         return redirect("order_detail", order_id=order.id)
-
-    # 🔥 RESTORE STOCK
     for item in order.items.all():
         if hasattr(item, "variant") and item.variant:
             item.variant.stock = F('stock') + item.quantity
@@ -1438,7 +1311,6 @@ def cancel_pos_payment(request, order_id):
         else:
             item.product.stock = F('stock') + item.quantity
             item.product.save(update_fields=["stock"])
-
     order.payment_status = False
     order.is_completed = False
     order.is_cancelled = True
@@ -1448,7 +1320,6 @@ def cancel_pos_payment(request, order_id):
     return redirect("order_detail", order_id=order.id)
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-
     if order.is_cancelled:
         messages.warning(request, "Order already cancelled.")
         return redirect("order_detail", order_id=order.id)
@@ -1461,12 +1332,9 @@ def cancel_order(request, order_id):
             else:
                 item.product.stock = F('stock') + item.quantity
                 item.product.save(update_fields=["stock"])
-
         order.is_cancelled = True
         order.save(update_fields=["is_cancelled"])
-
         messages.success(request, "Order cancelled and stock restored.")
-
     return redirect("order_detail", order_id=order.id)
 
 @login_required(login_url='user_login')
@@ -1591,7 +1459,6 @@ def add_faq(request):
         form = FAQForm()
     return render(request, "add_faq.html", {"form": form})
 
-
 @login_required(login_url='user_login')
 def edit_faq(request, pk):
     faq = get_object_or_404(FAQ, pk=pk)
@@ -1621,31 +1488,24 @@ def pos_page(request):
         "variants__size"
     )
     return render(request, "pos.html", {"products": products})
+
 @staff_member_required
 @csrf_exempt
 @transaction.atomic
 def pos_create_order(request):
-
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "Invalid request"})
-
     try:
         data = json.loads(request.body)
-
         items = data.get("items", [])
         customer_name = data.get("customer_name")
         customer_phone = data.get("customer_phone")
         pos_payment_type = data.get("pos_payment_type")
-
         if not items:
             return JsonResponse({"status": "error", "message": "Cart is empty"})
-
         if not customer_name or not customer_phone:
             return JsonResponse({"status": "error", "message": "Customer details required"})
-
         total_amount = Decimal("0.00")
-
-        # CREATE ORDER FIRST
         order = Order.objects.create(
             registration=None,
             first_name=customer_name,
@@ -1658,23 +1518,17 @@ def pos_create_order(request):
             subtotal=0,
             total=0
         )
-
         for item in items:
             product = Product.objects.select_for_update().get(id=item["id"])
             quantity = int(item["quantity"])
             price = Decimal(str(item["price"]))
-
             variant_data = item.get("variant")
-
             if variant_data:
                 variant = ProductVariant.objects.select_for_update().get(id=variant_data["id"])
-
                 if variant.stock < quantity:
                     raise Exception(f"{product.name} stock not enough")
-
                 variant.stock -= quantity
                 variant.save()
-
                 OrderItem.objects.create(
                     order=order,
                     product=product,
@@ -1682,29 +1536,23 @@ def pos_create_order(request):
                     quantity=quantity,
                     price=price
                 )
-
             else:
                 if product.stock < quantity:
                     raise Exception(f"{product.name} stock not enough")
 
                 product.stock -= quantity
                 product.save()
-
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     quantity=quantity,
                     price=price
                 )
-
             total_amount += price * quantity
-
         order.subtotal = total_amount
         order.total = total_amount
         order.save()
-
         return JsonResponse({"status": "success"})
-
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
 
@@ -1713,12 +1561,12 @@ def pos_edit_page(request, order_id):
     order = Order.objects.get(id=order_id, is_pos_order=True)
     products = Product.objects.filter(status=True)
     order_items = OrderItem.objects.filter(order=order)
-
     return render(request, "pos_edit.html", {
         "order": order,
         "products": products,
         "order_items": order_items
     })
+
 @require_POST
 @staff_member_required
 @transaction.atomic
@@ -1729,15 +1577,11 @@ def pos_update_order(request, order_id):
         pos_payment_type = data.get("pos_payment_type")
         customer_name = data.get("customer_name")
         customer_phone = data.get("customer_phone")
-
         order = Order.objects.select_for_update().get(
             id=order_id,
             is_pos_order=True
         )
-
-        # 1️⃣ Restore previous stock (variant safe)
         old_items = OrderItem.objects.filter(order=order)
-
         for old_item in old_items:
             if hasattr(old_item, "variant") and old_item.variant:
                 old_item.variant.stock += old_item.quantity
@@ -1745,31 +1589,19 @@ def pos_update_order(request, order_id):
             else:
                 old_item.product.stock += old_item.quantity
                 old_item.product.save()
-
-        # 2️⃣ Delete old items
         old_items.delete()
-
         subtotal = Decimal("0.00")
-
-        # 3️⃣ Apply new items
         for item in items:
-
             quantity = int(item.get("quantity", 0))
             variant_data = item.get("variant")
-
             if quantity <= 0:
                 continue
-
-            # 🔥 If Variant Exists
             if variant_data:
-
                 variant = ProductVariant.objects.select_for_update().get(
                     id=variant_data["id"]
                 )
-
                 if variant.stock < quantity:
                     raise Exception(f"{variant.product.name} stock not enough")
-
                 OrderItem.objects.create(
                     order=order,
                     product=variant.product,
@@ -1777,49 +1609,33 @@ def pos_update_order(request, order_id):
                     quantity=quantity,
                     price=variant.product.price
                 )
-
                 variant.stock -= quantity
                 variant.save()
-
                 subtotal += variant.product.price * quantity
-
-            # 🔥 Normal Product
             else:
                 product = Product.objects.select_for_update().get(
                     id=item["id"]
                 )
-
                 if product.stock < quantity:
                     raise Exception(f"{product.name} stock not enough")
-
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     quantity=quantity,
                     price=product.price
                 )
-
                 product.stock -= quantity
                 product.save()
-
                 subtotal += product.price * quantity
-
-        # 4️⃣ Update order totals
         order.subtotal = subtotal
         order.total = subtotal
         order.pos_payment_type = pos_payment_type
-
-        # 5️⃣ Update customer info
         if customer_name:
             order.first_name = customer_name
-
         if customer_phone:
             order.phone = customer_phone
-
         order.save()
-
         return JsonResponse({"status": "success"})
-
     except Exception as e:
         return JsonResponse({
             "status": "error",
@@ -1828,25 +1644,17 @@ def pos_update_order(request, order_id):
 
 @staff_member_required
 def total_income_page(request):
-
-    # Only completed/delivered orders
     order_items = OrderItem.objects.filter(
         order__is_cancelled=False,
         order__is_delivered=True
     ).select_related("product")
-
     product_data = []
-
     total_income = 0
-
     for item in order_items:
         if item.product.cost_price:
-
             profit_per_item = item.price - item.product.cost_price
             total_profit = profit_per_item * item.quantity
-
             total_income += total_profit
-
             product_data.append({
                 "product": item.product,
                 "quantity": item.quantity,
@@ -1855,7 +1663,6 @@ def total_income_page(request):
                 "profit_per_item": profit_per_item,
                 "total_profit": total_profit
             })
-
     return render(request, "total_income.html", {
         "title": "Total Income Report",
         "products": product_data,

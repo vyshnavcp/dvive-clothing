@@ -111,7 +111,14 @@
                 <hr>
                 {% for item in order.items.all %}
                     <p class="mb-1">
-                        {{ item.product.name }} × {{ item.quantity }}<br>
+                        {{ item.product.name }}
+
+                        {% if item.variant %}
+                            ({{ item.variant.color.name }} / {{ item.variant.size.name }})
+                        {% endif %}
+
+                        × {{ item.quantity }}<br>
+
                         <small class="text-muted">
                             Brand: {{ item.product.brand }} |
                             Code: {{ item.product.product_code }}
