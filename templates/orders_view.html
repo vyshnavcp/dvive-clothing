@@ -72,6 +72,38 @@ body.print-bill #billArea{display:block!important;}
 }
 .row-flex{display:flex;justify-content:space-between;gap:4px;}
 .small{font-size:10.5px;}
+.customer-box{
+    display:flex;
+    flex-direction:column;
+}
+
+.customer-name{
+    font-weight:600;
+    font-size:15px;
+    color:#111827;
+}
+
+.customer-ref{
+    font-size:12px;
+    margin-top:4px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    color:#6b7280;
+    background:#f3f4f6;
+    padding:4px 10px;
+    border-radius:20px;
+    width:fit-content;
+}
+
+.customer-ref i{
+    font-size:11px;
+}
+
+.ref-name{
+    font-weight:500;
+    color:#111;
+}
 </style>
 </head>
 
@@ -130,7 +162,21 @@ body.print-bill #billArea{display:block!important;}
 <tbody>
 {% for order in orders %}
 <tr class="order-row" onclick="window.location.href='{% url 'order_detail' order.id %}'">
-<td>{{ order.first_name }}</td>
+<td>
+    <div class="customer-box">
+        <div class="customer-name">
+            {{ order.first_name }}
+        </div>
+
+        {% if order.reference %}
+        <div class="customer-ref">
+            <i class="bi bi-person-plus-fill"></i>
+            Referred by 
+            <span class="ref-name">{{ order.reference }}</span>
+        </div>
+        {% endif %}
+    </div>
+</td>
 <td>
 {{ order.address }}<br>
 {{ order.town }}, {{ order.state }} - {{ order.pincode }}<br>

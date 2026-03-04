@@ -75,6 +75,43 @@
         .card { border-radius: 20px; }
         .card-header { background: #fff; font-weight: 600; border-bottom: none; font-size: 16px; }
         .card-body { background: #f9fafb; border-radius: 0 0 20px 20px; }
+        .customer-cell{
+    display:flex;
+    flex-direction:column;
+}
+
+.customer-name{
+    font-weight:600;
+    font-size:15px;
+    color:#111;
+}
+
+.ref-pill{
+    margin-top:8px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:#f1f3f5;
+    color:#6c757d;
+    padding:6px 12px;
+    border-radius:25px;
+    font-size:13px;
+    width:fit-content;
+}
+
+.ref-pill i{
+    font-size:12px;
+    opacity:0.7;
+}
+
+.ref-text{
+    font-weight:400;
+}
+
+.ref-name{
+    font-weight:600;
+    color:#111;
+}
     </style>
 </head>
 
@@ -200,7 +237,21 @@
                             {% for order in orders %}
                                 <tr onclick="window.location.href='{% url 'order_detail' order.id %}'">
                                     <td>#{{ order.id }}</td>
-                                    <td>{{ order.first_name }}</td>
+                                   <td>
+                                        <div class="customer-cell">
+                                            <div class="customer-name">
+                                                {{ order.first_name }}
+                                            </div>
+
+                                            {% if order.reference %}
+                                            <div class="ref-pill">
+                                                <i class="bi bi-person-fill"></i>
+                                                <span class="ref-text">Referred by</span>
+                                                <span class="ref-name">{{ order.reference }}</span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
                                     <td>₹ {{ order.total }}</td>
                                     <td>
                                         {% if order.is_pos_order %}
