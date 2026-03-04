@@ -225,6 +225,7 @@ class Order(models.Model):
         ("card", "Card"),
     )
     registration = models.ForeignKey("Registration", on_delete=models.CASCADE, null=True, blank=True)
+    reference = models.CharField(max_length=255, blank=True, null=True)
     first_name = models.CharField(max_length=50)
     email = models.EmailField()
     phone = models.CharField(max_length=20)

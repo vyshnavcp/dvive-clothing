@@ -1280,14 +1280,45 @@ def order_detail(request, order_id):
         "payment_display": payment_display,
     })
 
-@login_required(login_url='user_login')
 def mark_order_completed(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    order.is_delivered = True
-    if order.payment_method == "cod":
-        order.payment_status = True
-    order.save()
-    return redirect('dashboard')
+
+    if request.method == "POST":
+        reference = request.POST.get("reference", "").strip()
+
+        order.reference = reference
+        order.is_completed = True
+        order.is_delivered = True
+
+        if order.payment_method == "cod":
+            order.payment_status = True
+
+        order.save()
+
+        messages.success(request, "Order marked as completed.")
+
+        return redirect("order_detail", order_id=order.id)
+
+    return redirect("order_detail", order_id=order.id)
+
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if order.is_cancelled:
+        messages.warning(request, "Order already cancelled.")
+        return redirect("order_detail", order_id=order.id)
+
+    if not order.is_delivered:
+        for item in order.items.all():
+            if hasattr(item, "variant") and item.variant:
+                item.variant.stock = F('stock') + item.quantity
+                item.variant.save(update_fields=["stock"])
+            else:
+                item.product.stock = F('stock') + item.quantity
+                item.product.save(update_fields=["stock"])
+        order.is_cancelled = True
+        order.save(update_fields=["is_cancelled"])
+        messages.success(request, "Order cancelled and stock restored.")
+    return redirect("order_detail", order_id=order.id)
 
 @login_required
 def pos_payment_complete(request, order_id):
@@ -1318,24 +1349,7 @@ def cancel_pos_payment(request, order_id):
 
     messages.warning(request, f"POS Payment for Order #{order.id} has been canceled and stock restored.")
     return redirect("order_detail", order_id=order.id)
-def cancel_order(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    if order.is_cancelled:
-        messages.warning(request, "Order already cancelled.")
-        return redirect("order_detail", order_id=order.id)
 
-    if not order.is_delivered:
-        for item in order.items.all():
-            if hasattr(item, "variant") and item.variant:
-                item.variant.stock = F('stock') + item.quantity
-                item.variant.save(update_fields=["stock"])
-            else:
-                item.product.stock = F('stock') + item.quantity
-                item.product.save(update_fields=["stock"])
-        order.is_cancelled = True
-        order.save(update_fields=["is_cancelled"])
-        messages.success(request, "Order cancelled and stock restored.")
-    return redirect("order_detail", order_id=order.id)
 
 @login_required(login_url='user_login')
 def customer_list(request):
@@ -1501,6 +1515,7 @@ def pos_create_order(request):
         customer_name = data.get("customer_name")
         customer_phone = data.get("customer_phone")
         pos_payment_type = data.get("pos_payment_type")
+        reference = data.get("reference", "").strip() 
         if not items:
             return JsonResponse({"status": "error", "message": "Cart is empty"})
         if not customer_name or not customer_phone:
@@ -1515,6 +1530,7 @@ def pos_create_order(request):
             payment_status=True,
             is_completed=True,
             is_pos_order=True,
+            reference=reference, 
             subtotal=0,
             total=0
         )

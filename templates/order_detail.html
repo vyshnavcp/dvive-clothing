@@ -92,6 +92,14 @@
                 <hr>
                 <p><strong>Name:</strong> {{ order.first_name }}</p>
                 <p><strong>Phone:</strong> {{ order.phone }}</p>
+                <p>
+                    <strong>Reference:</strong>
+                    {% if order.reference %}
+                        {{ order.reference }}
+                    {% else %}
+                        <span class="text-muted">Not provided</span>
+                    {% endif %}
+                </p>
             </div>
 
             <div class="card shadow-sm p-4 mb-4">
@@ -160,6 +168,14 @@
                     {% else %}
                         <form method="POST" action="{% url 'mark_order_completed' order.id %}" class="mb-2">
                             {% csrf_token %}
+                            <div class="mb-2">
+                                <label class="form-label">Reference Name (Optional)</label>
+                                <input type="text"
+                                    name="reference"
+                                    class="form-control"
+                                    value="{{ order.reference|default:'' }}"
+                                    placeholder="Enter reference name">
+                            </div>
                             <button type="submit" class="btn btn-success w-100">
                                 <i class="bi bi-check-circle"></i> Mark as Completed
                             </button>
