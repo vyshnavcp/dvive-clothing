@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,124 +8,167 @@
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 {{ form.media }}
 
 <style>
+
 body{
-    background:#f6f6f6;
-    font-family:'Poppins', sans-serif;
-    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#eef2f7,#dde3ec);
+    min-height:100vh;
 }
 
 /* NAVBAR */
-.header-with-topbar{
+
+.navbar-premium{
     background:#000;
-    box-shadow:0 4px 20px rgba(0,0,0,0.35);
+    padding:18px 30px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
 }
-.dashboard-header{padding:18px 24px;}
-.dashboard-header h4,
-.dashboard-header small,
-.dashboard-header i{color:#fff;}
-.dashboard-header .nav-link{color:#fff !important;font-weight:500;transition:.3s;}
-.dashboard-header .nav-link:hover{color:#bdbdbd !important;}
-.navbar-toggler{border:0;}
-.navbar-toggler-icon{filter:invert(1);}
+
+.navbar-brand{
+    color:#fff !important;
+    font-weight:600;
+}
+
+.nav-link{
+    color:#ddd !important;
+    font-weight:500;
+}
+
+.nav-link:hover{
+    color:#fff !important;
+}
 
 /* PAGE */
+
 .page-wrapper{
-    min-height:calc(100vh - 110px);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
+    padding:60px 20px;
 }
 
 /* CARD */
-.card{
+
+.premium-card{
+    background:#fff;
     border:none;
-    border-radius:16px;
-    box-shadow:0 15px 40px rgba(0,0,0,.08);
-    width:100%;
-    max-width:800px;
-    padding:30px;
+    border-radius:22px;
+    padding:40px;
+    max-width:900px;
+    margin:auto;
+    box-shadow:0 25px 60px rgba(0,0,0,.08);
+}
+
+/* TITLE */
+
+.page-title{
+    font-weight:700;
+    margin-bottom:30px;
+    text-align:center;
 }
 
 /* BUTTON */
-.btn-black{
-    background:#111;
+
+.btn-save{
+    background:linear-gradient(45deg,#000,#333);
     color:#fff;
+    border:none;
     border-radius:12px;
     padding:12px;
     font-weight:600;
     width:100%;
-    transition:.3s;
-}
-.btn-black:hover{
-    background:linear-gradient(135deg,#333,#000);
 }
 
-/* CKEditor spacing */
-.ck-editor__editable{
-    min-height:300px;
+.btn-save:hover{
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
 }
+
+/* CKEDITOR */
+
+.ck-editor__editable{
+    min-height:320px !important;
+}
+
 </style>
 </head>
 
 <body>
 
 <!-- NAVBAR -->
-<header class="header-with-topbar">
-<nav class="navbar dashboard-header navbar-expand-lg">
-<div class="container-fluid px-0">
 
-<div class="d-flex align-items-center gap-3">
-<i class="bi bi-speedometer2 fs-2"></i>
-<div>
-<h4 class="mb-0">Admin Dashboard</h4>
-<small>Overview of store performance</small>
-</div>
-</div>
+<nav class="navbar navbar-expand-lg navbar-premium">
+<div class="container">
 
-<button class="navbar-toggler" type="button"
-data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<a class="navbar-brand" href="#">
+<i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+</a>
+
+<button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
 <span class="navbar-toggler-icon"></span>
 </button>
 
 <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-<ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-<li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'privacy_list' %}">Privacy list</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
-<li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
-</ul>
-</div>
 
+<ul class="navbar-nav gap-lg-3">
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'privacy_list' %}">Privacy List</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link text-danger" href="{% url 'user_logout' %}">
+Logout
+</a>
+</li>
+
+</ul>
+
+</div>
 </div>
 </nav>
-</header>
 
 <!-- PAGE -->
-<div class="page-wrapper">
-<div class="card">
 
-<h4 class="fw-bold mb-4 text-center">
+<div class="page-wrapper">
+
+<div class="premium-card">
+
+<h3 class="page-title">
+<i class="bi bi-shield-lock me-2"></i>
 {% if privacy %}Edit{% else %}Add{% endif %} Privacy Policy
-</h4>
+</h3>
 
 <form method="POST">
 {% csrf_token %}
 
-<div class="mb-3">
-<label class="form-label fw-medium">Privacy Policy Content</label>
+<div class="mb-4">
+<label class="form-label fw-semibold">Privacy Policy Content</label>
 {{ form.content }}
 </div>
 
-<button class="btn-black">
+<button class="btn-save">
+<i class="bi bi-check-circle me-1"></i>
 {% if privacy %}Update Privacy{% else %}Save Privacy{% endif %}
 </button>
 
@@ -135,6 +179,7 @@ Back
 </form>
 
 </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

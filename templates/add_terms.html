@@ -1,97 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Terms</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Terms</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- CKEditor media -->
-    {{ form.media }}
+{{ form.media }}
 
 <style>
+
+/* PAGE BACKGROUND */
+
 body{
-    background:#f4f6f9;
+background: linear-gradient(135deg,#eef2f7,#f8f9fc);
+min-height:100vh;
+font-family: "Segoe UI", sans-serif;
 }
 
+
 /* NAVBAR */
-.header-with-topbar{background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.35);}
-.dashboard-header{padding:18px 24px;}
-.dashboard-header h4,.dashboard-header small,.dashboard-header i{color:#fff;}
-.dashboard-header .nav-link{color:#fff !important;font-weight:500;transition:0.3s;}
-.dashboard-header .nav-link:hover{color:#bdbdbd !important;}
-.navbar-toggler{border:0;}
-.navbar-toggler-icon{filter:invert(1);}
+
+.header-with-topbar{
+background:#000;
+box-shadow:0 8px 25px rgba(0,0,0,0.4);
+}
+
+.dashboard-header{
+padding:16px 24px;
+}
+
+.dashboard-header h4{
+font-weight:700;
+}
+
+.dashboard-header small{
+opacity:.8;
+}
+
+.dashboard-header .nav-link{
+color:#fff !important;
+font-weight:500;
+transition:0.3s;
+}
+
+.dashboard-header .nav-link:hover{
+color:#9ca3af !important;
+}
+
+.navbar-toggler{
+border:0;
+}
+
+.navbar-toggler-icon{
+filter:invert(1);
+}
+
+
+/* CARD DESIGN */
+
+.card{
+border-radius:14px;
+box-shadow:0 10px 35px rgba(0,0,0,0.08);
+border:none;
+}
+
+.card-header{
+background:linear-gradient(45deg,#000,#333);
+font-weight:600;
+font-size:18px;
+padding:14px 20px;
+}
+
+
+/* FORM AREA */
+
+.card-body{
+padding:30px;
+}
+
+
+/* CKEDITOR AREA */
+
+.django-ckeditor-widget{
+width:100%;
+}
+
+
+/* BUTTONS */
+
+.btn-dark{
+background:#000;
+border:none;
+padding:10px 22px;
+font-weight:500;
+border-radius:8px;
+transition:0.25s;
+}
+
+.btn-dark:hover{
+background:#333;
+transform:translateY(-1px);
+box-shadow:0 6px 15px rgba(0,0,0,0.25);
+}
+
+.btn-secondary{
+border-radius:8px;
+padding:10px 20px;
+}
+
 </style>
 
 </head>
 
+
 <body>
 
-<!-- ===== NAVBAR (same as your edit page) ===== -->
+
+<!-- NAVBAR -->
+
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
 <div class="container-fluid px-0">
 
 <div class="d-flex align-items-center gap-3">
-<i class="bi bi-speedometer2 fs-2"></i>
-<div>
+<i class="bi bi-speedometer2 fs-2 text-white"></i>
+
+<div class="text-white">
 <h4 class="mb-0">Admin Dashboard</h4>
 <small>Overview of store performance</small>
 </div>
 </div>
+
 
 <button class="navbar-toggler" type="button"
 data-bs-toggle="collapse" data-bs-target="#adminNavbar">
 <span class="navbar-toggler-icon"></span>
 </button>
 
-<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-<ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-<li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'terms_list' %}">Terms list</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
-<li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
-</ul>
-</div>
 
+<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+
+<ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'dashboard' %}">
+<i class="bi bi-house"></i> Home
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'order_list' %}">
+<i class="bi bi-bag"></i> Orders
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'terms_list' %}">
+<i class="bi bi-file-text"></i> Terms
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'paid_orders' %}">
+<i class="bi bi-check-circle"></i> Paid
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'pending_orders' %}">
+<i class="bi bi-clock"></i> Pending
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'customer_list' %}">
+<i class="bi bi-people"></i> Customers
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link text-danger" href="{% url 'user_logout' %}">
+<i class="bi bi-box-arrow-right"></i> Logout
+</a>
+</li>
+
+</ul>
+
+</div>
 </div>
 </nav>
 </header>
-<!-- ===== END NAVBAR ===== -->
+
+
+<!-- PAGE CONTENT -->
 
 <div class="container py-5">
-    <div class="card shadow-sm border-0">
 
-        <div class="card-header bg-dark text-white">
-            {% if terms %}Edit Terms{% else %}Add Terms{% endif %}
-        </div>
+<div class="card">
 
-        <div class="card-body">
+<div class="card-header text-white">
 
-            <form method="POST">
-                {% csrf_token %}
+{% if terms %}
+<i class="bi bi-pencil-square"></i> Edit Terms
+{% else %}
+<i class="bi bi-plus-circle"></i> Add Terms
+{% endif %}
 
-                {{ form.content }}
-
-                <button class="btn btn-dark mt-3">
-                    {% if terms %}Update{% else %}Save{% endif %}
-                </button>
-
-                <a href="{% url 'terms_list' %}" class="btn btn-secondary mt-3">
-                    Back
-                </a>
-
-            </form>
-
-        </div>
-    </div>
 </div>
+
+
+<div class="card-body">
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+{{ form.content }}
+</div>
+
+<button class="btn btn-dark">
+
+{% if terms %}
+Update
+{% else %}
+Save
+{% endif %}
+
+</button>
+
+<a href="{% url 'terms_list' %}" class="btn btn-secondary ms-2">
+Back
+</a>
+
+</form>
+
+</div>
+</div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 

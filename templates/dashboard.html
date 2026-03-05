@@ -1,353 +1,459 @@
 <!DOCTYPE html>
-<html lang="en">  
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
 
-    <!-- Bootstrap CSS & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background: #f1f3f6; 
-            min-height: 100vh; 
-        }
+<style>
 
-        .dashboard-header { 
-            background: #000;
-            color: #fff; 
-            padding: 25px 30px; 
-            border-radius: 12px; 
-            margin-bottom: 40px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-        }
+body{
+font-family:'Inter',sans-serif;
+background:#f4f6fb;
+color:#111;
+}
 
-        .dashboard-header h4,
-        .dashboard-header small {
-            color: #fff;
-        }
+/* SIDEBAR */
 
-        .dashboard-header .nav-link {
-            color: #fff;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
+.sidebar{
+position:fixed;
+top:0;
+left:0;
+height:100%;
+width:240px;
+background:#0b0f19;
+padding:30px 20px;
+color:white;
+overflow-y:auto;
+}
 
-        .dashboard-header .nav-link:hover {
-            color: #4f46e5;
-        }
+.sidebar-logo{
+font-size:20px;
+font-weight:700;
+margin-bottom:40px;
+}
 
-        .navbar-toggler-icon { filter: invert(1); }
+.sidebar a{
+display:flex;
+align-items:center;
+gap:10px;
+padding:10px 12px;
+border-radius:10px;
+color:#cbd5e1;
+text-decoration:none;
+margin-bottom:8px;
+transition:.25s;
+}
 
-        .stat-card { 
-            background: #fff; 
-            border-radius: 20px; 
-            padding: 25px 15px; 
-            transition: all 0.4s ease; 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
-            text-align: center; 
-        }
-        .stat-card:hover { 
-            transform: translateY(-6px); 
-            box-shadow: 0 16px 35px rgba(0,0,0,0.12); 
-        }
-        .stat-title { font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-value { font-size: 24px; font-weight: 700; margin-top: 5px; color: #111827; }
+.sidebar a:hover{
+background:#1e293b;
+color:white;
+}
 
-        .table thead th { background: #e0e7ff; font-weight: 600; color: #1e293b; border: none; }
-        .table tbody tr { background: #fff; border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; }
-        .table tbody tr:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); cursor: pointer; }
-        .table tbody td { vertical-align: middle; }
+/* MAIN */
 
-        .quick-btn { 
-            display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-radius: 15px;
-            transition: all 0.3s; font-weight: 500; color: #1e293b; background: #f8fafc;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-        }
-        .quick-btn i { font-size: 18px; }
-        .quick-btn:hover { background: #4f46e5; color: #fff; transform: translateX(4px); box-shadow: 0 10px 25px rgba(79,70,229,0.3); }
+.main{
+margin-left:240px;
+padding:30px;
+}
 
-        .card { border-radius: 20px; }
-        .card-header { background: #fff; font-weight: 600; border-bottom: none; font-size: 16px; }
-        .card-body { background: #f9fafb; border-radius: 0 0 20px 20px; }
-        .customer-cell{
-    display:flex;
-    flex-direction:column;
+/* HEADER */
+
+.topbar{
+background:white;
+border-radius:14px;
+padding:15px 25px;
+box-shadow:0 6px 20px rgba(0,0,0,.05);
+margin-bottom:30px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+/* STAT CARDS */
+
+.stat-card{
+background:white;
+border-radius:16px;
+padding:25px;
+box-shadow:0 10px 30px rgba(0,0,0,.07);
+transition:.3s;
+}
+
+.stat-card:hover{
+transform:translateY(-6px);
+}
+
+.stat-title{
+font-size:13px;
+color:#6b7280;
+text-transform:uppercase;
+}
+
+.stat-value{
+font-size:24px;
+font-weight:700;
+margin-top:5px;
+}
+
+/* TABLE */
+
+.table{
+background:white;
+border-radius:12px;
+overflow:hidden;
+}
+
+.table thead{
+background:#eef2ff;
+}
+
+.table tbody tr:hover{
+background:#f9fafb;
+cursor:pointer;
+}
+
+/* QUICK ACTION */
+
+.quick-btn{
+display:flex;
+align-items:center;
+gap:10px;
+padding:12px 15px;
+border-radius:10px;
+background:white;
+box-shadow:0 4px 12px rgba(0,0,0,.05);
+text-decoration:none;
+color:#111;
+transition:.25s;
+}
+
+.quick-btn:hover{
+background:#6366f1;
+color:white;
+transform:translateX(5px);
+}
+
+/* CUSTOMER */
+
+.customer-cell{
+display:flex;
+flex-direction:column;
 }
 
 .customer-name{
-    font-weight:600;
-    font-size:15px;
-    color:#111;
+font-weight:600;
 }
 
 .ref-pill{
-    margin-top:8px;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    background:#f1f3f5;
-    color:#6c757d;
-    padding:6px 12px;
-    border-radius:25px;
-    font-size:13px;
-    width:fit-content;
+margin-top:6px;
+background:#f1f5f9;
+padding:4px 10px;
+border-radius:20px;
+font-size:12px;
+width:fit-content;
 }
 
-.ref-pill i{
-    font-size:12px;
-    opacity:0.7;
-}
-
-.ref-text{
-    font-weight:400;
-}
-
-.ref-name{
-    font-weight:600;
-    color:#111;
-}
-    </style>
+</style>
 </head>
 
 <body>
-<div class="container-fluid px-4">
 
-    <!-- HEADER -->
-    <nav class="navbar dashboard-header navbar-expand-lg mb-4">
-        <div class="container-fluid px-0">
-            <div class="d-flex align-items-center gap-3">
-                <i class="bi bi-speedometer2 fs-2"></i>
-                <div>
-                    <h4 class="mb-0">Admin Dashboard</h4>
-                    <small>Overview of store performance</small>
-                </div>
-            </div>
+<!-- SIDEBAR -->
 
-            <button class="navbar-toggler text-white border-0" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#adminNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<div class="sidebar">
 
-            <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-                <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-                    {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
-                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'report_page' %}">Report</a></li>
-                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'customer_list' %}">Customers</a></li>
-                    {% endif %}
-                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'order_list' %}">Orders</a></li>
-                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'paid_orders' %}">Paid</a></li>
-                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'pending_orders' %}">Pending</a></li>
-                    <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'user_logout' %}">Logout</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<div class="sidebar-logo">
+<i class="bi bi-speedometer2"></i> Admin
+</div>
 
-    <!-- METRICS -->
-    <div class="row g-4 mb-4 justify-content-center">
+{% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
+<a href="{% url 'report_page' %}"><i class="bi bi-bar-chart"></i> Report</a>
+<a href="{% url 'customer_list' %}"><i class="bi bi-people"></i> Customers</a>
+{% endif %}
 
-        
+<a href="{% url 'order_list' %}"><i class="bi bi-box"></i> Orders</a>
+<a href="{% url 'paid_orders' %}"><i class="bi bi-check-circle"></i> Paid Orders</a>
+<a href="{% url 'pending_orders' %}"><i class="bi bi-clock"></i> Pending Orders</a>
 
-        {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
-        <div class="col-md-2 col-6">
-            <div class="stat-card">
-                <span class="stat-title">Total Revenue</span>
-                <div class="stat-value">₹ {{ total_revenue }}</div>
-            </div>
-        </div>
+<hr>
 
-        <div class="col-md-2 col-6">
-            <div class="stat-card">
-                <span class="stat-title">Today Revenue</span>
-                <div class="stat-value">₹ {{ today_revenue }}</div>
-            </div>
-        </div>
-        <div class="col-md-2 col-6">
-            <a href="{% url 'total_income' %}" class="text-decoration-none">
-                <div class="stat-card">
-                    <span class="stat-title">Total Income</span>
-                    <div class="stat-value">₹ {{ total_income }}</div>
-                </div>
-            </a>
-        </div>
-        {% endif %}
+<a href="{% url 'user_logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+
+</div>
 
 
-        <div class="col-md-2 col-6">
-            <div class="stat-card">
-                <span class="stat-title">Total Orders</span>
-                <div class="stat-value">
-                    <a href="{% url 'order_list' %}" class="text-dark text-decoration-none">
-                        {{ total_orders }}
-                    </a>
-                </div>
-            </div>
-        </div>
+<!-- MAIN -->
 
-        <div class="col-md-2 col-6">
-            <div class="stat-card">
-                <span class="stat-title">Paid Orders</span>
-                <div class="stat-value">
-                    <a href="{% url 'paid_orders' %}" class="text-dark text-decoration-none">
-                        {{ paid_orders }}
-                    </a>
-                </div>
-            </div>
-        </div>
+<div class="main">
 
-        <div class="col-md-2 col-6">
-            <div class="stat-card">
-                <span class="stat-title">Pending Orders</span>
-                <div class="stat-value">
-                    <a href="{% url 'pending_orders' %}" class="text-dark text-decoration-none">
-                        {{ pending_orders }}
-                    </a>
-                </div>
-            </div>
-        </div>
+<!-- HEADER -->
 
-    </div>
+<div class="topbar">
 
-    <!-- CONTENT -->
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header">All Orders</div>
-                <div class="card-body p-0">
-                    <table class="table mb-0 align-middle">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Customer</th>
-                                <th>Total</th>
-                                <th>Payment Method</th>
-                                <th>Payment Choice</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Edit</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in orders %}
-                                <tr onclick="window.location.href='{% url 'order_detail' order.id %}'">
-                                    <td>#{{ order.id }}</td>
-                                   <td>
-                                        <div class="customer-cell">
-                                            <div class="customer-name">
-                                                {{ order.first_name }}
-                                            </div>
+<div>
+<h5 class="mb-0">Admin Dashboard</h5>
+<small>Overview of store performance</small>
+</div>
 
-                                            {% if order.reference %}
-                                            <div class="ref-pill">
-                                                <i class="bi bi-person-fill"></i>
-                                                <span class="ref-text">Referred by</span>
-                                                <span class="ref-name">{{ order.reference }}</span>
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                    <td>₹ {{ order.total }}</td>
-                                    <td>
+</div>
 
-                                        <td>
 
-                                        {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
+<!-- METRICS -->
 
-                                            {% if order.is_pos_order %}
-                                                <span style="color:#0d6efd;font-weight:600;">Retail Shop</span>
+<div class="row g-4 mb-4">
 
-                                            {% elif order.payment_method == "razorpay" %}
-                                                <span style="color:green;font-weight:600;">Razorpay</span>
+{% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
 
-                                            {% elif order.payment_method == "cod" %}
-                                                <span style="color:#ff9800;font-weight:600;">COD</span>
+<div class="col-md-3">
+<div class="stat-card">
+<div class="stat-title">Total Revenue</div>
+<div class="stat-value">₹ {{ total_revenue }}</div>
+</div>
+</div>
 
-                                            {% endif %}
+<div class="col-md-3">
+<div class="stat-card">
+<div class="stat-title">Today Revenue</div>
+<div class="stat-value">₹ {{ today_revenue }}</div>
+</div>
+</div>
 
-                                        {% else %}
+<div class="col-md-3">
+<a href="{% url 'total_income' %}" class="text-decoration-none text-dark">
+<div class="stat-card">
+<div class="stat-title">Total Income</div>
+<div class="stat-value">₹ {{ total_income }}</div>
+</div>
+</a>
+</div>
 
-                                            {% if order.is_pos_order %}
-                                                <span style="color:#0d6efd;font-weight:600;">Retail Shop</span>
-                                            {% else %}
-                                                <span class="text-muted">Hidden</span>
-                                            {% endif %}
+{% endif %}
 
-                                        {% endif %}
+<div class="col-md-3">
+<div class="stat-card">
+<div class="stat-title">Total Orders</div>
+<div class="stat-value">
+<a href="{% url 'order_list' %}" class="text-dark text-decoration-none">
+{{ total_orders }}
+</a>
+</div>
+</div>
+</div>
 
-                                        </td>
-                                    <td>
-                                        {% if order.is_cancelled %}
-                                            <span class="badge bg-danger">Cancelled</span>
-                                        {% elif order.is_delivered %}
-                                            <span class="badge bg-success">Delivered</span>
-                                        {% else %}
-                                            <span class="badge bg-warning text-dark">Pending</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ order.created_at|date:"d M Y" }}</td>
-                                    <td>
-                                        {% if order.is_pos_order %}
-                                            <a href="{% url 'pos_edit_page' order.id %}" 
-                                               class="btn btn-sm btn-warning"
-                                               onclick="event.stopPropagation();">
-                                               <i class="bi bi-pencil-square"></i>
-                                            </a>
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="8" class="text-center py-4 text-muted">No Orders Yet</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="col-md-3">
+<div class="stat-card">
+<div class="stat-title">Paid Orders</div>
+<div class="stat-value">
+<a href="{% url 'paid_orders' %}" class="text-dark text-decoration-none">
+{{ paid_orders }}
+</a>
+</div>
+</div>
+</div>
 
-        <!-- QUICK ACTIONS (UNCHANGED) -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header">Quick Actions</div>
-                <div class="card-body d-grid gap-2">
-                    <a href="{% url 'pos_page' %}" class="quick-btn"><i class="bi bi-receipt"></i> POS Billing</a>
-                    <a href="{% url 'add_category' %}" class="quick-btn"><i class="bi bi-plus-square"></i> Add Category</a>
-                    <a href="{% url 'category_list' %}" class="quick-btn"><i class="bi bi-card-list"></i> View Category</a>
-                    <a href="{% url 'add_subcategory' %}" class="quick-btn"><i class="bi bi-folder-plus"></i> Add SubCategory</a>
-                    <a href="{% url 'subcategory_list' %}" class="quick-btn"><i class="bi bi-folder2-open"></i> View SubCategory</a>
-                    <a href="{% url 'add_product' %}" class="quick-btn"><i class="bi bi-box-arrow-in-up"></i> Add Product</a>
-                    <a href="{% url 'product_list' %}" class="quick-btn"><i class="bi bi-box-seam"></i> View Product</a>
-                    <a href="{% url 'add_size' %}" class="quick-btn"><i class="bi bi-arrows-fullscreen"></i> Add Size</a>
-                    <a href="{% url 'size_list' %}" class="quick-btn"><i class="bi bi-arrows-angle-expand"></i> View Size</a>
-                    <a href="{% url 'add_coupon' %}" class="quick-btn"><i class="bi bi-tag-plus"></i> Add Coupon</a>
-                    <a href="{% url 'coupon_list' %}" class="quick-btn"><i class="bi bi-tags"></i> View Coupon</a>
-                    {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
-                    <a href="{% url 'create_user' %}" class="quick-btn"><i class="bi bi-person-plus"></i> Create Employee</a>
-                    <a href="{% url 'employee_list' %}" class="quick-btn"><i class="bi bi-people"></i> Employee List</a>
-                    <a href="{% url 'review_list' %}" class="quick-btn"><i class="bi bi-chat-square-text"></i> View Reviews</a>
-                    <a href="{% url 'add_article' %}" class="quick-btn"><i class="bi bi-newspaper"></i> Add Article</a>
-                    <a href="{% url 'article_list' %}" class="quick-btn"><i class="bi bi-card-text"></i> View Articles</a>
-                    <a href="{% url 'add_terms' %}" class="quick-btn"><i class="bi bi-file-earmark-plus"></i> Add Terms</a>
-                    <a href="{% url 'terms_list' %}" class="quick-btn"><i class="bi bi-file-earmark-text"></i> View Terms</a>
-                    <a href="{% url 'add_privacy' %}" class="quick-btn"><i class="bi bi-shield-lock"></i> Add Privacy</a>
-                    <a href="{% url 'privacy_list' %}" class="quick-btn"><i class="bi bi-shield-check"></i> View Privacy</a>
-                    <a href="{% url 'add_faq' %}" class="quick-btn"><i class="bi bi-question-circle"></i> Add FAQ</a>
-                    <a href="{% url 'faq_list' %}" class="quick-btn"><i class="bi bi-chat-dots"></i> View FAQ</a>
-                    <a href="{% url 'total_income' %}" class="quick-btn"><i class="bi bi-currency-rupee"></i> Total Income</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="col-md-3">
+<div class="stat-card">
+<div class="stat-title">Pending Orders</div>
+<div class="stat-value">
+<a href="{% url 'pending_orders' %}" class="text-dark text-decoration-none">
+{{ pending_orders }}
+</a>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<!-- CONTENT -->
+
+<div class="row">
+
+<div class="col-lg-8">
+
+<div class="card shadow-sm">
+
+<div class="card-header">
+All Orders
+</div>
+
+<div class="card-body p-0">
+
+<table class="table mb-0 align-middle">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Customer</th>
+<th>Total</th>
+<th>Payment Method</th>
+<th>Status</th>
+<th>Date</th>
+<th>Edit</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for order in orders %}
+
+<tr onclick="window.location.href='{% url 'order_detail' order.id %}'">
+
+<td>#{{ order.id }}</td>
+
+<td>
+<div class="customer-cell">
+
+<div class="customer-name">
+{{ order.first_name }}
+</div>
+
+{% if order.reference %}
+<div class="ref-pill">
+Referred by {{ order.reference }}
+</div>
+{% endif %}
+
+</div>
+</td>
+
+<td>₹ {{ order.total }}</td>
+
+<td>
+
+{% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
+
+{% if order.is_pos_order %}
+Retail Shop
+
+{% elif order.payment_method == "razorpay" %}
+Razorpay
+
+{% elif order.payment_method == "cod" %}
+COD
+{% endif %}
+
+{% else %}
+
+{% if order.is_pos_order %}
+Retail Shop
+{% else %}
+<span class="text-muted">Hidden</span>
+{% endif %}
+
+{% endif %}
+
+</td>
+
+<td>
+
+{% if order.is_cancelled %}
+<span class="badge bg-danger">Cancelled</span>
+
+{% elif order.is_delivered %}
+<span class="badge bg-success">Delivered</span>
+
+{% else %}
+<span class="badge bg-warning text-dark">Pending</span>
+{% endif %}
+
+</td>
+
+<td>{{ order.created_at|date:"d M Y" }}</td>
+
+<td>
+
+{% if order.is_pos_order %}
+<a href="{% url 'pos_edit_page' order.id %}" 
+class="btn btn-sm btn-warning"
+onclick="event.stopPropagation();">
+<i class="bi bi-pencil"></i>
+</a>
+{% else %}
+—
+{% endif %}
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="7" class="text-center py-4 text-muted">
+No Orders Yet
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+
+<!-- QUICK ACTION -->
+
+<div class="col-lg-4">
+
+<div class="card shadow-sm">
+
+<div class="card-header">
+Quick Actions
+</div>
+
+<div class="card-body d-grid gap-2">
+
+<a href="{% url 'pos_page' %}" class="quick-btn"><i class="bi bi-receipt"></i> POS Billing</a>
+<a href="{% url 'add_category' %}" class="quick-btn"><i class="bi bi-plus-square"></i> Add Category</a>
+<a href="{% url 'category_list' %}" class="quick-btn"><i class="bi bi-card-list"></i> View Category</a>
+<a href="{% url 'add_subcategory' %}" class="quick-btn"><i class="bi bi-folder-plus"></i> Add SubCategory</a>
+<a href="{% url 'subcategory_list' %}" class="quick-btn"><i class="bi bi-folder2-open"></i> View SubCategory</a>
+<a href="{% url 'add_product' %}" class="quick-btn"><i class="bi bi-box-arrow-in-up"></i> Add Product</a>
+<a href="{% url 'product_list' %}" class="quick-btn"><i class="bi bi-box-seam"></i> View Product</a>
+<a href="{% url 'add_size' %}" class="quick-btn"><i class="bi bi-arrows-fullscreen"></i> Add Size</a>
+<a href="{% url 'size_list' %}" class="quick-btn"><i class="bi bi-arrows-angle-expand"></i> View Size</a>
+<a href="{% url 'add_coupon' %}" class="quick-btn"><i class="bi bi-tag-plus"></i> Add Coupon</a>
+<a href="{% url 'coupon_list' %}" class="quick-btn"><i class="bi bi-tags"></i> View Coupon</a>
+
+{% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
+
+<a href="{% url 'create_user' %}" class="quick-btn"><i class="bi bi-person-plus"></i> Create Employee</a>
+<a href="{% url 'employee_list' %}" class="quick-btn"><i class="bi bi-people"></i> Employee List</a>
+<a href="{% url 'review_list' %}" class="quick-btn"><i class="bi bi-chat-square-text"></i> View Reviews</a>
+<a href="{% url 'add_article' %}" class="quick-btn"><i class="bi bi-newspaper"></i> Add Article</a>
+<a href="{% url 'article_list' %}" class="quick-btn"><i class="bi bi-card-text"></i> View Articles</a>
+<a href="{% url 'add_terms' %}" class="quick-btn"><i class="bi bi-file-earmark-plus"></i> Add Terms</a>
+<a href="{% url 'terms_list' %}" class="quick-btn"><i class="bi bi-file-earmark-text"></i> View Terms</a>
+<a href="{% url 'add_privacy' %}" class="quick-btn"><i class="bi bi-shield-lock"></i> Add Privacy</a>
+<a href="{% url 'privacy_list' %}" class="quick-btn"><i class="bi bi-shield-check"></i> View Privacy</a>
+<a href="{% url 'add_faq' %}" class="quick-btn"><i class="bi bi-question-circle"></i> Add FAQ</a>
+<a href="{% url 'faq_list' %}" class="quick-btn"><i class="bi bi-chat-dots"></i> View FAQ</a>
+<a href="{% url 'total_income' %}" class="quick-btn"><i class="bi bi-currency-rupee"></i> Total Income</a>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
