@@ -104,6 +104,33 @@ body.print-bill #billArea{display:block!important;}
     font-weight:500;
     color:#111;
 }
+.table thead th{
+background:#111827;
+color:#fff;
+border:none;
+}
+
+.table tbody tr{
+background:#f9fafb;
+}
+
+.table tbody tr:hover{
+background:#ffffff;
+transform:scale(1.005);
+box-shadow:0 6px 15px rgba(0,0,0,0.08);
+}
+
+.card{
+border-radius:14px;
+overflow:hidden;
+}
+
+.page-header{
+background:linear-gradient(135deg,#111827,#1f2933);
+color:#fff;
+padding:18px;
+border-radius:12px;
+}
 </style>
 </head>
 
@@ -142,6 +169,10 @@ body.print-bill #billArea{display:block!important;}
 <div class="page-header d-flex justify-content-between align-items-center">
 <h4>{{ title }}</h4>
 <i class="bi bi-receipt fs-2"></i>
+</div>
+
+<div class="mb-3">
+<input type="text" id="searchInput" class="form-control" placeholder="Search customer, town, payment...">
 </div>
 
 <div class="card shadow-sm">
@@ -187,19 +218,28 @@ body.print-bill #billArea{display:block!important;}
 
 <!-- Fixed Payment Column -->
 <td>
+
 {% if order.is_pos_order %}
+
     {% if order.payment_status %}
-        Retail Shop
+        <span class="badge bg-dark">Retail Shop</span>
     {% else %}
-        POS Pending
+        <span class="badge bg-warning text-dark">POS Pending</span>
     {% endif %}
+
 {% elif order.payment_method == "razorpay" %}
-    Razorpay
+    <span class="badge bg-primary">Razorpay</span>
+
 {% elif order.payment_method == "cod" %}
-    COD
+    <span class="badge bg-success">COD</span>
+
 {% else %}
-    {{ order.get_payment_method_display }}
+    <span class="badge bg-secondary">
+        {{ order.get_payment_method_display }}
+    </span>
+
 {% endif %}
+
 </td>
 
 <td>
@@ -418,6 +458,24 @@ function printBill(id){
       document.body.className=""; 
   }, 150);
 }
+document.getElementById("searchInput").addEventListener("keyup", function(){
+
+let filter = this.value.toLowerCase();
+let rows = document.querySelectorAll("tbody tr");
+
+rows.forEach(row => {
+
+let text = row.innerText.toLowerCase();
+
+if(text.includes(filter)){
+row.style.display="";
+}else{
+row.style.display="none";
+}
+
+});
+
+});
 </script>
 
 </body>
