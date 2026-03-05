@@ -131,6 +131,9 @@ urlpatterns = [
     path("order/<int:order_id>/pos-complete/", views.pos_payment_complete, name="pos_payment_complete"),
     path("pos/edit/<int:order_id>/", views.pos_edit_page, name="pos_edit_page"),
     path("pos/update/<int:order_id>/", views.pos_update_order, name="pos_update_order"),
+    path("dashboard/employee/create/",views.create_user, name="create_user"),
+    path("dashboard/employee/list/", views.employee_list, name="employee_list"),
+    path("dashboard/employee/delete/<int:user_id>/", views.delete_employee, name="delete_employee"),
     path("reference/<str:name>/", views.reference_detail, name="reference_detail"),
     path('faq/', views.faq_page, name='faq_page'),
     

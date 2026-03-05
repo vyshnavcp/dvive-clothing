@@ -1,25 +1,30 @@
 from django.core.exceptions import PermissionDenied
 from functools import wraps
+from django.shortcuts import redirect
 
-def role_required(allowed_roles=[]):
+def role_required(allowed_roles=None):
+
+    if allowed_roles is None:
+        allowed_roles=[]
+
     def decorator(view_func):
+
         @wraps(view_func)
-        def wrapper(request, *args, **kwargs):
+        def wrapper(request,*args,**kwargs):
 
             if not request.user.is_authenticated:
-                from django.shortcuts import redirect
-                return redirect('user_login')
+                return redirect("user_login")
 
-            # Allow Superuser always
             if request.user.is_superuser:
-                return view_func(request, *args, **kwargs)
+                return view_func(request,*args,**kwargs)
 
-            # Allow Staff
-            if "staff" in allowed_roles and request.user.is_staff:
-                return view_func(request, *args, **kwargs)
+            user_groups=request.user.groups.values_list('name',flat=True)
 
-            # If not allowed
+            if any(role in user_groups for role in allowed_roles):
+                return view_func(request,*args,**kwargs)
+
             raise PermissionDenied
 
         return wrapper
+
     return decorator

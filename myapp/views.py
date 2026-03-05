@@ -625,31 +625,47 @@ def staff_required(user):
 def user_login(request):
     return render(request,'login.html')
 def login_post(request):
-    login_input = request.POST.get('name', '').strip()
-    password = request.POST.get('password', '').strip()
+
+    login_input = request.POST.get('name','').strip()
+    password = request.POST.get('password','').strip()
+
     if not login_input:
-        messages.error(request, "Username or Email is required")
+        messages.error(request,"Username or Email required")
         return redirect('user_login')
+
     if not password:
-        messages.error(request, "Password is required")
+        messages.error(request,"Password required")
         return redirect('user_login')
+
     try:
         user_obj = User.objects.get(email__iexact=login_input)
         username = user_obj.username
     except User.DoesNotExist:
         username = login_input
-    user = authenticate(request, username=username, password=password)
 
-    if user is not None:
-        login(request, user)
-        if user.is_staff:
+    user = authenticate(request,username=username,password=password)
+
+    if user:
+
+        login(request,user)
+
+        # Superuser
+        if user.is_superuser:
             return redirect("dashboard")
-        else:
-            return redirect("home")
 
-    else:
-        messages.error(request, "Invalid username or password")
-        return redirect('user_login')
+        # Accountant
+        if user.groups.filter(name="Accountant").exists():
+            return redirect("dashboard")
+
+        # Staff
+        if user.groups.filter(name="Staff").exists():
+            return redirect("dashboard")
+
+        return redirect("home")
+
+    messages.error(request,"Invalid username or password")
+    return redirect('user_login')
+    
 def user_logout(request):
     logout(request)
     return redirect('user_login')
@@ -1143,35 +1159,59 @@ from .decorators import role_required
     lambda u: u.is_authenticated and u.is_staff,
     login_url='user_login'
 )
-
 def dashboard(request):
+
     today = now().date()
-    if request.user.is_superuser:
+
+    # Admin + Accountant → full orders
+    if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.all().order_by('-created_at')
+
+    # Staff → POS only
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
+
     paid_orders = orders.filter(payment_status=True, is_cancelled=False)
+
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
-    today_revenue = paid_orders.filter(created_at__date=today).aggregate(total=Sum("total"))["total"] or 0
+
+    today_revenue = paid_orders.filter(
+        created_at__date=today
+    ).aggregate(total=Sum("total"))["total"] or 0
+
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
-    pending_orders = orders.filter(payment_status=False, is_cancelled=False).count()
-    pos_pending_payment = orders.filter(is_pos_order=True, payment_status=False, is_cancelled=False).count()
+
+    pending_orders = orders.filter(
+        payment_status=False,
+        is_cancelled=False
+    ).count()
+
+    pos_pending_payment = orders.filter(
+        is_pos_order=True,
+        payment_status=False,
+        is_cancelled=False
+    ).count()
+
     total_customers = Registration.objects.count()
     total_products = Product.objects.count()
+
     total_income = Decimal("0.00")
+
     order_items = OrderItem.objects.filter(
         order__payment_status=True,
         order__is_cancelled=False
     ).select_related("product")
+
     for item in order_items:
         if item.product and item.product.cost_price:
             profit = (item.price - item.product.cost_price) * item.quantity
             total_income += profit
+
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
-        "total_income": total_income,  
+        "total_income": total_income,
         "total_orders": total_orders,
         "paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
@@ -1180,8 +1220,10 @@ def dashboard(request):
         "total_products": total_products,
         "orders": orders,
     }
+
     return render(request, "dashboard.html", context)
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def report_page(request):
     orders = Order.objects.all()
@@ -1222,45 +1264,62 @@ def report_page(request):
         "pending_orders": pending_orders,
     })
 
+@role_required(["Accountant","Staff"])
 @login_required(login_url='user_login')
 @user_passes_test(staff_required, login_url='home')
 def order_list(request):
-    if request.user.is_superuser:
+
+    if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.all()
     else:
         orders = Order.objects.filter(is_pos_order=True)
+
     orders = orders.order_by('-created_at')
+
     return render(request, 'orders_view.html', {
         'orders': orders,
         'title': 'All Orders'
     })
 
-
+@role_required(["Accountant","Staff"])
 @login_required(login_url='user_login')
 @user_passes_test(staff_required, login_url='home')
 def paid_orders(request):
-    if request.user.is_superuser:
+
+    if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.filter(payment_status=True, is_cancelled=False)
     else:
-        orders = Order.objects.filter(is_pos_order=True, payment_status=True, is_cancelled=False)
+        orders = Order.objects.filter(
+            is_pos_order=True,
+            payment_status=True,
+            is_cancelled=False
+        )
+
     return render(request, 'orders_view.html', {
         'orders': orders.order_by('-created_at'),
         'title': 'Paid Orders'
     })
 
-
+@role_required(["Accountant","Staff"])
 @login_required(login_url='user_login')
 @user_passes_test(staff_required, login_url='home')
 def pending_orders(request):
-    if request.user.is_superuser:
+
+    if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.filter(payment_status=False, is_cancelled=False)
     else:
-        orders = Order.objects.filter(is_pos_order=True, payment_status=False, is_cancelled=False)
+        orders = Order.objects.filter(
+            is_pos_order=True,
+            payment_status=False,
+            is_cancelled=False
+        )
+
     return render(request, 'orders_view.html', {
         'orders': orders.order_by('-created_at'),
         'title': 'Pending Orders'
     })
 
+@role_required(["Accountant","Staff"])
 @login_required(login_url='user_login')
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -1280,6 +1339,7 @@ def order_detail(request, order_id):
         "payment_display": payment_display,
     })
 
+@role_required(["Accountant","Staff"])
 def mark_order_completed(request, order_id):
     order = get_object_or_404(Order, id=order_id)
 
@@ -1300,6 +1360,8 @@ def mark_order_completed(request, order_id):
         return redirect("dashboard")
 
     return redirect("dashboard")
+
+@role_required(["Accountant","Staff"])
 @login_required
 def reference_detail(request, name):
     orders = Order.objects.filter(reference=name)
@@ -1314,6 +1376,7 @@ def reference_detail(request, name):
         "total_amount": total_amount,
     })
 
+@role_required(["Accountant","Staff"])
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     if order.is_cancelled:
@@ -1333,6 +1396,7 @@ def cancel_order(request, order_id):
         messages.success(request, "Order cancelled and stock restored.")
     return redirect("dashboard")
 
+@role_required(["Accountant","Staff"])
 @login_required
 def pos_payment_complete(request, order_id):
     order = get_object_or_404(Order, id=order_id, is_pos_order=True)
@@ -1343,6 +1407,7 @@ def pos_payment_complete(request, order_id):
         messages.success(request, f"POS Payment for Order #{order.id} marked as complete.")
     return redirect("dashboard")
 
+@role_required(["Accountant","Staff"])
 def cancel_pos_payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, is_pos_order=True)
     if order.is_cancelled:
@@ -1363,13 +1428,16 @@ def cancel_pos_payment(request, order_id):
     messages.warning(request, f"POS Payment for Order #{order.id} has been canceled and stock restored.")
     return redirect("order_detail", order_id=order.id)
 
-
+@role_required(["Accountant","Staff"])
 @login_required(login_url='user_login')
 def customer_list(request):
     customers = Registration.objects.all().order_by('-id')
     return render(request, 'customers_view.html', {
         'customers': customers
     })
+
+@role_required(["Accountant","Staff"])
+@role_required(["Accountant","Staff"])
 def shipping_address_list(request):
     orders = Order.objects.all().order_by('-created_at')  
     context = {
@@ -1378,6 +1446,7 @@ def shipping_address_list(request):
     }
     return render(request, 'shipping_address_list.html', context)
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def add_terms(request):
     terms = TermsCondition.objects.first()
@@ -1390,11 +1459,13 @@ def add_terms(request):
         form = TermsForm(instance=terms)
     return render(request, "add_terms.html", {"form": form, "terms": terms})
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def terms_list(request):
     terms = TermsCondition.objects.all().order_by("-updated_at")
     return render(request, "terms_list.html", {"terms": terms})
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def edit_terms(request, pk):
     terms = get_object_or_404(TermsCondition, pk=pk)
@@ -1407,15 +1478,19 @@ def edit_terms(request, pk):
         form = TermsForm(instance=terms)
     return render(request, "add_terms.html", {"form": form, "terms": terms})
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def delete_terms(request, pk):
     terms = get_object_or_404(TermsCondition, pk=pk)
     terms.delete()
     return redirect("terms_list")
+
+@role_required(["Accountant"])
 def terms_page(request):
     terms = TermsCondition.objects.first()
     return render(request, "terms_page.html", {"terms": terms})
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def add_privacy(request):
     privacy = PrivacyPolicy.objects.first()
@@ -1428,13 +1503,13 @@ def add_privacy(request):
         form = PrivacyForm(instance=privacy)
     return render(request, "add_privacy.html", {"form": form, "privacy": privacy})
 
-
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def privacy_list(request):
     privacy = PrivacyPolicy.objects.all().order_by("-updated_at")
     return render(request, "privacy_list.html", {"privacy": privacy})
 
-
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def edit_privacy(request, pk):
     privacy = get_object_or_404(PrivacyPolicy, pk=pk)
@@ -1447,21 +1522,25 @@ def edit_privacy(request, pk):
         form = PrivacyForm(instance=privacy)
     return render(request, "add_privacy.html", {"form": form, "privacy": privacy})
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def delete_privacy(request, pk):
     privacy = get_object_or_404(PrivacyPolicy, pk=pk)
     privacy.delete()
     return redirect("privacy_list")
 
+@role_required(["Accountant"])
 def privacy_page(request):
     privacy = PrivacyPolicy.objects.first()
     return render(request, "privacy_page.html", {"privacy": privacy})
 
+@role_required(["Accountant"])
 @staff_member_required
 def review_list(request):
     reviews = Review.objects.select_related('product').order_by('-created_at')
     return render(request, 'review_list.html', {'reviews': reviews})
 
+@role_required(["Accountant"])
 @staff_member_required
 def delete_review(request, id):
     review = get_object_or_404(Review, id=id)
@@ -1470,11 +1549,12 @@ def delete_review(request, id):
         return redirect('review_list')
     return render(request, 'delete_review.html', {'review': review})
 
+@role_required(["Accountant"])
 def faq_list(request):
     faqs = FAQ.objects.all().order_by("-created_at")
     return render(request, "faq_list.html", {"faqs": faqs})
 
-
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def add_faq(request):
     if request.method == "POST":
@@ -1486,6 +1566,7 @@ def add_faq(request):
         form = FAQForm()
     return render(request, "add_faq.html", {"form": form})
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def edit_faq(request, pk):
     faq = get_object_or_404(FAQ, pk=pk)
@@ -1498,16 +1579,19 @@ def edit_faq(request, pk):
         form = FAQForm(instance=faq)
     return render(request, "add_faq.html", {"form": form, "faq": faq})
 
+@role_required(["Accountant"])
 @login_required(login_url='user_login')
 def delete_faq(request, pk):
     faq = get_object_or_404(FAQ, pk=pk)
     faq.delete()
     return redirect("faq_list")
 
+@role_required(["Accountant"])
 def faq_page(request):
     faqs = FAQ.objects.all().order_by("created_at")
     return render(request, "faq_page.html", {"faqs": faqs})
 
+@role_required(["Accountant"])
 @staff_member_required
 def pos_page(request):
     products = Product.objects.filter(status=True).prefetch_related(
@@ -1516,6 +1600,7 @@ def pos_page(request):
     )
     return render(request, "pos.html", {"products": products})
 
+@role_required(["Accountant","Staff"])
 @staff_member_required
 @csrf_exempt
 @transaction.atomic
@@ -1584,7 +1669,8 @@ def pos_create_order(request):
         return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
-
+    
+@role_required(["Accountant","Staff"])
 @staff_member_required
 def pos_edit_page(request, order_id):
     order = Order.objects.get(id=order_id, is_pos_order=True)
@@ -1596,6 +1682,7 @@ def pos_edit_page(request, order_id):
         "order_items": order_items
     })
 
+@role_required(["Accountant","Staff"])
 @require_POST
 @staff_member_required
 @transaction.atomic
@@ -1670,7 +1757,8 @@ def pos_update_order(request, order_id):
             "status": "error",
             "message": str(e)
         })
-
+    
+@role_required(["Accountant"])
 @staff_member_required
 def total_income_page(request):
     order_items = OrderItem.objects.filter(
@@ -1697,3 +1785,65 @@ def total_income_page(request):
         "products": product_data,
         "total_income": total_income
     })
+@role_required(["Accountant"])
+def create_user(request):
+
+    if request.method == "POST":
+
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        group_name = request.POST.get("group")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request,"Username already exists")
+            return redirect("create_user")
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request,"Email already exists")
+            return redirect("create_user")
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+
+        group = Group.objects.get(name=group_name)
+        user.groups.add(group)
+
+        user.is_staff = True
+        user.save()
+
+        messages.success(request,"Employee Created Successfully")
+
+        return redirect("employee_list")
+
+    return render(request,"create_user.html")
+
+def employee_list(request):
+
+    employees = User.objects.filter(
+        groups__name__in=["Accountant", "Staff"]
+    ).distinct()
+
+    return render(request,"employee_list.html",{
+        "employees":employees
+    })
+
+
+@role_required(["Accountant"])
+@login_required(login_url="user_login")
+def delete_employee(request, user_id):
+
+    user = get_object_or_404(User, id=user_id)
+
+    # Prevent deleting super admin
+    if user.is_superuser:
+        messages.error(request, "Admin cannot be deleted")
+        return redirect("employee_list")
+
+    user.delete()
+
+    messages.success(request, "Employee deleted successfully")
+    return redirect("employee_list")

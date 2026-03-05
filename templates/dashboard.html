@@ -136,7 +136,7 @@
 
             <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
                 <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-                    {% if request.user.is_superuser %}
+                    {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
                     <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'report_page' %}">Report</a></li>
                     <li class="nav-item"><a class="nav-link text-white fw-medium" href="{% url 'customer_list' %}">Customers</a></li>
                     {% endif %}
@@ -154,7 +154,7 @@
 
         
 
-        {% if request.user.is_superuser %}
+        {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
         <div class="col-md-2 col-6">
             <div class="stat-card">
                 <span class="stat-title">Total Revenue</span>
@@ -254,35 +254,33 @@
                                     </td>
                                     <td>₹ {{ order.total }}</td>
                                     <td>
-                                        {% if order.is_pos_order %}
-                                            {% if order.payment_status %}
+
+                                        <td>
+
+                                        {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
+
+                                            {% if order.is_pos_order %}
                                                 <span style="color:#0d6efd;font-weight:600;">Retail Shop</span>
-                                            {% else %}
-                                                <span style="color:#0d6efd;font-weight:600;">POS Pending</span>
-                                            {% endif %}
-                                        {% elif request.user.is_superuser %}
-                                            {% if order.payment_method == "razorpay" %}
-                                                <span style="color: green; font-weight: 600;">Razorpay</span>
+
+                                            {% elif order.payment_method == "razorpay" %}
+                                                <span style="color:green;font-weight:600;">Razorpay</span>
+
                                             {% elif order.payment_method == "cod" %}
                                                 <span style="color:#ff9800;font-weight:600;">COD</span>
+
                                             {% endif %}
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if order.is_pos_order %}
-                                            {% if order.payment_status %}
-                                                <span style="font-weight: 500;">{{ order.pos_payment_type|capfirst }}</span>
-                                            {% else %}
-                                                <span style="color: gray;">—</span>
-                                            {% endif %}
+
                                         {% else %}
-                                            {% if order.payment_choice %}
-                                                <span style="font-weight: 500;">{{ order.payment_choice|capfirst }}</span>
+
+                                            {% if order.is_pos_order %}
+                                                <span style="color:#0d6efd;font-weight:600;">Retail Shop</span>
                                             {% else %}
-                                                <span style="color: gray;">—</span>
+                                                <span class="text-muted">Hidden</span>
                                             {% endif %}
+
                                         {% endif %}
-                                    </td>
+
+                                        </td>
                                     <td>
                                         {% if order.is_cancelled %}
                                             <span class="badge bg-danger">Cancelled</span>
@@ -330,7 +328,9 @@
                     <a href="{% url 'size_list' %}" class="quick-btn"><i class="bi bi-arrows-angle-expand"></i> View Size</a>
                     <a href="{% url 'add_coupon' %}" class="quick-btn"><i class="bi bi-tag-plus"></i> Add Coupon</a>
                     <a href="{% url 'coupon_list' %}" class="quick-btn"><i class="bi bi-tags"></i> View Coupon</a>
-                    {% if request.user.is_superuser %}
+                    {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
+                    <a href="{% url 'create_user' %}" class="quick-btn"><i class="bi bi-person-plus"></i> Create Employee</a>
+                    <a href="{% url 'employee_list' %}" class="quick-btn"><i class="bi bi-people"></i> Employee List</a>
                     <a href="{% url 'review_list' %}" class="quick-btn"><i class="bi bi-chat-square-text"></i> View Reviews</a>
                     <a href="{% url 'add_article' %}" class="quick-btn"><i class="bi bi-newspaper"></i> Add Article</a>
                     <a href="{% url 'article_list' %}" class="quick-btn"><i class="bi bi-card-text"></i> View Articles</a>
