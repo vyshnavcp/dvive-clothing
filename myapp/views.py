@@ -1761,30 +1761,44 @@ def pos_update_order(request, order_id):
 @role_required(["Accountant"])
 @staff_member_required
 def total_income_page(request):
+
     order_items = OrderItem.objects.filter(
         order__is_cancelled=False,
         order__is_delivered=True
     ).select_related("product")
+
     product_data = []
     total_income = 0
+    total_revenue = 0
+
     for item in order_items:
+
         if item.product.cost_price:
+
             profit_per_item = item.price - item.product.cost_price
             total_profit = profit_per_item * item.quantity
+            total_selling = item.price * item.quantity
+
             total_income += total_profit
+            total_revenue += total_selling
+
             product_data.append({
                 "product": item.product,
                 "quantity": item.quantity,
                 "selling_price": item.price,
                 "cost_price": item.product.cost_price,
                 "profit_per_item": profit_per_item,
-                "total_profit": total_profit
+                "total_profit": total_profit,
+                "total_selling": total_selling
             })
+
     return render(request, "total_income.html", {
         "title": "Total Income Report",
         "products": product_data,
-        "total_income": total_income
+        "total_income": total_income,
+        "total_revenue": total_revenue
     })
+
 @role_required(["Accountant"])
 def create_user(request):
 
