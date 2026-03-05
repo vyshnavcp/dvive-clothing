@@ -323,25 +323,33 @@ Referred by {{ order.reference }}
 </td>
 
 <td>₹ {{ order.total }}</td>
-
 <td>
 
 {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
 
 {% if order.is_pos_order %}
+<span class="badge bg-dark">
 Retail Shop
+</span>
 
 {% elif order.payment_method == "razorpay" %}
+<span class="badge bg-primary">
 Razorpay
+</span>
 
 {% elif order.payment_method == "cod" %}
+<span class="badge bg-success">
 COD
+</span>
+
 {% endif %}
 
 {% else %}
 
 {% if order.is_pos_order %}
+<span class="badge bg-primary">
 Retail Shop
+</span>
 {% else %}
 <span class="text-muted">Hidden</span>
 {% endif %}
