@@ -135,6 +135,7 @@ urlpatterns = [
     path("dashboard/employee/list/", views.employee_list, name="employee_list"),
     path("dashboard/employee/delete/<int:user_id>/", views.delete_employee, name="delete_employee"),
     path("reference/<str:name>/", views.reference_detail, name="reference_detail"),
+    path("cancel-order/<int:order_id>/", views.cancel_order, name="cancel_order"),
     path('faq/', views.faq_page, name='faq_page'),
     
     

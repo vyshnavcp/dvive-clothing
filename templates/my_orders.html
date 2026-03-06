@@ -1,15 +1,55 @@
 <!doctype html>
 <html class="no-js" lang="en">
 <head>
-    <title>My Orders</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
-    <link rel="stylesheet" href="/static/css/vendors.min.css"/>
-    <link rel="stylesheet" href="/static/css/icon.min.css"/>
-    <link rel="stylesheet" href="/static/css/style.css"/>
-    <link rel="stylesheet" href="/static/css/responsive.css"/>
-    <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+<title>My Orders</title>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+<link rel="stylesheet" href="/static/css/vendors.min.css"/>
+<link rel="stylesheet" href="/static/css/icon.min.css"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<link rel="stylesheet" href="/static/css/responsive.css"/>
+<link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+
+<style>
+
+.order-card{
+background:#f9f9f9;
+border-radius:8px;
+padding:30px;
+margin-bottom:40px;
+}
+
+.product-box{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.product-img{
+width:80px;
+height:100px;
+object-fit:cover;
+border-radius:6px;
+}
+
+.variant-badge{
+display:inline-block;
+background:#f1f1f1;
+padding:3px 10px;
+border-radius:15px;
+font-size:12px;
+margin-right:5px;
+}
+
+.print-data{
+display:none;
+}
+
+</style>
+
 </head>
 
 <body data-mobile-nav-style="classic">
@@ -17,126 +57,175 @@
 {% include "components/navbar.html" %}
 
 <section class="top-space-margin half-section bg-gradient-very-light-gray">
-    <div class="container text-center">
-        <h1 class="alt-font fw-600 text-dark-gray">My Orders</h1>
-    </div>
+<div class="container text-center">
+<h1 class="alt-font fw-600 text-dark-gray">My Orders</h1>
+</div>
 </section>
 
 <section class="pt-0">
-    <div class="container">
+<div class="container">
 
-        {% if orders %}
-            {% for order in orders %}
+{% if orders %}
 
-            <div id="order-{{ order.id }}" class="bg-very-light-gray border-radius-6px p-30px mb-40px">
+{% for order in orders %}
 
-                <div class="d-flex justify-content-between mb-20px">
-                    <div>
-                        <strong>Order #{{ order.id }}</strong><br>
-                        <small>Placed on {{ order.created_at|date:"d M Y" }}</small>
-                    </div>
-                    <div>
-                        <strong>Total: ₹{{ order.total }}</strong><br>
-                        <button onclick="printOrder('order-{{ order.id }}')" 
-                                style="margin-top:5px; padding:5px 10px; cursor:pointer;">
-                            Print
-                        </button>
-                    </div>
-                </div>
+<div id="order-{{ order.id }}" class="order-card">
 
-                <!-- Normal Website Table -->
-                <table class="table cart-products">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th class="alt-font fw-600">Product</th>
-                            <th></th>
-                            <th class="alt-font fw-600">Price</th>
-                            <th class="alt-font fw-600">Qty</th>
-                            <th class="alt-font fw-600">Total</th>
-                        </tr>
-                    </thead>
+<div class="d-flex justify-content-between mb-20px">
 
-                    <tbody>
-                    {% for item in order.items.all %}
-                        <tr>
-                            <td></td>
+<div>
+<strong>Order #{{ order.id }}</strong><br>
+<small>Placed on {{ order.created_at|date:"d M Y" }}</small>
+</div>
 
-                            <td class="product-thumbnail">
-                                <img src="{{ item.product.image1.url }}" width="80">
-                            </td>
+<div style="text-align:right">
+<strong>Total: ₹{{ order.total }}</strong><br>
 
-                            <td class="product-name">
-                                <span class="fw-500 d-block">{{ item.product.name }}</span>
-                                {% if item.color %}
-                                    <small>Color: {{ item.color.name }}</small><br>
-                                {% endif %}
-                                {% if item.size %}
-                                    <small>Size: {{ item.size.name }}</small>
-                                {% endif %}
-                            </td>
+<button onclick="printOrder('order-{{ order.id }}')"
+style="margin-top:5px;padding:6px 12px;border:1px solid #000;background:white;cursor:pointer;">
+Print
+</button>
 
-                            <td>₹{{ item.price }}</td>
-                            <td>{{ item.quantity }}</td>
-                            <td>₹{{ item.total_price }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+</div>
 
-                <!-- Hidden Clean Print Data -->
-                <div class="print-data" style="display:none;">
+</div>
 
-                    <h3>Order #{{ order.id }}</h3>
-                    <p>Date: {{ order.created_at|date:"d M Y" }}</p>
+<table class="table cart-products">
 
-                    <h4>From:</h4>
-                    <p>Kunnamangalam, Markaz</p>
+<thead>
+<tr>
+<th class="alt-font fw-600">Product</th>
+<th class="alt-font fw-600">Price</th>
+<th class="alt-font fw-600">Qty</th>
+<th class="alt-font fw-600">Total</th>
+</tr>
+</thead>
 
-                    <h4>To:</h4>
-                    <p>
-                        {{ order.first_name }}<br>
-                        {{ order.phone }}<br>
-                        {{ order.address }}<br>
-                        {{ order.town }}, {{ order.state }} - {{ order.pincode }}<br>
-                        {% if order.land_mark %}
-                            Landmark: {{ order.land_mark }}
-                        {% endif %}
-                    </p>
+<tbody>
 
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Price</th>
-                                <th>Qty</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for item in order.items.all %}
-                            <tr>
-                                <td>{{ item.product.name }}</td>
-                                <td>₹{{ item.price }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>₹{{ item.total_price }}</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+{% for item in order.items.all %}
 
-                    <h3 style="margin-top:20px;">Grand Total: ₹{{ order.total }}</h3>
+<tr>
 
-                </div>
+<td>
 
-            </div>
+<div class="product-box">
 
-            {% endfor %}
-        {% else %}
-            <p class="text-center mt-50px">You have no orders yet.</p>
-        {% endif %}
+<img src="{{ item.product.image1.url }}" class="product-img">
 
-    </div>
+<div>
+
+<div class="fw-600">{{ item.product.name }}</div>
+
+{% if item.variant %}
+<div style="margin-top:5px">
+
+<span class="variant-badge">
+Color : {{ item.variant.color.name }}
+</span>
+
+<span class="variant-badge">
+Size : {{ item.variant.size.name }}
+</span>
+
+</div>
+{% endif %}
+
+</div>
+
+</div>
+
+</td>
+
+<td>₹{{ item.price }}</td>
+
+<td>{{ item.quantity }}</td>
+
+<td>₹{{ item.total_price }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<!-- PRINT DATA -->
+
+<div class="print-data">
+
+<h2>Order #{{ order.id }}</h2>
+
+<p>Date : {{ order.created_at|date:"d M Y" }}</p>
+
+<h4>Customer</h4>
+
+<p>
+{{ order.first_name }} <br>
+{{ order.phone }} <br>
+{{ order.address }} <br>
+{{ order.town }}, {{ order.state }} - {{ order.pincode }}
+</p>
+
+<table>
+
+<thead>
+<tr>
+<th>Product</th>
+<th>Variant</th>
+<th>Price</th>
+<th>Qty</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for item in order.items.all %}
+
+<tr>
+
+<td>{{ item.product.name }}</td>
+
+<td>
+{% if item.variant %}
+Color : {{ item.variant.color.name }} <br>
+Size : {{ item.variant.size.name }}
+{% endif %}
+</td>
+
+<td>₹{{ item.price }}</td>
+
+<td>{{ item.quantity }}</td>
+
+<td>₹{{ item.total_price }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<h3 style="margin-top:20px">
+Grand Total : ₹{{ order.total }}
+</h3>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<p class="text-center mt-50px">You have no orders yet.</p>
+
+{% endif %}
+
+</div>
 </section>
 
 {% include "components/footer.html" %}
@@ -146,33 +235,65 @@
 <script src="/static/js/main.js"></script>
 
 <script>
-function printOrder(orderId) {
 
-    var orderDiv = document.getElementById(orderId);
-    var printContents = orderDiv.querySelector(".print-data").innerHTML;
+function printOrder(orderId){
 
-    var newWin = window.open("", "", "width=900,height=700");
+var orderDiv = document.getElementById(orderId);
 
-    newWin.document.write(`
-        <html>
-        <head>
-            <title>Print Order</title>
-            <style>
-                body { font-family: Arial; padding: 20px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                table, th, td { border: 1px solid black; }
-                th, td { padding: 8px; text-align: left; }
-            </style>
-        </head>
-        <body>
-            ${printContents}
-        </body>
-        </html>
-    `);
+var printContents = orderDiv.querySelector(".print-data").innerHTML;
 
-    newWin.document.close();
-    newWin.print();
+var newWin = window.open("","","width=900,height=700");
+
+newWin.document.write(`
+
+<html>
+
+<head>
+
+<title>Print Order</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:20px;
 }
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+table,th,td{
+border:1px solid black;
+}
+
+th,td{
+padding:8px;
+text-align:left;
+}
+
+</style>
+
+</head>
+
+<body>
+
+${printContents}
+
+</body>
+
+</html>
+
+`);
+
+newWin.document.close();
+
+newWin.print();
+
+}
+
 </script>
 
 </body>

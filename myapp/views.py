@@ -1144,12 +1144,18 @@ def profile(request):
 @login_required
 def my_orders(request):
     registration = get_object_or_404(Registration, authuser=request.user)
+
     orders = (
         Order.objects
         .filter(registration=registration)
-        .prefetch_related("items__product", "items__color", "items__size")
+        .prefetch_related(
+            "items__product",
+            "items__variant__color",
+            "items__variant__size"
+        )
         .order_by("-created_at")
     )
+
     return render(request, "my_orders.html", {
         "orders": orders
     })
