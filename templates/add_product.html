@@ -152,9 +152,50 @@ body{
 <div class="container">
 
 <a class="navbar-brand" href="#">
-<i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+<i class="bi bi-speedometer2 me-2"></i> Product
 </a>
 
+<button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+
+<ul class="navbar-nav gap-lg-3">
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'product_list' %}">Product List</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link logout" href="{% url 'user_logout' %}">
+Logout
+</a>
+</li>
+
+</ul>
+
+</div>
 </div>
 </nav>
 

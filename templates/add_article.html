@@ -145,7 +145,7 @@ body{
 <div class="container">
 
 <a class="navbar-brand" href="#">
-<i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+<i class="bi bi-speedometer2 me-2"></i> Article
 </a>
 
 <button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -157,15 +157,11 @@ body{
 <ul class="navbar-nav ms-auto">
 
 <li class="nav-item">
-<a class="nav-link" href="#"><i class="bi bi-house me-1"></i> Dashboard</a>
+<a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i> Dashboard</a>
 </li>
 
 <li class="nav-item">
-<a class="nav-link" href="#"><i class="bi bi-newspaper me-1"></i> Articles</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="#"><i class="bi bi-person me-1"></i> Profile</a>
+<a class="nav-link" href="{% url 'article_list' %}"><i class="bi bi-newspaper me-1"></i> Articles List</a>
 </li>
 
 </ul>
