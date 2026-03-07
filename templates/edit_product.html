@@ -32,16 +32,55 @@ body{background:#f6f6f6;font-family:'Poppins', sans-serif;}
 <body>
 
 <header class="header-with-topbar">
-<nav class="navbar dashboard-header navbar-expand-lg">
-    <div class="container-fluid px-0">
-        <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-speedometer2 fs-2"></i>
-            <div>
-                <h4 class="mb-0">Admin Dashboard</h4>
-                <small>Edit Product</small>
-            </div>
-        </div>
-    </div>
+<nav class="navbar navbar-expand-lg navbar-premium">
+<div class="container">
+
+<a class="navbar-brand" href="#">
+<i class="bi bi-speedometer2 me-2"></i> Product
+</a>
+
+<button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+
+<ul class="navbar-nav gap-lg-3">
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'product_list' %}">Product List</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link logout" href="{% url 'user_logout' %}">
+Logout
+</a>
+</li>
+
+</ul>
+
+</div>
+</div>
 </nav>
 </header>
 
@@ -156,13 +195,16 @@ body{background:#f6f6f6;font-family:'Poppins', sans-serif;}
         </div>
 
         <div class="size-stock-row">
-            <select name="variant_size[]" class="form-select" required>
+            <select name="variant_size[]" class="form-select">
+                <option value="">No Size</option>
+
                 {% for size in sizes %}
                 <option value="{{ size.id }}"
-                        {% if variant.size.id == size.id %}selected{% endif %}>
-                    {{ size.name }}
+                {% if variant.size and variant.size.id == size.id %}selected{% endif %}>
+                {{ size.name }}
                 </option>
                 {% endfor %}
+
             </select>
 
             <input type="number"
@@ -271,14 +313,24 @@ function addColorVariant(){
             <input type="color" name="color_hex[]" class="form-control form-control-color" value="#000000">
             <button type="button" class="remove-btn" onclick="this.closest('.variant-box').remove();calculateTotalStock()">✖</button>
         </div>
+
         <div class="size-stock-row">
-            <select name="variant_size[]" class="form-select" required>
+
+            <select name="variant_size[]" class="form-select">
+                <option value="">No Size</option>
                 {% for size in sizes %}
                 <option value="{{ size.id }}">{{ size.name }}</option>
                 {% endfor %}
             </select>
-            <input type="number" name="variant_stock[]" class="form-control stock-input" placeholder="Stock" oninput="calculateTotalStock()" required>
+
+            <input type="number"
+                   name="variant_stock[]"
+                   class="form-control stock-input"
+                   placeholder="Stock"
+                   oninput="calculateTotalStock()"
+                   required>
         </div>
+
     </div>`;
     document.getElementById("variantWrapper").insertAdjacentHTML("beforeend", html);
 }

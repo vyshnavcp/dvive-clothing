@@ -365,7 +365,8 @@ const html = `
 
 <div class="size-stock-row">
 
-<select name="variant_size[]" class="form-select" required>
+<select name="variant_size[]" class="form-select">
+<option value="">No Size</option>
 {% for size in sizes %}
 <option value="{{ size.id }}">{{ size.name }}</option>
 {% endfor %}

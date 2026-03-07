@@ -934,36 +934,44 @@ document.addEventListener("DOMContentLoaded", function () {
     const addToCartBtn = document.querySelector(".btn-cart");
 
     function updateStock() {
-        const selectedColor = document.querySelector('input[name="color"]:checked');
-        const selectedSize = document.querySelector('input[name="size"]:checked');
 
-        if (!selectedColor || !selectedSize) {
-            stockDisplay.innerHTML = "Select size and color";
-            stockDisplay.style.color = "#6c757d";
-            addToCartBtn.disabled = false;
-            return;
-        }
+    const selectedColor = document.querySelector('input[name="color"]:checked');
+    const selectedSize = document.querySelector('input[name="size"]:checked');
 
-        const key = selectedColor.value + "-" + selectedSize.value;
-        const stock = variantStock[key];
-
-        if (stock === undefined) {
-            stockDisplay.innerHTML = "❌ This combination is not available";
-            stockDisplay.style.color = "#dc3545";
-            addToCartBtn.disabled = true;
-            return;
-        }
-
-        if (stock > 0) {
-            stockDisplay.innerHTML = "✅ In Stock (" + stock + " available)";
-            stockDisplay.style.color = "#28a745";
-            addToCartBtn.disabled = false;
-        } else {
-            stockDisplay.innerHTML = "❌ Out of Stock";
-            stockDisplay.style.color = "#dc3545";
-            addToCartBtn.disabled = true;
-        }
+    if (!selectedColor) {
+        stockDisplay.innerHTML = "Select color";
+        stockDisplay.style.color = "#6c757d";
+        addToCartBtn.disabled = false;
+        return;
     }
+
+    let key;
+
+    if (selectedSize) {
+        key = selectedColor.value + "-" + selectedSize.value;
+    } else {
+        key = selectedColor.value; // color only product
+    }
+
+    const stock = variantStock[key];
+
+    if (stock === undefined) {
+        stockDisplay.innerHTML = "❌ This combination is not available";
+        stockDisplay.style.color = "#dc3545";
+        addToCartBtn.disabled = true;
+        return;
+    }
+
+    if (stock > 0) {
+        stockDisplay.innerHTML = "✅ In Stock (" + stock + " available)";
+        stockDisplay.style.color = "#28a745";
+        addToCartBtn.disabled = false;
+    } else {
+        stockDisplay.innerHTML = "❌ Out of Stock";
+        stockDisplay.style.color = "#dc3545";
+        addToCartBtn.disabled = true;
+    }
+}
 
     colorInputs.forEach(input => {
         input.addEventListener("change", updateStock);

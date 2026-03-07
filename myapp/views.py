@@ -215,9 +215,12 @@ def delete_subcategory(request, id):
 @staff_member_required
 @transaction.atomic
 def add_product(request):
+
     subcategories = SubCategory.objects.all()
     sizes = Size.objects.all()
+
     if request.method == "POST":
+
         product = Product.objects.create(
             name=request.POST.get("name"),
             brand=request.POST.get("brand"),
@@ -238,6 +241,7 @@ def add_product(request):
             is_featured=bool(request.POST.get("is_featured")),
             is_best_seller=bool(request.POST.get("is_best_seller")),
         )
+
         color_names = request.POST.getlist("color_name[]")
         color_hexes = request.POST.getlist("color_hex[]")
         size_ids = request.POST.getlist("variant_size[]")
@@ -248,8 +252,11 @@ def add_product(request):
 
         for i in range(len(color_names)):
 
-            if not color_names[i] or not size_ids[i]:
+            # Only skip if color name empty
+            if not color_names[i]:
                 continue
+
+            # Create color only once
             if color_names[i] not in created_colors:
                 color = ProductColor.objects.create(
                     product=product,
@@ -265,7 +272,7 @@ def add_product(request):
             ProductVariant.objects.create(
                 product=product,
                 color=color,
-                size_id=size_ids[i],
+                size_id=size_ids[i] if size_ids[i] else None,  # allow NULL size
                 stock=stock_value
             )
 
@@ -273,7 +280,9 @@ def add_product(request):
 
         product.stock = total_stock
         product.save()
+
         return redirect("product_list")
+
     return render(request, "add_product.html", {
         "subcategories": subcategories,
         "sizes": sizes
@@ -301,13 +310,14 @@ def edit_product(request, slug):
         product.product_code = request.POST.get("product_code")
         product.subcategory_id = request.POST.get("subcategory")
         product.price = request.POST.get("price")
-        product.cost_price = request.POST.get("cost_price") or None 
+        product.cost_price = request.POST.get("cost_price") or None
         product.old_price = request.POST.get("old_price") or None
         product.description = request.POST.get("description")
         product.status = bool(request.POST.get("status"))
         product.is_signature_collection = bool(request.POST.get("is_signature_collection"))
         product.is_featured = bool(request.POST.get("is_featured"))
         product.is_best_seller = bool(request.POST.get("is_best_seller"))
+
         for i in range(1, 6):
             img = request.FILES.get(f"image{i}")
             if img:
@@ -328,8 +338,10 @@ def edit_product(request, slug):
 
         for i in range(len(color_names)):
 
-            if not color_names[i] or not size_ids[i]:
+            # ✅ FIXED: allow No Size variants
+            if not color_names[i]:
                 continue
+
             if color_names[i] not in created_colors:
                 color = ProductColor.objects.create(
                     product=product,
@@ -345,7 +357,7 @@ def edit_product(request, slug):
             ProductVariant.objects.create(
                 product=product,
                 color=color,
-                size_id=size_ids[i],
+                size_id=size_ids[i] if size_ids[i] else None,
                 stock=stock_value
             )
 
@@ -364,6 +376,7 @@ def edit_product(request, slug):
         "sizes": sizes,
         "variants": variants
     })
+
 @staff_member_required
 def delete_product(request, slug):
     product = get_object_or_404(Product, slug=slug)
@@ -477,7 +490,6 @@ def delete_article(request, slug):
     messages.success(request, "Article Deleted Successfully")
     return redirect('article_list')
 
-
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     variants = product.variants.select_related('size', 'color')
@@ -492,8 +504,10 @@ def product_detail(request, slug):
     total_reviews = reviews.count()
     rating_counts = reviews.values('rating').annotate(count=Count('rating'))
     rating_dict = {i: 0 for i in range(1, 6)}
+
     for item in rating_counts:
         rating_dict[item['rating']] = item['count']
+
     rating_percent = {}
     for i in range(1, 6):
         rating_percent[i] = round((rating_dict[i] / total_reviews) * 100) if total_reviews else 0
@@ -501,15 +515,25 @@ def product_detail(request, slug):
     related_products = Product.objects.filter(
         subcategory=product.subcategory
     ).exclude(id=product.id)[:4]
+
     product_images = []
     for img_field in ['image1', 'image2', 'image3', 'image4', 'image5']:
         img = getattr(product, img_field)
         if img:
             product_images.append(img.url)
+
+    # ✅ FIXED VARIANT STOCK LOGIC
     variant_stock = {}
     for v in variants:
+
+        # color + size
         if v.size_id and v.color_id:
             key = f"{v.color_id}-{v.size_id}"
+            variant_stock[key] = v.stock
+
+        # color only (size = NULL)
+        elif v.color_id and not v.size_id:
+            key = f"{v.color_id}"
             variant_stock[key] = v.stock
 
     return render(request, 'product_detail.html', {
@@ -731,10 +755,10 @@ def add_to_cart(request, product_id):
     if quantity < 1:
         quantity = 1
 
-    if not size_id or not color_id:
+    if not color_id:
         return JsonResponse({
             "success": False,
-            "message": "Please select size and color."
+            "message": "Please select a color."
         })
     variant = product.variants.filter(
         size_id=size_id,
