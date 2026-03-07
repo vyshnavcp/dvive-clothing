@@ -336,11 +336,20 @@ class OrderItem(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     def total_price(self):
         return self.price * self.quantity
+    
 class UserProfile(models.Model):
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+
     phone = models.CharField(max_length=20, blank=True)
     address = models.TextField(blank=True)
-    image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+
+    town = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    pincode = models.CharField(max_length=10, blank=True)
+    land_mark = models.CharField(max_length=100, blank=True)
+
+    image = models.ImageField(upload_to="profile/", blank=True, null=True)
     def __str__(self):
         return self.user.first_name
         

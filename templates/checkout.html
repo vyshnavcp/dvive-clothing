@@ -86,7 +86,7 @@
                                     <input class="border-radius-4px input-small" type="email" value="{{ user.email }}" aria-label="email" name="email" readonly>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="phone" class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                                    <label for="phone"  class="form-label fw-semibold" >Phone Number <span class="text-danger" >*</span></label>
                                     <input type="text" 
                                         class="form-control form-control-lg border border-1 border-secondary" 
                                         id="phone" 
@@ -101,43 +101,43 @@
                                     <select name="state" id="state1" class="form-select select-small border-radius-4px">
                                         <option>Select a state</option>
 
-                                        <option value="Andhra Pradesh">Andhra Pradesh</option>
-                                        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                                        <option value="Assam">Assam</option>
-                                        <option value="Bihar">Bihar</option>
-                                        <option value="Chhattisgarh">Chhattisgarh</option>
-                                        <option value="Goa">Goa</option>
-                                        <option value="Gujarat">Gujarat</option>
-                                        <option value="Haryana">Haryana</option>
-                                        <option value="Himachal Pradesh">Himachal Pradesh</option>
-                                        <option value="Jharkhand">Jharkhand</option>
-                                        <option value="Karnataka">Karnataka</option>
-                                        <option value="Kerala">Kerala</option>
-                                        <option value="Madhya Pradesh">Madhya Pradesh</option>
-                                        <option value="Maharashtra">Maharashtra</option>
-                                        <option value="Manipur">Manipur</option>
-                                        <option value="Meghalaya">Meghalaya</option>
-                                        <option value="Mizoram">Mizoram</option>
-                                        <option value="Nagaland">Nagaland</option>
-                                        <option value="Odisha">Odisha</option>
-                                        <option value="Punjab">Punjab</option>
-                                        <option value="Rajasthan">Rajasthan</option>
-                                        <option value="Sikkim">Sikkim</option>
-                                        <option value="Tamil Nadu">Tamil Nadu</option>
-                                        <option value="Telangana">Telangana</option>
-                                        <option value="Tripura">Tripura</option>
-                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                        <option value="Uttarakhand">Uttarakhand</option>
-                                        <option value="West Bengal">West Bengal</option>
+                                        <option value="Andhra Pradesh" {% if profile_state == "Andhra Pradesh" %}selected{% endif %}>Andhra Pradesh</option>
+                                        <option value="Arunachal Pradesh" {% if profile_state == "Arunachal Pradesh" %}selected{% endif %}>Arunachal Pradesh</option>
+                                        <option value="Assam" {% if profile_state == "Assam" %}selected{% endif %}>Assam</option>
+                                        <option value="Bihar" {% if profile_state == "Bihar" %}selected{% endif %}>Bihar</option>
+                                        <option value="Chhattisgarh" {% if profile_state == "Chhattisgarh" %}selected{% endif %}>Chhattisgarh</option>
+                                        <option value="Goa" {% if profile_state == "Goa" %}selected{% endif %}>Goa</option>
+                                        <option value="Gujarat" {% if profile_state == "Gujarat" %}selected{% endif %}>Gujarat</option>
+                                        <option value="Haryana" {% if profile_state == "Haryana" %}selected{% endif %}>Haryana</option>
+                                        <option value="Himachal Pradesh" {% if profile_state == "Himachal Pradesh" %}selected{% endif %}>Himachal Pradesh</option>
+                                        <option value="Jharkhand" {% if profile_state == "Jharkhand" %}selected{% endif %}>Jharkhand</option>
+                                        <option value="Karnataka" {% if profile_state == "Karnataka" %}selected{% endif %}>Karnataka</option>
+                                        <option value="Kerala" {% if profile_state == "Kerala" %}selected{% endif %}>Kerala</option>
+                                        <option value="Madhya Pradesh" {% if profile_state == "Madhya Pradesh" %}selected{% endif %}>Madhya Pradesh</option>
+                                        <option value="Maharashtra" {% if profile_state == "Maharashtra" %}selected{% endif %}>Maharashtra</option>
+                                        <option value="Manipur" {% if profile_state == "Manipur" %}selected{% endif %}>Manipur</option>
+                                        <option value="Meghalaya" {% if profile_state == "Meghalaya" %}selected{% endif %}>Meghalaya</option>
+                                        <option value="Mizoram" {% if profile_state == "Mizoram" %}selected{% endif %}>Mizoram</option>
+                                        <option value="Nagaland" {% if profile_state == "Nagaland" %}selected{% endif %}>Nagaland</option>
+                                        <option value="Odisha" {% if profile_state == "Odisha" %}selected{% endif %}>Odisha</option>
+                                        <option value="Punjab" {% if profile_state == "Punjab" %}selected{% endif %}>Punjab</option>
+                                        <option value="Rajasthan" {% if profile_state == "Rajasthan" %}selected{% endif %}>Rajasthan</option>
+                                        <option value="Sikkim" {% if profile_state == "Sikkim" %}selected{% endif %}>Sikkim</option>
+                                        <option value="Tamil Nadu" {% if profile_state == "Tamil Nadu" %}selected{% endif %}>Tamil Nadu</option>
+                                        <option value="Telangana" {% if profile_state == "Telangana" %}selected{% endif %}>Telangana</option>
+                                        <option value="Tripura" {% if profile_state == "Tripura" %}selected{% endif %}>Tripura</option>
+                                        <option value="Uttar Pradesh" {% if profile_state == "Uttar Pradesh" %}selected{% endif %}>Uttar Pradesh</option>
+                                        <option value="Uttarakhand" {% if profile_state == "Uttarakhand" %}selected{% endif %}>Uttarakhand</option>
+                                        <option value="West Bengal" {% if profile_state == "West Bengal" %}selected{% endif %}>West Bengal</option>
 
-                                        <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
-                                        <option value="Chandigarh">Chandigarh</option>
-                                        <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
-                                        <option value="Delhi">Delhi</option>
-                                        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                                        <option value="Ladakh">Ladakh</option>
-                                        <option value="Lakshadweep">Lakshadweep</option>
-                                        <option value="Puducherry">Puducherry</option>
+                                        <option value="Andaman and Nicobar Islands" {% if profile_state == "Andaman and Nicobar Islands" %}selected{% endif %}>Andaman and Nicobar Islands</option>
+                                        <option value="Chandigarh" {% if profile_state == "Chandigarh" %}selected{% endif %}>Chandigarh</option>
+                                        <option value="Dadra and Nagar Haveli and Daman and Diu" {% if profile_state == "Dadra and Nagar Haveli and Daman and Diu" %}selected{% endif %}>Dadra and Nagar Haveli and Daman and Diu</option>
+                                        <option value="Delhi" {% if profile_state == "Delhi" %}selected{% endif %}>Delhi</option>
+                                        <option value="Jammu and Kashmir" {% if profile_state == "Jammu and Kashmir" %}selected{% endif %}>Jammu and Kashmir</option>
+                                        <option value="Ladakh" {% if profile_state == "Ladakh" %}selected{% endif %}>Ladakh</option>
+                                        <option value="Lakshadweep" {% if profile_state == "Lakshadweep" %}selected{% endif %}>Lakshadweep</option>
+                                        <option value="Puducherry" {% if profile_state == "Puducherry" %}selected{% endif %}>Puducherry</option>
                                     </select>
                                     <small class="text-red" id="state_error"></small>
                                 </div>
@@ -145,12 +145,12 @@
 
                                 <div class="col-12 mb-20px">
                                     <label class="mb-10px">Town / City <span class="text-red">*</span></label>
-                                    <input class="border-radius-4px input-small" type="text" aria-label="town" placeholder="Enter your town or city" name="town" required>
+                                    <input class="border-radius-4px input-small" type="text" aria-label="town"  placeholder="Enter your town or city" name="town" value="{{ profile_town }}" required>
                                     <small class="text-red" id="town_error"></small>
                                 </div>
                                 <div class="col-12 mb-20px">
                                     <label class="mb-10px">Pincode <span class="text-red">*</span></label>
-                                    <input class="border-radius-4px input-small" type="text" aria-label="zip" name="pincode" placeholder="Enter your pincode" required>
+                                    <input class="border-radius-4px input-small" type="text" aria-label="zip" name="pincode" placeholder="Enter your pincode" value="{{ profile_pincode }}" required>
                                     <small class="text-red" id="pincode_error"></small>
                                 </div>
                                 <div class="col-12 mb-20px">
@@ -166,7 +166,7 @@
                                 </div>
                                 <div class="col-12 mb-20px">
                                     <label class="mb-10px">Land Mark <span class="text-red">*</span></label>
-                                    <input class="border-radius-4px input-small mb-20px" type="text" aria-label="text" name="land_mark" placeholder="Nearby Famous Place/Shop/School,etc." required>
+                                    <input class="border-radius-4px input-small mb-20px" type="text" aria-label="text" name="land_mark" placeholder="Nearby Famous Place/Shop/School,etc." value="{{ profile_land_mark }}" required>
                                     <small class="text-red" id="land_mark_error"></small>
 
                                 </div>      

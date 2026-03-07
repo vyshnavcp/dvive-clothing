@@ -903,6 +903,10 @@ def checkout(request):
         "coupon_discount": cart.coupon_discount,
         "profile_address": profile.address,
         "profile_phone": profile.phone,
+        "profile_town": profile.town,
+        "profile_state": profile.state,
+        "profile_pincode": profile.pincode,
+        "profile_land_mark": profile.land_mark,
     })
 
 @login_required
@@ -932,6 +936,10 @@ def checkout_post(request):
 
     profile.address = address
     profile.phone = phone
+    profile.town = town
+    profile.state = state
+    profile.pincode = pincode
+    profile.land_mark = land_mark
     profile.save()
 
     for item in items:
@@ -1172,13 +1180,24 @@ def order_success(request):
 
 @login_required
 def profile(request):
+
     profile, created = UserProfile.objects.get_or_create(user=request.user)
+
     if request.method == "POST":
+
         profile.phone = request.POST.get("phone", "").strip()
         profile.address = request.POST.get("address", "").strip()
+
+        profile.town = request.POST.get("town", "").strip()
+        profile.state = request.POST.get("state", "").strip()
+        profile.pincode = request.POST.get("pincode", "").strip()
+        profile.land_mark = request.POST.get("land_mark", "").strip()
+
         if "image" in request.FILES:
             profile.image = request.FILES["image"]
+
         profile.save()
+
         messages.success(request, "Profile updated successfully!")
 
     return render(request, "profile.html", {"profile": profile})
