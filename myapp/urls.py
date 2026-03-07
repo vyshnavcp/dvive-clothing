@@ -135,7 +135,12 @@ urlpatterns = [
     path("dashboard/employee/list/", views.employee_list, name="employee_list"),
     path("dashboard/employee/delete/<int:user_id>/", views.delete_employee, name="delete_employee"),
     path("reference/<str:name>/", views.reference_detail, name="reference_detail"),
-    path("cancel-order/<int:order_id>/", views.cancel_order, name="cancel_order"),
+    path("cancel-policy/<int:order_id>/", views.cancel_policy, name="cancel_policy"),
+    path("confirm-cancel/<int:order_id>/", views.confirm_cancel_request, name="confirm_cancel_request"),
+
+    # ADMIN SIDE
+    path("admin-refund-requests/", views.refund_requests, name="refund_requests"),
+    path("process-refund/<int:order_id>/", views.process_refund, name="process_refund"),
     path('faq/', views.faq_page, name='faq_page'),
     
     

@@ -213,36 +213,54 @@ class Coupon(models.Model):
 
 
 
+from django.db import models
+from decimal import Decimal
+
+
 class Order(models.Model):
+
     PAYMENT_CHOICES = (
         ("razorpay", "Razorpay"),
         ("cod", "Cash on Delivery"),
         ("pos", "POS Billing"),
     )
+
     POS_PAYMENT_CHOICES = (
         ("cash", "Cash"),
         ("upi", "UPI"),
         ("card", "Card"),
     )
+
     registration = models.ForeignKey("Registration", on_delete=models.CASCADE, null=True, blank=True)
+
     reference = models.CharField(max_length=255, blank=True, null=True)
+
     first_name = models.CharField(max_length=50)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
+
     address = models.TextField()
     town = models.CharField(max_length=100)
     state = models.CharField(max_length=50)
     pincode = models.CharField(max_length=10)
     land_mark = models.CharField(max_length=100, blank=True, null=True)
+
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     total = models.DecimalField(max_digits=10, decimal_places=2)
+
     coupon_code = models.CharField(max_length=50, blank=True, null=True)
     coupon_discount = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00")
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00")
     )
+
     payment_method = models.CharField(
-        max_length=20, choices=PAYMENT_CHOICES, default="razorpay"
+        max_length=20,
+        choices=PAYMENT_CHOICES,
+        default="razorpay"
     )
+
     pos_payment_type = models.CharField(
         max_length=20,
         choices=POS_PAYMENT_CHOICES,
@@ -250,20 +268,34 @@ class Order(models.Model):
         null=True,
         help_text="Only for POS Billing"
     )
+
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
-    payment_status = models.BooleanField(default=False)  
 
-    is_completed = models.BooleanField(default=False)     
-    is_delivered = models.BooleanField(default=False)     
-    is_cancelled = models.BooleanField(default=False)     
+    refund_id = models.CharField(max_length=120, blank=True, null=True)
+    refund_status = models.BooleanField(default=False)
+
+    payment_status = models.BooleanField(default=False)
+
+    is_completed = models.BooleanField(default=False)
+    is_delivered = models.BooleanField(default=False)
+    is_cancelled = models.BooleanField(default=False)
     is_pos_order = models.BooleanField(default=False)
+
+    # -------- NEW FIELDS FOR REFUND WORKFLOW --------
+    cancel_requested = models.BooleanField(default=False)
+    cancel_requested_at = models.DateTimeField(blank=True, null=True)
+
+    refund_processed = models.BooleanField(default=False)
+    # -----------------------------------------------
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         if self.is_pos_order and self.pos_payment_type:
             return f"Order #{self.id} - POS ({self.pos_payment_type})"
         return f"Order #{self.id} - {self.get_payment_method_display()}"
+
     @property
     def pos_payment_pending(self):
         return self.is_pos_order and not self.payment_status
@@ -275,14 +307,25 @@ class Order(models.Model):
         return self.is_completed
 
     def get_status_display(self):
+
         if self.is_cancelled:
             return "Cancelled"
+
+        if self.cancel_requested:
+            return "Cancel Requested"
+
+        if self.refund_processed:
+            return "Refunded"
+
         if self.is_delivered:
             return "Delivered"
+
         if self.is_pos_order and not self.payment_status:
             return "POS Payment Pending"
+
         if not self.is_completed:
             return "Pending"
+
         return "Completed"
     
 class OrderItem(models.Model):

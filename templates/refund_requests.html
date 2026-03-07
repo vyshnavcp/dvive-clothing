@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Refund Requests</title>
+
+<link rel="stylesheet" href="/static/css/vendors.min.css"/>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f6f6f6;
+}
+
+.container{
+width:1100px;
+margin:auto;
+margin-top:50px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:8px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #eee;
+text-align:left;
+}
+
+th{
+background:#fafafa;
+}
+
+.badge{
+padding:5px 10px;
+border-radius:15px;
+font-size:12px;
+}
+
+.badge-request{
+background:#fff4cc;
+color:#b58100;
+}
+
+.refund-btn{
+background:#28a745;
+color:white;
+border:none;
+padding:6px 14px;
+border-radius:4px;
+cursor:pointer;
+}
+
+.refund-btn:hover{
+background:#1f8a36;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Refund Requests</h2>
+
+{% if orders %}
+
+<table>
+
+<thead>
+<tr>
+<th>Order ID</th>
+<th>Customer</th>
+<th>Amount</th>
+<th>Payment</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for order in orders %}
+
+<tr>
+
+<td>#{{ order.id }}</td>
+
+<td>
+{{ order.first_name }}<br>
+<small>{{ order.phone }}</small>
+</td>
+
+<td>₹{{ order.total }}</td>
+
+<td>{{ order.get_payment_method_display }}</td>
+
+<td>
+<span class="badge badge-request">
+Cancel Requested
+</span>
+</td>
+
+<td>
+
+<a href="{% url 'process_refund' order.id %}">
+<button class="refund-btn">
+Approve Refund
+</button>
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% else %}
+
+<p>No refund requests.</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</body>
+
+</html>

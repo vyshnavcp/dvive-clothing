@@ -48,6 +48,42 @@ margin-right:5px;
 display:none;
 }
 
+.cancel-btn{
+background:#ff3b3b;
+color:white;
+border:none;
+padding:6px 14px;
+border-radius:4px;
+cursor:pointer;
+margin-top:6px;
+}
+
+.cancel-btn:hover{
+background:#e00000;
+}
+
+.status-badge{
+padding:5px 12px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+}
+
+.status-cancel{
+background:#ffd6d6;
+color:#d10000;
+}
+
+.status-delivered{
+background:#d6ffe3;
+color:#008a2e;
+}
+
+.status-pending{
+background:#fff4d6;
+color:#9b6b00;
+}
+
 </style>
 
 </head>
@@ -75,16 +111,35 @@ display:none;
 
 <div>
 <strong>Order #{{ order.id }}</strong><br>
-<small>Placed on {{ order.created_at|date:"d M Y" }}</small>
+<small>Placed on {{ order.created_at|date:"d M Y" }}</small><br>
+
+{% if order.is_cancelled %}
+<span class="status-badge status-cancel">Cancelled</span>
+{% elif order.is_delivered %}
+<span class="status-badge status-delivered">Delivered</span>
+{% else %}
+<span class="status-badge status-pending">Pending</span>
+{% endif %}
+
 </div>
 
 <div style="text-align:right">
+
 <strong>Total: ₹{{ order.total }}</strong><br>
 
 <button onclick="printOrder('order-{{ order.id }}')"
 style="margin-top:5px;padding:6px 12px;border:1px solid #000;background:white;cursor:pointer;">
 Print
 </button>
+
+{% if not order.is_cancelled and not order.is_delivered %}
+
+<!-- FIXED CANCEL BUTTON -->
+<a href="{% url 'cancel_policy' order.id %}">
+<button class="cancel-btn">Cancel Order</button>
+</a>
+
+{% endif %}
 
 </div>
 
@@ -150,8 +205,6 @@ Size : {{ item.variant.size.name }}
 </tbody>
 
 </table>
-
-<!-- PRINT DATA -->
 
 <div class="print-data">
 

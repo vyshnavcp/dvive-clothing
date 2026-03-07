@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Cancel Order</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f7f7f7;
+}
+
+.box{
+width:500px;
+margin:80px auto;
+background:white;
+padding:40px;
+border-radius:8px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+.policy{
+background:#f9f9f9;
+padding:20px;
+margin-top:20px;
+border-radius:6px;
+text-align:left;
+}
+
+.confirm-btn{
+background:#e53935;
+color:white;
+border:none;
+padding:10px 20px;
+margin-top:20px;
+border-radius:5px;
+cursor:pointer;
+}
+
+.confirm-btn:hover{
+background:#c62828;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Cancel Order #{{order.id}}</h2>
+
+<div class="policy">
+
+<h4>Refund Policy</h4>
+
+<ul>
+<li>Refund will be processed within 3-5 business days.</li>
+<li>The refund will be credited to the original payment method.</li>
+<li>Processing time depends on your bank.</li>
+<li>Once cancelled, the order cannot be restored.</li>
+</ul>
+
+</div>
+
+<form method="POST" action="{% url 'confirm_cancel_request' order.id %}">
+
+{% csrf_token %}
+
+<button class="confirm-btn">
+Yes, Cancel My Order
+</button>
+
+</form>
+
+</div>
+
+</body>
+</html>

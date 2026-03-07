@@ -35,6 +35,7 @@ from .forms import ArticleForm, TermsForm
 from django.db import transaction
 from django.conf import settings
 from django.urls import reverse
+from django.db.models import F
 
 
 
@@ -1089,44 +1090,72 @@ def ajax_shipping_charge(request):
         "subtotal": subtotal,
         "total": total
     })
-
 @csrf_exempt
 @login_required
 def payment_success_post(request):
+
     if request.method != "POST":
         return JsonResponse({"success": False})
+
     data = json.loads(request.body)
+
     razorpay_payment_id = data.get('razorpay_payment_id')
     razorpay_order_id = data.get('razorpay_order_id')
     razorpay_signature = data.get('razorpay_signature')
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+    client = razorpay.Client(auth=(
+        settings.RAZORPAY_KEY_ID,
+        settings.RAZORPAY_KEY_SECRET
+    ))
+
     try:
         client.utility.verify_payment_signature({
             "razorpay_order_id": razorpay_order_id,
             "razorpay_payment_id": razorpay_payment_id,
             "razorpay_signature": razorpay_signature
         })
+
         order = get_object_or_404(Order, razorpay_order_id=razorpay_order_id)
+
         order.razorpay_payment_id = razorpay_payment_id
         order.payment_status = True
         order.save()
+
+        # Reduce Product Stock
         for item in order.items.all():
             product = item.product
+
             if product.stock >= item.quantity:
                 product.stock -= item.quantity
                 product.save()
-        cart = get_object_or_404(Cart, registration=order.registration)
-        cart.items.all().delete()
-        cart.coupon_code = None
-        cart.coupon_discount = Decimal("0.00")
-        cart.update_totals()
-        return JsonResponse({"success": True})
+
+        # Clear Cart
+        cart = Cart.objects.filter(registration=order.registration).first()
+
+        if cart:
+            cart.items.all().delete()
+            cart.coupon_code = None
+            cart.coupon_discount = Decimal("0.00")
+            cart.update_totals()
+
+        return JsonResponse({
+            "success": True,
+            "redirect_url": f"/payment-success/?order_id={order.id}"
+        })
+
     except razorpay.errors.SignatureVerificationError:
         return JsonResponse({"success": False})
     
 @login_required
 def order_success(request):
-    return render(request, 'order_success.html')
+
+    order_id = request.GET.get("order_id")
+    order = None
+
+    if order_id:
+        order = Order.objects.filter(id=order_id, registration=request.user).first()
+
+    return render(request, "order_success.html", {"order": order})
 
 @login_required
 def profile(request):
@@ -1367,6 +1396,69 @@ def mark_order_completed(request, order_id):
 
     return redirect("dashboard")
 
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+@role_required(["Accountant","Staff"])
+def cancel_order(request, order_id):
+
+    order = get_object_or_404(Order, id=order_id)
+
+    if order.is_cancelled:
+        messages.warning(request, "Order already cancelled.")
+        return redirect("dashboard")
+
+    if not order.is_delivered:
+
+        # Restore Stock
+        for item in order.items.all():
+
+            if hasattr(item, "variant") and item.variant:
+                item.variant.stock = F("stock") + item.quantity
+                item.variant.save(update_fields=["stock"])
+
+            else:
+                item.product.stock = F("stock") + item.quantity
+                item.product.save(update_fields=["stock"])
+
+        # Razorpay Refund (only if Razorpay payment completed)
+        if order.payment_method == "razorpay" and order.payment_status:
+
+            try:
+
+                client = razorpay.Client(auth=(
+                    settings.RAZORPAY_KEY_ID,
+                    settings.RAZORPAY_KEY_SECRET
+                ))
+
+                refund_amount = int(order.total * 100)
+
+                refund = client.payment.refund(
+                    order.razorpay_payment_id,
+                    {
+                        "amount": refund_amount,
+                        "speed": "normal"
+                    }
+                )
+
+                order.refund_id = refund["id"]
+                order.refund_status = True
+                order.refund_processed = True
+
+                messages.success(request, "Order cancelled and Razorpay refund initiated.")
+
+            except Exception as e:
+                print("Refund Error:", e)
+                messages.error(request, "Order cancelled but refund failed.")
+
+        else:
+            messages.success(request, "Order cancelled and stock restored.")
+
+        order.is_cancelled = True
+        order.save()
+
+    return redirect("dashboard")
+
 @role_required(["Accountant","Staff"])
 @login_required
 def reference_detail(request, name):
@@ -1382,25 +1474,6 @@ def reference_detail(request, name):
         "total_amount": total_amount,
     })
 
-@role_required(["Accountant","Staff"])
-def cancel_order(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    if order.is_cancelled:
-        messages.warning(request, "Order already cancelled.")
-        return redirect("dashboard")
-
-    if not order.is_delivered:
-        for item in order.items.all():
-            if hasattr(item, "variant") and item.variant:
-                item.variant.stock = F('stock') + item.quantity
-                item.variant.save(update_fields=["stock"])
-            else:
-                item.product.stock = F('stock') + item.quantity
-                item.product.save(update_fields=["stock"])
-        order.is_cancelled = True
-        order.save(update_fields=["is_cancelled"])
-        messages.success(request, "Order cancelled and stock restored.")
-    return redirect("dashboard")
 
 @role_required(["Accountant","Staff"])
 @login_required
@@ -1867,3 +1940,67 @@ def delete_employee(request, user_id):
 
     messages.success(request, "Employee deleted successfully")
     return redirect("employee_list")
+
+@login_required
+def cancel_policy(request, order_id):
+
+    order = get_object_or_404(Order, id=order_id)
+
+    return render(request,"cancel_policy.html",{
+        "order":order
+    })
+
+@login_required
+def confirm_cancel_request(request, order_id):
+
+    order = get_object_or_404(Order, id=order_id)
+
+    order.cancel_requested = True
+    order.save()
+
+    return redirect("my_orders")
+
+@role_required(["Accountant"])
+def refund_requests(request):
+
+    orders = Order.objects.filter(
+        cancel_requested=True,
+        refund_processed=False
+    ).order_by("-created_at")
+
+    return render(request, "refund_requests.html", {
+        "orders": orders
+    })
+
+@role_required(["Accountant"])
+def process_refund(request, order_id):
+
+    order = get_object_or_404(Order, id=order_id)
+
+    try:
+
+        client = razorpay.Client(auth=(
+            settings.RAZORPAY_KEY_ID,
+            settings.RAZORPAY_KEY_SECRET
+        ))
+
+        refund_amount = int(order.total * 100)
+
+        refund = client.payment.refund(
+            order.razorpay_payment_id,
+            {
+                "amount": refund_amount,
+                "speed": "normal"
+            }
+        )
+
+        order.refund_id = refund["id"]
+        order.refund_processed = True
+        order.is_cancelled = True
+        order.refund_status = True
+        order.save()
+
+    except Exception as e:
+        print("Refund Error:", e)
+
+    return redirect("refund_requests")
