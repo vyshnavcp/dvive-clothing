@@ -885,6 +885,7 @@ def empty_cart(request):
         cart.coupon_discount = Decimal("0.00")
         cart.save()
     return redirect("cart_page")
+
 @login_required
 def checkout(request):
     registration = get_object_or_404(Registration, authuser=request.user)
@@ -1090,8 +1091,7 @@ def ajax_shipping_charge(request):
         "subtotal": subtotal,
         "total": total
     })
-@csrf_exempt
-@login_required
+
 def payment_success_post(request):
 
     if request.method != "POST":
@@ -1099,9 +1099,9 @@ def payment_success_post(request):
 
     data = json.loads(request.body)
 
-    razorpay_payment_id = data.get('razorpay_payment_id')
-    razorpay_order_id = data.get('razorpay_order_id')
-    razorpay_signature = data.get('razorpay_signature')
+    razorpay_payment_id = data.get("razorpay_payment_id")
+    razorpay_order_id = data.get("razorpay_order_id")
+    razorpay_signature = data.get("razorpay_signature")
 
     client = razorpay.Client(auth=(
         settings.RAZORPAY_KEY_ID,
@@ -1117,17 +1117,30 @@ def payment_success_post(request):
 
         order = get_object_or_404(Order, razorpay_order_id=razorpay_order_id)
 
+        # Prevent duplicate stock reduction
+        if order.payment_status:
+            return JsonResponse({
+                "success": True,
+                "redirect_url": f"/payment-success/?order_id={order.id}"
+            })
+
         order.razorpay_payment_id = razorpay_payment_id
         order.payment_status = True
-        order.save()
+        order.save(update_fields=["razorpay_payment_id", "payment_status"])
 
-        # Reduce Product Stock
-        for item in order.items.all():
-            product = item.product
+        # 🔥 Reduce Variant Stock
+        for item in order.items.select_related("variant"):
 
-            if product.stock >= item.quantity:
-                product.stock -= item.quantity
-                product.save()
+            variant = item.variant
+
+            if variant.stock < item.quantity:
+                return JsonResponse({
+                    "success": False,
+                    "message": "Stock not available"
+                })
+
+            variant.stock -= item.quantity
+            variant.save(update_fields=["stock"])
 
         # Clear Cart
         cart = Cart.objects.filter(registration=order.registration).first()
