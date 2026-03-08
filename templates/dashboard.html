@@ -444,6 +444,7 @@ Quick Actions
 
 {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
 <a href="{% url 'refund_requests' %}" class="quick-btn"><i class="bi bi-arrow-counterclockwise"></i> Refund Requests</a>
+<a href="{% url 'refund_report' %}" class="quick-btn"><i class="bi bi-cash-coin"></i> Refund Report</a>
 <a href="{% url 'create_user' %}" class="quick-btn"><i class="bi bi-person-plus"></i> Create Employee</a>
 <a href="{% url 'employee_list' %}" class="quick-btn"><i class="bi bi-people"></i> Employee List</a>
 <a href="{% url 'review_list' %}" class="quick-btn"><i class="bi bi-chat-square-text"></i> View Reviews</a>

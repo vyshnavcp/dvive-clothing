@@ -938,19 +938,31 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedColor = document.querySelector('input[name="color"]:checked');
     const selectedSize = document.querySelector('input[name="size"]:checked');
 
+    const hasSizes = document.querySelectorAll('input[name="size"]').length > 0;
+
+    // No color selected
     if (!selectedColor) {
         stockDisplay.innerHTML = "Select color";
         stockDisplay.style.color = "#6c757d";
-        addToCartBtn.disabled = false;
+        addToCartBtn.disabled = true;
         return;
     }
 
     let key;
 
-    if (selectedSize) {
+    // If product HAS sizes but none selected
+    if (hasSizes && !selectedSize) {
+        stockDisplay.innerHTML = "Select size";
+        stockDisplay.style.color = "#6c757d";
+        addToCartBtn.disabled = true;
+        return;
+    }
+
+    // Build key depending on product type
+    if (hasSizes) {
         key = selectedColor.value + "-" + selectedSize.value;
     } else {
-        key = selectedColor.value; // color only product
+        key = selectedColor.value;
     }
 
     const stock = variantStock[key];

@@ -2060,3 +2060,26 @@ def process_refund(request, order_id):
         print("Refund Error:", e)
 
     return redirect("refund_requests")
+@role_required(["Admin","Accountant"])
+def refund_report(request):
+
+    orders = Order.objects.filter(cancel_requested=True).order_by("-created_at")
+
+    total_requests = Order.objects.filter(cancel_requested=True).count()
+
+    approved_refunds = Order.objects.filter(
+        cancel_requested=True,
+        refund_processed=True
+    ).count()
+
+    pending_refunds = Order.objects.filter(
+        cancel_requested=True,
+        refund_processed=False
+    ).count()
+
+    return render(request,"refund_report.html",{
+        "orders":orders,
+        "total_requests":total_requests,
+        "approved_refunds":approved_refunds,
+        "pending_refunds":pending_refunds
+    })

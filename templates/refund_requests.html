@@ -1,31 +1,69 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
+<meta charset="UTF-8">
 <title>Refund Requests</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="/static/css/vendors.min.css"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
 body{
-font-family:Arial;
-background:#f6f6f6;
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#eef2f7,#dde3ec);
+min-height:100vh;
 }
 
-.container{
-width:1100px;
-margin:auto;
-margin-top:50px;
+/* NAVBAR */
+
+.navbar-premium{
+background:#000;
+padding:18px 30px;
+box-shadow:0 10px 30px rgba(0,0,0,.35);
 }
 
-.card{
-background:white;
-padding:25px;
-border-radius:8px;
-box-shadow:0 2px 10px rgba(0,0,0,0.1);
+.navbar-brand{
+color:#fff !important;
+font-weight:600;
 }
+
+.nav-link{
+color:#ddd !important;
+font-weight:500;
+}
+
+.nav-link:hover{
+color:#fff !important;
+}
+
+/* PAGE */
+
+.page-wrapper{
+padding:50px 20px;
+}
+
+/* CARD */
+
+.premium-card{
+background:#fff;
+border:none;
+border-radius:22px;
+padding:40px;
+box-shadow:0 25px 60px rgba(0,0,0,.08);
+}
+
+/* SEARCH */
+
+.search-box input{
+border-radius:12px;
+padding:10px;
+border:1px solid #ddd;
+}
+
+/* TABLE */
 
 table{
 width:100%;
@@ -43,23 +81,24 @@ th{
 background:#fafafa;
 }
 
-.badge{
+/* BADGE */
+
+.badge-request{
+background:#fff4cc;
+color:#b58100;
 padding:5px 10px;
 border-radius:15px;
 font-size:12px;
 }
 
-.badge-request{
-background:#fff4cc;
-color:#b58100;
-}
+/* BUTTON */
 
 .refund-btn{
 background:#28a745;
 color:white;
 border:none;
 padding:6px 14px;
-border-radius:4px;
+border-radius:8px;
 cursor:pointer;
 }
 
@@ -68,20 +107,80 @@ background:#1f8a36;
 }
 
 </style>
-
 </head>
 
 <body>
 
+<!-- NAVBAR -->
+
+<nav class="navbar navbar-expand-lg navbar-premium">
 <div class="container">
 
-<div class="card">
+<a class="navbar-brand" href="#">
+<i class="bi bi-speedometer2 me-2"></i> Admin Panel
+</a>
 
-<h2>Refund Requests</h2>
+<button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+
+<ul class="navbar-nav gap-lg-3">
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'product_list' %}">Products</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'refund_requests' %}">Refund Requests</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'refund_report' %}">Refund Report</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'user_logout' %}">Logout</a>
+</li>
+
+</ul>
+
+</div>
+</div>
+</nav>
+
+<!-- PAGE -->
+
+<div class="page-wrapper">
+
+<div class="container">
+
+<div class="premium-card">
+
+<h3 class="fw-bold mb-4">
+<i class="bi bi-arrow-counterclockwise me-2"></i> Refund Requests
+</h3>
+
+<div class="search-box mb-3">
+<input type="text" id="searchInput" class="form-control" placeholder="Search order, customer or phone">
+</div>
 
 {% if orders %}
 
-<table>
+<table class="table table-hover" id="refundTable">
 
 <thead>
 <tr>
@@ -103,7 +202,7 @@ background:#1f8a36;
 <td>#{{ order.id }}</td>
 
 <td>
-{{ order.first_name }}<br>
+{{ order.first_name }} <br>
 <small>{{ order.phone }}</small>
 </td>
 
@@ -112,7 +211,7 @@ background:#1f8a36;
 <td>{{ order.get_payment_method_display }}</td>
 
 <td>
-<span class="badge badge-request">
+<span class="badge-request">
 Cancel Requested
 </span>
 </td>
@@ -145,6 +244,34 @@ Approve Refund
 
 </div>
 
-</body>
+</div>
 
+<script>
+
+const input = document.getElementById("searchInput");
+
+input.addEventListener("keyup", function(){
+
+let filter = input.value.toLowerCase();
+let rows = document.querySelectorAll("#refundTable tbody tr");
+
+rows.forEach(row => {
+
+let text = row.innerText.toLowerCase();
+
+if(text.includes(filter)){
+row.style.display="";
+}else{
+row.style.display="none";
+}
+
+});
+
+});
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
 </html>

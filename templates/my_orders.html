@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html class="no-js" lang="en">
 <head>
@@ -15,73 +16,176 @@
 
 <style>
 
-.order-card{
-background:#f9f9f9;
-border-radius:8px;
-padding:30px;
-margin-bottom:40px;
+body{
+background:#fafafa;
 }
+
+/* ORDER CARD */
+
+.order-card{
+background:white;
+border-radius:14px;
+padding:35px;
+margin-bottom:40px;
+box-shadow:0 10px 25px rgba(0,0,0,0.06);
+transition:all .3s ease;
+border:1px solid #f0f0f0;
+}
+
+.order-card:hover{
+transform:translateY(-4px);
+box-shadow:0 20px 40px rgba(0,0,0,0.08);
+}
+
+/* HEADER */
+
+.order-header{
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+margin-bottom:20px;
+}
+
+.order-id{
+font-size:16px;
+font-weight:600;
+}
+
+.order-date{
+font-size:13px;
+color:#777;
+}
+
+.order-total{
+font-size:16px;
+font-weight:600;
+}
+
+/* PRODUCT */
 
 .product-box{
 display:flex;
 align-items:center;
-gap:15px;
+gap:18px;
 }
 
 .product-img{
-width:80px;
-height:100px;
+width:85px;
+height:105px;
 object-fit:cover;
-border-radius:6px;
+border-radius:8px;
+border:1px solid #eee;
+}
+
+.product-name{
+font-weight:600;
+font-size:14px;
 }
 
 .variant-badge{
 display:inline-block;
-background:#f1f1f1;
-padding:3px 10px;
-border-radius:15px;
+background:#f7f7f7;
+padding:5px 12px;
+border-radius:20px;
 font-size:12px;
-margin-right:5px;
+margin-right:6px;
+margin-top:5px;
+font-weight:500;
 }
 
-.print-data{
-display:none;
+/* TABLE */
+
+.cart-products{
+margin-top:25px;
 }
+
+.cart-products thead{
+background:#fafafa;
+}
+
+.cart-products th{
+font-size:14px;
+letter-spacing:.3px;
+}
+
+.cart-products td{
+vertical-align:middle;
+}
+
+/* STATUS BADGES */
+
+.status-badge{
+padding:6px 14px;
+border-radius:25px;
+font-size:12px;
+font-weight:600;
+display:inline-block;
+margin-top:6px;
+}
+
+.status-cancel{
+background:#ffe5e5;
+color:#c10000;
+}
+
+.status-delivered{
+background:#e3fff0;
+color:#007c3a;
+}
+
+.status-pending{
+background:#fff4dc;
+color:#9a6b00;
+}
+
+/* BUTTONS */
 
 .cancel-btn{
 background:#ff3b3b;
 color:white;
 border:none;
-padding:6px 14px;
-border-radius:4px;
+padding:7px 16px;
+border-radius:6px;
 cursor:pointer;
-margin-top:6px;
+margin-top:8px;
+font-size:13px;
+font-weight:500;
+transition:all .2s ease;
 }
 
 .cancel-btn:hover{
-background:#e00000;
+background:#d90000;
+transform:scale(1.04);
 }
 
-.status-badge{
-padding:5px 12px;
-border-radius:20px;
-font-size:12px;
-font-weight:600;
+.print-btn{
+margin-top:6px;
+padding:7px 16px;
+border-radius:6px;
+border:1px solid #000;
+background:white;
+cursor:pointer;
+font-size:13px;
+transition:all .2s ease;
 }
 
-.status-cancel{
-background:#ffd6d6;
-color:#d10000;
+.print-btn:hover{
+background:black;
+color:white;
 }
 
-.status-delivered{
-background:#d6ffe3;
-color:#008a2e;
+/* EMPTY STATE */
+
+.empty-orders{
+padding:80px 0;
+font-size:18px;
+color:#777;
 }
 
-.status-pending{
-background:#fff4d6;
-color:#9b6b00;
+/* PRINT */
+
+.print-data{
+display:none;
 }
 
 </style>
@@ -107,11 +211,11 @@ color:#9b6b00;
 
 <div id="order-{{ order.id }}" class="order-card">
 
-<div class="d-flex justify-content-between mb-20px">
+<div class="order-header">
 
 <div>
-<strong>Order #{{ order.id }}</strong><br>
-<small>Placed on {{ order.created_at|date:"d M Y" }}</small><br>
+<div class="order-id">Order #{{ order.id }}</div>
+<div class="order-date">Placed on {{ order.created_at|date:"d M Y" }}</div>
 
 {% if order.is_cancelled %}
 <span class="status-badge status-cancel">Cancelled</span>
@@ -125,20 +229,27 @@ color:#9b6b00;
 
 <div style="text-align:right">
 
-<strong>Total: ₹{{ order.total }}</strong><br>
+<div class="order-total">
+Total: ₹{{ order.total }}
+</div>
 
-<button onclick="printOrder('order-{{ order.id }}')"
-style="margin-top:5px;padding:6px 12px;border:1px solid #000;background:white;cursor:pointer;">
-Print
+<button onclick="printOrder('order-{{ order.id }}')" class="print-btn">
+Print Invoice
 </button>
 
-{% if not order.is_cancelled and not order.is_delivered %}
+{% if order.is_cancelled %}
+<span class="status-badge status-cancel">Cancelled</span>
 
-<!-- FIXED CANCEL BUTTON -->
+{% elif order.cancel_requested %}
+<span class="status-badge status-pending">Cancel request sent</span>
+
+{% elif order.is_delivered %}
+<span class="status-badge status-delivered">Delivered</span>
+
+{% else %}
 <a href="{% url 'cancel_policy' order.id %}">
 <button class="cancel-btn">Cancel Order</button>
 </a>
-
 {% endif %}
 
 </div>
@@ -170,7 +281,9 @@ Print
 
 <div>
 
-<div class="fw-600">{{ item.product.name }}</div>
+<div class="product-name">
+{{ item.product.name }}
+</div>
 
 {% if item.variant %}
 <div style="margin-top:5px">
@@ -274,7 +387,9 @@ Grand Total : ₹{{ order.total }}
 
 {% else %}
 
-<p class="text-center mt-50px">You have no orders yet.</p>
+<div class="text-center empty-orders">
+🛍️ You have no orders yet.
+</div>
 
 {% endif %}
 
