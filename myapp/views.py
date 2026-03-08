@@ -99,32 +99,52 @@ def contact(request):
             "message": "Message sent successfully!"
         })
     return render(request, "contact.html")
-from django.core.paginator import Paginator
+
 from django.db.models import Count
 
 
 
 def product(request, slug=None):
     products = Product.objects.filter(status=True).distinct()
+
     query = request.GET.get('q')
     if query:
         products = products.filter(name__icontains=query)
+
     subcategory_counts = SubCategory.objects.annotate(
         product_count=Count('products', distinct=True)
     )
+
     size_counts = Size.objects.annotate(
-    product_count=Count('productvariant__product', distinct=True))
+        product_count=Count('productvariant__product', distinct=True)
+    )
+
     if slug:
-        products = products.filter(subcategory__slug=slug)
-        pagination_base = reverse('filter_by_subcategory', args=[slug])
+
+        # NEW: CATEGORY FILTER
+        if Category.objects.filter(slug=slug).exists():
+            products = products.filter(subcategory__category__slug=slug)
+            pagination_base = reverse('filter_by_category', args=[slug])
+
+        # OLD: SUBCATEGORY FILTER
+        else:
+            products = products.filter(subcategory__slug=slug)
+            pagination_base = reverse('filter_by_subcategory', args=[slug])
+
         active_slug = slug
+
     else:
         pagination_base = reverse('product')
         active_slug = None
+
+
     size_filter = request.GET.get('size')
+
     if size_filter:
         products = products.filter(
-            variants__size__name=size_filter).distinct()
+            variants__size__name=size_filter
+        ).distinct()
+
     if request.GET.get('signature') == '1':
         products = products.filter(
             is_signature_collection=True
