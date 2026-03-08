@@ -21,6 +21,68 @@
         <link rel="stylesheet" href="/static/css/style.css"/>
         <link rel="stylesheet" href="/static/css/responsive.css"/>
         <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+        <style>
+            /* SweetAlert Premium Popup */
+
+.swal2-popup {
+    border-radius: 18px !important;
+    padding: 40px 30px !important;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 25px 80px rgba(0,0,0,0.35);
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(10px);
+}
+.page-loader,
+.preloader,
+.loader {
+    display: none !important;
+}
+
+/* Title */
+.swal2-title {
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    color: #1c1c1c !important;
+}
+
+/* Message text */
+.swal2-html-container {
+    font-size: 16px !important;
+    color: #555 !important;
+    margin-top: 10px !important;
+}
+
+/* Button */
+.swal2-confirm {
+    border-radius: 10px !important;
+    padding: 12px 28px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg,#000,#333) !important;
+    border: none !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    transition: all 0.3s ease;
+}
+
+/* Button hover */
+.swal2-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+}
+
+/* Icon circle */
+.swal2-icon {
+    transform: scale(1.1);
+}
+
+/* Dark blurred background */
+.swal2-backdrop-show {
+    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.65) !important;
+}
+        </style>
+
     </head>
     <body data-mobile-nav-style="classic">
         <!-- start header -->
@@ -83,6 +145,37 @@
         <script type="text/javascript" src="/static/js/jquery.js"></script>
         <script type="text/javascript" src="/static/js/vendors.min.js"></script>
         <script type="text/javascript" src="/static/js/main.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        {% if messages %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+{% for message in messages %}
+
+Swal.fire({
+    icon: "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}",
+    title: "{% if message.tags == 'error' %}Login Failed{% elif message.tags == 'success' %}Success{% else %}Notice{% endif %}",
+    text: "{{ message }}",
+
+    confirmButtonText: "Try Again",
+
+    showClass: {
+        popup: "animate__animated animate__zoomIn"
+    },
+    hideClass: {
+        popup: "animate__animated animate__fadeOut"
+    },
+
+    timer: 4000,
+    timerProgressBar: true
+
+});
+
+{% endfor %}
+
+});
+</script>
+{% endif %}
        <script>
 const passwordInput = document.getElementById("password");
 const passwordError = document.getElementById("password_error");
