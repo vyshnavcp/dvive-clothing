@@ -36,8 +36,7 @@ from django.db import transaction
 from django.conf import settings
 from django.urls import reverse
 from django.db.models import F
-
-
+from .decorators import role_required
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
@@ -102,8 +101,6 @@ def contact(request):
 
 from django.db.models import Count
 
-
-
 def product(request, slug=None):
     products = Product.objects.filter(status=True).distinct()
     query = request.GET.get('q')
@@ -151,374 +148,24 @@ def product(request, slug=None):
         'search_query': query,
     })
 
-@staff_member_required
-def add_category(request):
-    if request.method == "POST":
-        Category.objects.create(name=request.POST.get("name"))
-        return redirect("category_list")
-    return render(request, "add_category.html")
-
-@staff_member_required
-def category_list(request):
-    categories = Category.objects.all().order_by("id")
-    return render(request, "category_list.html", {
-        "categories": categories
-    })
-@staff_member_required
-def edit_category(request, id):
-    category = get_object_or_404(Category, id=id)
-    if request.method == "POST":
-        category.name = request.POST.get("name")
-        category.save()
-        return redirect("category_list")
-    return render(request, "edit_category.html", {
-        "category": category
-    })
-
-@staff_member_required
-def delete_category(request, id):
-    category = get_object_or_404(Category, id=id)
-    category.delete()
-    return redirect("category_list")
-
-@staff_member_required
-def add_subcategory(request):
-    categories = Category.objects.all()
-    if request.method == "POST":
-        SubCategory.objects.create(
-            name=request.POST.get("name"),
-            category_id=request.POST.get("category")
-        )
-        return redirect("subcategory_list")
-    return render(request, "add_subcategory.html", {"categories": categories})
-
-@staff_member_required
-def subcategory_list(request):
-    subcategories = SubCategory.objects.select_related("category").all()
-    return render(request, "subcategory_list.html", {
-        "subcategories": subcategories
-    })
-
-@staff_member_required
-def edit_subcategory(request, id):
-    subcategory = get_object_or_404(SubCategory, id=id)
-    categories = Category.objects.all()
-    if request.method == "POST":
-        subcategory.name = request.POST.get("name")
-        subcategory.category_id = request.POST.get("category")
-        subcategory.save()
-        return redirect("subcategory_list")
-    return render(request, "edit_subcategory.html", {
-        "subcategory": subcategory,
-        "categories": categories
-    })
-
-@staff_member_required
-def delete_subcategory(request, id):
-    subcategory = get_object_or_404(SubCategory, id=id)
-    subcategory.delete()
-    return redirect("subcategory_list")
-
-@staff_member_required
-@transaction.atomic
-def add_product(request):
-
-    subcategories = SubCategory.objects.all()
-    sizes = Size.objects.all()
-
-    if request.method == "POST":
-
-        product = Product.objects.create(
-            name=request.POST.get("name"),
-            brand=request.POST.get("brand"),
-            product_code=request.POST.get("product_code"),
-            subcategory_id=request.POST.get("subcategory"),
-            price=request.POST.get("price"),
-            cost_price=request.POST.get("cost_price") or None,
-            old_price=request.POST.get("old_price") or None,
-            description=request.POST.get("description"),
-            additional_info=request.POST.get("additional_info") or {},
-            image1=request.FILES.get("image1"),
-            image2=request.FILES.get("image2"),
-            image3=request.FILES.get("image3"),
-            image4=request.FILES.get("image4"),
-            image5=request.FILES.get("image5"),
-            status=bool(request.POST.get("status")),
-            is_signature_collection=bool(request.POST.get("is_signature_collection")),
-            is_featured=bool(request.POST.get("is_featured")),
-            is_best_seller=bool(request.POST.get("is_best_seller")),
-        )
-
-        color_names = request.POST.getlist("color_name[]")
-        color_hexes = request.POST.getlist("color_hex[]")
-        size_ids = request.POST.getlist("variant_size[]")
-        stocks = request.POST.getlist("variant_stock[]")
-
-        total_stock = 0
-        created_colors = {}
-
-        for i in range(len(color_names)):
-
-            # Only skip if color name empty
-            if not color_names[i]:
-                continue
-
-            # Create color only once
-            if color_names[i] not in created_colors:
-                color = ProductColor.objects.create(
-                    product=product,
-                    name=color_names[i],
-                    hex_code=color_hexes[i]
-                )
-                created_colors[color_names[i]] = color
-            else:
-                color = created_colors[color_names[i]]
-
-            stock_value = int(stocks[i] or 0)
-
-            ProductVariant.objects.create(
-                product=product,
-                color=color,
-                size_id=size_ids[i] if size_ids[i] else None,  # allow NULL size
-                stock=stock_value
-            )
-
-            total_stock += stock_value
-
-        product.stock = total_stock
-        product.save()
-
-        return redirect("product_list")
-
-    return render(request, "add_product.html", {
-        "subcategories": subcategories,
-        "sizes": sizes
-    })
-
-@staff_member_required
-def product_list(request):
-    products = Product.objects.select_related("subcategory").all()
-    return render(request, "product_list.html", {
-        "products": products
-    })
-@staff_member_required
-@transaction.atomic
-def edit_product(request, slug):
-
-    product = get_object_or_404(Product, slug=slug)
-    subcategories = SubCategory.objects.all()
-    sizes = Size.objects.all()
-
-    if request.method == "POST":
-
-        # BASIC FIELDS
-        product.name = request.POST.get("name")
-        product.brand = request.POST.get("brand")
-        product.product_code = request.POST.get("product_code")
-        product.subcategory_id = request.POST.get("subcategory")
-        product.price = request.POST.get("price")
-        product.cost_price = request.POST.get("cost_price") or None
-        product.old_price = request.POST.get("old_price") or None
-        product.description = request.POST.get("description")
-        product.status = bool(request.POST.get("status"))
-        product.is_signature_collection = bool(request.POST.get("is_signature_collection"))
-        product.is_featured = bool(request.POST.get("is_featured"))
-        product.is_best_seller = bool(request.POST.get("is_best_seller"))
-
-        for i in range(1, 6):
-            img = request.FILES.get(f"image{i}")
-            if img:
-                setattr(product, f"image{i}", img)
-
-        product.save()
-
-        ProductVariant.objects.filter(product=product).delete()
-        ProductColor.objects.filter(product=product).delete()
-
-        color_names = request.POST.getlist("color_name[]")
-        color_hexes = request.POST.getlist("color_hex[]")
-        size_ids = request.POST.getlist("variant_size[]")
-        stocks = request.POST.getlist("variant_stock[]")
-
-        total_stock = 0
-        created_colors = {}
-
-        for i in range(len(color_names)):
-
-            # ✅ FIXED: allow No Size variants
-            if not color_names[i]:
-                continue
-
-            if color_names[i] not in created_colors:
-                color = ProductColor.objects.create(
-                    product=product,
-                    name=color_names[i],
-                    hex_code=color_hexes[i]
-                )
-                created_colors[color_names[i]] = color
-            else:
-                color = created_colors[color_names[i]]
-
-            stock_value = int(stocks[i] or 0)
-
-            ProductVariant.objects.create(
-                product=product,
-                color=color,
-                size_id=size_ids[i] if size_ids[i] else None,
-                stock=stock_value
-            )
-
-            total_stock += stock_value
-
-        product.stock = total_stock
-        product.save()
-
-        return redirect("product_list")
-
-    variants = ProductVariant.objects.filter(product=product).select_related("color", "size")
-
-    return render(request, "edit_product.html", {
-        "product": product,
-        "subcategories": subcategories,
-        "sizes": sizes,
-        "variants": variants
-    })
-
-@staff_member_required
-def delete_product(request, slug):
-    product = get_object_or_404(Product, slug=slug)
-    product.delete()
-    messages.success(request, "Product deleted")
-    return redirect("product_list")
-
-@staff_member_required
-def add_size(request):
-    if request.method == "POST":
-        Size.objects.create(
-            name=request.POST.get("name"),
-            order=request.POST.get("order")
-        )
-        return redirect("size_list")
-    return render(request, "add_size.html")
-
-@staff_member_required
-def size_list(request):
-    sizes = Size.objects.all().order_by("order")
-    return render(request, "size_list.html", {
-        "sizes": sizes
-    })
-
-@staff_member_required
-def edit_size(request, id):
-    size = get_object_or_404(Size, id=id)
-    if request.method == "POST":
-        size.name = request.POST.get("name")
-        size.order = request.POST.get("order")
-        size.save()
-        return redirect("size_list")
-    return render(request, "edit_size.html", {
-        "size": size
-    })
-
-@staff_member_required
-def delete_size(request, id):
-    size = get_object_or_404(Size, id=id)
-    size.delete()
-    return redirect("size_list")
-
-
-@staff_member_required
-def add_coupon(request):
-    if request.method == "POST":
-        Coupon.objects.create(
-            code=request.POST.get("code"),
-            discount_amount=request.POST.get("discount"),
-            min_cart_value=request.POST.get("min_cart"),
-            expiry_date=request.POST.get("expiry")
-        )
-        return redirect("coupon_list")
-    return render(request, "add_coupon.html")
-
-@staff_member_required
-def coupon_list(request):
-    coupons = Coupon.objects.all().order_by("-id")
-    return render(request, "coupon_list.html", {"coupons": coupons})
-
-@staff_member_required
-def edit_coupon(request, id):
-    coupon = get_object_or_404(Coupon, id=id)
-    if request.method == "POST":
-        coupon.code = request.POST.get("code")
-        coupon.discount_amount = request.POST.get("discount")
-        coupon.min_cart_value = request.POST.get("min_cart")
-        coupon.expiry_date = request.POST.get("expiry")
-        coupon.save()
-        return redirect("coupon_list")
-    return render(request, "edit_coupon.html", {"coupon": coupon})
-
-@staff_member_required
-def delete_coupon(request, id):
-    coupon = get_object_or_404(Coupon, id=id)
-    coupon.delete()
-    return redirect("coupon_list")
-
-def article_list(request):
-    articles = Article.objects.all().order_by('-posted_on')
-    return render(request, 'article_list.html', {'articles': articles})
-
-def add_article(request):
-    form = ArticleForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Article Added Successfully")
-        return redirect('article_list')
-    return render(request, 'add_article.html', {'form': form})
-
-def edit_article(request, slug):
-    article = get_object_or_404(Article, slug=slug)
-    if request.method == "POST":
-        title = request.POST.get('title', '').strip()
-        content = request.POST.get('content', '').strip()
-        if not title or not content:
-            messages.error(request, "Title and content required")
-            return redirect('edit_article', slug=slug)
-        article.title = title
-        article.content = content
-        if request.FILES.get('image'):
-            article.image = request.FILES.get('image')
-        article.save()
-        messages.success(request, "Article Updated Successfully")
-        return redirect('article_list')
-    return render(request, 'edit_article.html', {'article': article})
-
-def delete_article(request, slug):
-    article = get_object_or_404(Article, slug=slug)
-    article.delete()
-    messages.success(request, "Article Deleted Successfully")
-    return redirect('article_list')
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     variants = product.variants.select_related('size', 'color')
     colors = list({v.color for v in variants if v.color})
     sizes = list({v.size for v in variants if v.size})
-
     reviews = Review.objects.filter(product=product).order_by('-id')
     first_three_reviews = reviews[:3]
     remaining_reviews = reviews[3:]
-
     average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
     total_reviews = reviews.count()
     rating_counts = reviews.values('rating').annotate(count=Count('rating'))
     rating_dict = {i: 0 for i in range(1, 6)}
-
     for item in rating_counts:
         rating_dict[item['rating']] = item['count']
-
     rating_percent = {}
     for i in range(1, 6):
         rating_percent[i] = round((rating_dict[i] / total_reviews) * 100) if total_reviews else 0
-
     related_products = Product.objects.filter(
         subcategory=product.subcategory
     ).exclude(id=product.id)[:4]
@@ -528,17 +175,11 @@ def product_detail(request, slug):
         img = getattr(product, img_field)
         if img:
             product_images.append(img.url)
-
-    # ✅ FIXED VARIANT STOCK LOGIC
     variant_stock = {}
     for v in variants:
-
-        # color + size
         if v.size_id and v.color_id:
             key = f"{v.color_id}-{v.size_id}"
             variant_stock[key] = v.stock
-
-        # color only (size = NULL)
         elif v.color_id and not v.size_id:
             key = f"{v.color_id}"
             variant_stock[key] = v.stock
@@ -556,6 +197,80 @@ def product_detail(request, slug):
         'related_products': related_products,
         'product_images': product_images,
         'variant_stock': variant_stock,
+    })
+
+def add_to_cart(request, product_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "success": False,
+            "message": "Please login to add items to your cart."
+        })
+    product = get_object_or_404(Product, id=product_id)
+
+    size_id = request.POST.get("size")
+    color_id = request.POST.get("color")
+
+    try:
+        quantity = int(request.POST.get("quantity", 1))
+    except (TypeError, ValueError):
+        quantity = 1
+
+    if quantity < 1:
+        quantity = 1
+
+    if not color_id:
+        return JsonResponse({
+            "success": False,
+            "message": "Please select a color."
+        })
+    variant = product.variants.filter(
+        size_id=size_id,
+        color_id=color_id
+    ).first()
+    if not variant:
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid size/color combination."
+        })
+    if variant.stock <= 0:
+        return JsonResponse({
+            "success": False,
+            "message": "This variant is out of stock."
+        })
+    if quantity > variant.stock:
+        return JsonResponse({
+            "success": False,
+            "message": f"Only {variant.stock} item(s) available."
+        })
+
+    registration = get_object_or_404(Registration, authuser=request.user)
+    cart, _ = Cart.objects.get_or_create(registration=registration)
+
+    item, created = CartItem.objects.get_or_create(
+        cart=cart,
+        product=product,
+        variant=variant,
+        defaults={
+            "quantity": quantity,
+            "price": product.price  
+        }
+    )
+    if not created:
+        new_quantity = item.quantity + quantity
+
+        if new_quantity > variant.stock:
+            return JsonResponse({
+                "success": False,
+                "message": f"Only {variant.stock} item(s) available."
+            })
+
+        item.quantity = new_quantity
+        item.save()
+    cart_count = cart.items.count()
+    return JsonResponse({
+        "success": True,
+        "message": "Product added to cart!",
+        "cart_count": cart_count
     })
 
 @login_required
@@ -730,79 +445,6 @@ def review_post(request, slug):
         'message': '⚠ Invalid request method.'
     })
 
-def add_to_cart(request, product_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({
-            "success": False,
-            "message": "Please login to add items to your cart."
-        })
-    product = get_object_or_404(Product, id=product_id)
-
-    size_id = request.POST.get("size")
-    color_id = request.POST.get("color")
-
-    try:
-        quantity = int(request.POST.get("quantity", 1))
-    except (TypeError, ValueError):
-        quantity = 1
-
-    if quantity < 1:
-        quantity = 1
-
-    if not color_id:
-        return JsonResponse({
-            "success": False,
-            "message": "Please select a color."
-        })
-    variant = product.variants.filter(
-        size_id=size_id,
-        color_id=color_id
-    ).first()
-    if not variant:
-        return JsonResponse({
-            "success": False,
-            "message": "Invalid size/color combination."
-        })
-    if variant.stock <= 0:
-        return JsonResponse({
-            "success": False,
-            "message": "This variant is out of stock."
-        })
-    if quantity > variant.stock:
-        return JsonResponse({
-            "success": False,
-            "message": f"Only {variant.stock} item(s) available."
-        })
-
-    registration = get_object_or_404(Registration, authuser=request.user)
-    cart, _ = Cart.objects.get_or_create(registration=registration)
-
-    item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        product=product,
-        variant=variant,
-        defaults={
-            "quantity": quantity,
-            "price": product.price  
-        }
-    )
-    if not created:
-        new_quantity = item.quantity + quantity
-
-        if new_quantity > variant.stock:
-            return JsonResponse({
-                "success": False,
-                "message": f"Only {variant.stock} item(s) available."
-            })
-
-        item.quantity = new_quantity
-        item.save()
-    cart_count = cart.items.count()
-    return JsonResponse({
-        "success": True,
-        "message": "Product added to cart!",
-        "cart_count": cart_count
-    })
 
 @login_required(login_url='user_login')
 def cart_page(request):
@@ -1196,11 +838,13 @@ def my_orders(request):
         "orders": orders
     })
 
-from .decorators import role_required
+
 @user_passes_test(
     lambda u: u.is_authenticated and u.is_staff,
     login_url='user_login'
 )
+# Dashbord all options 
+
 def dashboard(request):
     today = now().date()
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
@@ -1248,6 +892,323 @@ def dashboard(request):
     }
 
     return render(request, "dashboard.html", context)
+
+@staff_member_required
+def add_category(request):
+    if request.method == "POST":
+        Category.objects.create(name=request.POST.get("name"))
+        return redirect("category_list")
+    return render(request, "add_category.html")
+
+@staff_member_required
+def category_list(request):
+    categories = Category.objects.all().order_by("id")
+    return render(request, "category_list.html", {
+        "categories": categories
+    })
+@staff_member_required
+def edit_category(request, id):
+    category = get_object_or_404(Category, id=id)
+    if request.method == "POST":
+        category.name = request.POST.get("name")
+        category.save()
+        return redirect("category_list")
+    return render(request, "edit_category.html", {
+        "category": category
+    })
+
+@staff_member_required
+def delete_category(request, id):
+    category = get_object_or_404(Category, id=id)
+    category.delete()
+    return redirect("category_list")
+
+@staff_member_required
+def add_subcategory(request):
+    categories = Category.objects.all()
+    if request.method == "POST":
+        SubCategory.objects.create(
+            name=request.POST.get("name"),
+            category_id=request.POST.get("category")
+        )
+        return redirect("subcategory_list")
+    return render(request, "add_subcategory.html", {"categories": categories})
+
+@staff_member_required
+def subcategory_list(request):
+    subcategories = SubCategory.objects.select_related("category").all()
+    return render(request, "subcategory_list.html", {
+        "subcategories": subcategories
+    })
+
+@staff_member_required
+def edit_subcategory(request, id):
+    subcategory = get_object_or_404(SubCategory, id=id)
+    categories = Category.objects.all()
+    if request.method == "POST":
+        subcategory.name = request.POST.get("name")
+        subcategory.category_id = request.POST.get("category")
+        subcategory.save()
+        return redirect("subcategory_list")
+    return render(request, "edit_subcategory.html", {
+        "subcategory": subcategory,
+        "categories": categories
+    })
+
+@staff_member_required
+def delete_subcategory(request, id):
+    subcategory = get_object_or_404(SubCategory, id=id)
+    subcategory.delete()
+    return redirect("subcategory_list")
+
+@staff_member_required
+@transaction.atomic
+def add_product(request):
+    subcategories = SubCategory.objects.all()
+    sizes = Size.objects.all()
+    if request.method == "POST":
+        product = Product.objects.create(
+            name=request.POST.get("name"),
+            brand=request.POST.get("brand"),
+            product_code=request.POST.get("product_code"),
+            subcategory_id=request.POST.get("subcategory"),
+            price=request.POST.get("price"),
+            cost_price=request.POST.get("cost_price") or None,
+            old_price=request.POST.get("old_price") or None,
+            description=request.POST.get("description"),
+            additional_info=request.POST.get("additional_info") or {},
+            image1=request.FILES.get("image1"),
+            image2=request.FILES.get("image2"),
+            image3=request.FILES.get("image3"),
+            image4=request.FILES.get("image4"),
+            image5=request.FILES.get("image5"),
+            status=bool(request.POST.get("status")),
+            is_signature_collection=bool(request.POST.get("is_signature_collection")),
+            is_featured=bool(request.POST.get("is_featured")),
+            is_best_seller=bool(request.POST.get("is_best_seller")),
+        )
+        color_names = request.POST.getlist("color_name[]")
+        color_hexes = request.POST.getlist("color_hex[]")
+        size_ids = request.POST.getlist("variant_size[]")
+        stocks = request.POST.getlist("variant_stock[]")
+        total_stock = 0
+        created_colors = {}
+        for i in range(len(color_names)):
+            if not color_names[i]:
+                continue
+            if color_names[i] not in created_colors:
+                color = ProductColor.objects.create(
+                    product=product,
+                    name=color_names[i],
+                    hex_code=color_hexes[i]
+                )
+                created_colors[color_names[i]] = color
+            else:
+                color = created_colors[color_names[i]]
+
+            stock_value = int(stocks[i] or 0)
+
+            ProductVariant.objects.create(
+                product=product,
+                color=color,
+                size_id=size_ids[i] if size_ids[i] else None, 
+                stock=stock_value
+            )
+
+            total_stock += stock_value
+
+        product.stock = total_stock
+        product.save()
+
+        return redirect("product_list")
+
+    return render(request, "add_product.html", {
+        "subcategories": subcategories,
+        "sizes": sizes
+    })
+
+@staff_member_required
+def product_list(request):
+    products = Product.objects.select_related("subcategory").all()
+    return render(request, "product_list.html", {
+        "products": products
+    })
+@staff_member_required
+@transaction.atomic
+def edit_product(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    subcategories = SubCategory.objects.all()
+    sizes = Size.objects.all()
+    if request.method == "POST":
+        product.name = request.POST.get("name")
+        product.brand = request.POST.get("brand")
+        product.product_code = request.POST.get("product_code")
+        product.subcategory_id = request.POST.get("subcategory")
+        product.price = request.POST.get("price")
+        product.cost_price = request.POST.get("cost_price") or None
+        product.old_price = request.POST.get("old_price") or None
+        product.description = request.POST.get("description")
+        product.status = bool(request.POST.get("status"))
+        product.is_signature_collection = bool(request.POST.get("is_signature_collection"))
+        product.is_featured = bool(request.POST.get("is_featured"))
+        product.is_best_seller = bool(request.POST.get("is_best_seller"))
+        for i in range(1, 6):
+            img = request.FILES.get(f"image{i}")
+            if img:
+                setattr(product, f"image{i}", img)
+        product.save()
+        ProductVariant.objects.filter(product=product).delete()
+        ProductColor.objects.filter(product=product).delete()
+        color_names = request.POST.getlist("color_name[]")
+        color_hexes = request.POST.getlist("color_hex[]")
+        size_ids = request.POST.getlist("variant_size[]")
+        stocks = request.POST.getlist("variant_stock[]")
+        total_stock = 0
+        created_colors = {}
+        for i in range(len(color_names)):
+            if not color_names[i]:
+                continue
+
+            if color_names[i] not in created_colors:
+                color = ProductColor.objects.create(
+                    product=product,
+                    name=color_names[i],
+                    hex_code=color_hexes[i]
+                )
+                created_colors[color_names[i]] = color
+            else:
+                color = created_colors[color_names[i]]
+            stock_value = int(stocks[i] or 0)
+            ProductVariant.objects.create(
+                product=product,
+                color=color,
+                size_id=size_ids[i] if size_ids[i] else None,
+                stock=stock_value
+            )
+            total_stock += stock_value
+        product.stock = total_stock
+        product.save()
+        return redirect("product_list")
+    variants = ProductVariant.objects.filter(product=product).select_related("color", "size")
+    return render(request, "edit_product.html", {
+        "product": product,
+        "subcategories": subcategories,
+        "sizes": sizes,
+        "variants": variants
+    })
+
+@staff_member_required
+def delete_product(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    product.delete()
+    messages.success(request, "Product deleted")
+    return redirect("product_list")
+
+@staff_member_required
+def add_size(request):
+    if request.method == "POST":
+        Size.objects.create(
+            name=request.POST.get("name"),
+            order=request.POST.get("order")
+        )
+        return redirect("size_list")
+    return render(request, "add_size.html")
+
+@staff_member_required
+def size_list(request):
+    sizes = Size.objects.all().order_by("order")
+    return render(request, "size_list.html", {
+        "sizes": sizes
+    })
+
+@staff_member_required
+def edit_size(request, id):
+    size = get_object_or_404(Size, id=id)
+    if request.method == "POST":
+        size.name = request.POST.get("name")
+        size.order = request.POST.get("order")
+        size.save()
+        return redirect("size_list")
+    return render(request, "edit_size.html", {
+        "size": size
+    })
+
+@staff_member_required
+def delete_size(request, id):
+    size = get_object_or_404(Size, id=id)
+    size.delete()
+    return redirect("size_list")
+
+
+@staff_member_required
+def add_coupon(request):
+    if request.method == "POST":
+        Coupon.objects.create(
+            code=request.POST.get("code"),
+            discount_amount=request.POST.get("discount"),
+            min_cart_value=request.POST.get("min_cart"),
+            expiry_date=request.POST.get("expiry")
+        )
+        return redirect("coupon_list")
+    return render(request, "add_coupon.html")
+
+@staff_member_required
+def coupon_list(request):
+    coupons = Coupon.objects.all().order_by("-id")
+    return render(request, "coupon_list.html", {"coupons": coupons})
+
+@staff_member_required
+def edit_coupon(request, id):
+    coupon = get_object_or_404(Coupon, id=id)
+    if request.method == "POST":
+        coupon.code = request.POST.get("code")
+        coupon.discount_amount = request.POST.get("discount")
+        coupon.min_cart_value = request.POST.get("min_cart")
+        coupon.expiry_date = request.POST.get("expiry")
+        coupon.save()
+        return redirect("coupon_list")
+    return render(request, "edit_coupon.html", {"coupon": coupon})
+
+@staff_member_required
+def delete_coupon(request, id):
+    coupon = get_object_or_404(Coupon, id=id)
+    coupon.delete()
+    return redirect("coupon_list")
+
+def article_list(request):
+    articles = Article.objects.all().order_by('-posted_on')
+    return render(request, 'article_list.html', {'articles': articles})
+
+def add_article(request):
+    form = ArticleForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Article Added Successfully")
+        return redirect('article_list')
+    return render(request, 'add_article.html', {'form': form})
+
+def edit_article(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    if request.method == "POST":
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+        if not title or not content:
+            messages.error(request, "Title and content required")
+            return redirect('edit_article', slug=slug)
+        article.title = title
+        article.content = content
+        if request.FILES.get('image'):
+            article.image = request.FILES.get('image')
+        article.save()
+        messages.success(request, "Article Updated Successfully")
+        return redirect('article_list')
+    return render(request, 'edit_article.html', {'article': article})
+
+def delete_article(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    article.delete()
+    messages.success(request, "Article Deleted Successfully")
+    return redirect('article_list')
 
 @role_required(["Accountant"])
 @login_required(login_url='user_login')
