@@ -106,50 +106,37 @@ from django.db.models import Count
 
 def product(request, slug=None):
     products = Product.objects.filter(status=True).distinct()
-
     query = request.GET.get('q')
     if query:
         products = products.filter(name__icontains=query)
-
     subcategory_counts = SubCategory.objects.annotate(
         product_count=Count('products', distinct=True)
     )
-
     size_counts = Size.objects.annotate(
         product_count=Count('productvariant__product', distinct=True)
     )
-
     if slug:
-
-        # NEW: CATEGORY FILTER
         if Category.objects.filter(slug=slug).exists():
             products = products.filter(subcategory__category__slug=slug)
             pagination_base = reverse('filter_by_category', args=[slug])
-
-        # OLD: SUBCATEGORY FILTER
         else:
             products = products.filter(subcategory__slug=slug)
             pagination_base = reverse('filter_by_subcategory', args=[slug])
 
         active_slug = slug
-
     else:
         pagination_base = reverse('product')
         active_slug = None
-
-
     size_filter = request.GET.get('size')
 
     if size_filter:
         products = products.filter(
             variants__size__name=size_filter
         ).distinct()
-
     if request.GET.get('signature') == '1':
         products = products.filter(
             is_signature_collection=True
         )
-
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -670,39 +657,26 @@ def staff_required(user):
 def user_login(request):
     return render(request,'login.html')
 def login_post(request):
-
     login_input = request.POST.get('name','').strip()
     password = request.POST.get('password','').strip()
-
     if not login_input:
         messages.error(request,"Username or Email required")
         return redirect('user_login')
-
     if not password:
         messages.error(request,"Password required")
         return redirect('user_login')
-
     try:
         user_obj = User.objects.get(email__iexact=login_input)
         username = user_obj.username
     except User.DoesNotExist:
         username = login_input
-
     user = authenticate(request,username=username,password=password)
-
     if user:
-
         login(request,user)
-
-        # Superuser
         if user.is_superuser:
             return redirect("dashboard")
-
-        # Accountant
         if user.groups.filter(name="Accountant").exists():
             return redirect("dashboard")
-
-        # Staff
         if user.groups.filter(name="Staff").exists():
             return redirect("dashboard")
 
@@ -872,7 +846,6 @@ def cart_page(request):
 
                 cart.save()
     cart.update_totals()
-
     return render(request, "cart.html", {
         "cart": cart,
         "items": items,
@@ -961,13 +934,10 @@ def checkout_post(request):
     registration = get_object_or_404(Registration, authuser=request.user)
     cart = get_object_or_404(Cart, registration=registration)
     profile, created = UserProfile.objects.get_or_create(user=request.user)
-
     items = cart.items.select_related("product", "variant")
-
     if not items.exists():
         messages.warning(request, "Your cart is empty")
         return redirect("cart_page")
-
     first_name = request.POST.get("first_name")
     email = request.POST.get("email")
     phone = request.POST.get("phone")
@@ -977,7 +947,6 @@ def checkout_post(request):
     pincode = request.POST.get("pincode")
     land_mark = request.POST.get("land_mark")
     payment_method = request.POST.get("payment-option")
-
     profile.address = address
     profile.phone = phone
     profile.town = town
@@ -995,9 +964,7 @@ def checkout_post(request):
                 f"only {item.variant.stock} item(s) available."
             )
             return redirect("cart_page")
-        
     if payment_method == "cod":
-
         order = Order.objects.create(
             registration=registration,
             first_name=first_name,
@@ -1037,15 +1004,12 @@ def checkout_post(request):
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
-
     amount = int(cart.total() * 100)
-
     razorpay_order = client.order.create({
         "amount": amount,
         "currency": "INR",
         "payment_capture": "1"
     })
-
     order = Order.objects.create(
         registration=registration,
         first_name=first_name,
@@ -1064,7 +1028,6 @@ def checkout_post(request):
         razorpay_order_id=razorpay_order["id"],
         payment_status=False
     )
-
     for item in items:
         OrderItem.objects.create(
             order=order,
@@ -1145,111 +1108,80 @@ def ajax_shipping_charge(request):
     })
 
 def payment_success_post(request):
-
     if request.method != "POST":
         return JsonResponse({"success": False})
-
     data = json.loads(request.body)
-
     razorpay_payment_id = data.get("razorpay_payment_id")
     razorpay_order_id = data.get("razorpay_order_id")
     razorpay_signature = data.get("razorpay_signature")
-
     client = razorpay.Client(auth=(
         settings.RAZORPAY_KEY_ID,
         settings.RAZORPAY_KEY_SECRET
     ))
-
     try:
         client.utility.verify_payment_signature({
             "razorpay_order_id": razorpay_order_id,
             "razorpay_payment_id": razorpay_payment_id,
             "razorpay_signature": razorpay_signature
         })
-
         order = get_object_or_404(Order, razorpay_order_id=razorpay_order_id)
-
-        # Prevent duplicate stock reduction
         if order.payment_status:
             return JsonResponse({
                 "success": True,
                 "redirect_url": f"/payment-success/?order_id={order.id}"
             })
-
         order.razorpay_payment_id = razorpay_payment_id
         order.payment_status = True
         order.save(update_fields=["razorpay_payment_id", "payment_status"])
-
-        # 🔥 Reduce Variant Stock
         for item in order.items.select_related("variant"):
-
             variant = item.variant
-
             if variant.stock < item.quantity:
                 return JsonResponse({
                     "success": False,
                     "message": "Stock not available"
                 })
-
             variant.stock -= item.quantity
             variant.save(update_fields=["stock"])
-
-        # Clear Cart
         cart = Cart.objects.filter(registration=order.registration).first()
-
         if cart:
             cart.items.all().delete()
             cart.coupon_code = None
             cart.coupon_discount = Decimal("0.00")
             cart.update_totals()
-
         return JsonResponse({
             "success": True,
             "redirect_url": f"/payment-success/?order_id={order.id}"
         })
-
     except razorpay.errors.SignatureVerificationError:
         return JsonResponse({"success": False})
     
 @login_required
 def order_success(request):
-
     order_id = request.GET.get("order_id")
     order = None
-
     if order_id:
         order = Order.objects.filter(id=order_id, registration=request.user).first()
-
     return render(request, "order_success.html", {"order": order})
 
 @login_required
 def profile(request):
-
     profile, created = UserProfile.objects.get_or_create(user=request.user)
-
     if request.method == "POST":
-
         profile.phone = request.POST.get("phone", "").strip()
         profile.address = request.POST.get("address", "").strip()
-
         profile.town = request.POST.get("town", "").strip()
         profile.state = request.POST.get("state", "").strip()
         profile.pincode = request.POST.get("pincode", "").strip()
         profile.land_mark = request.POST.get("land_mark", "").strip()
-
         if "image" in request.FILES:
             profile.image = request.FILES["image"]
-
         profile.save()
-
         messages.success(request, "Profile updated successfully!")
-
     return render(request, "profile.html", {"profile": profile})
 
 @login_required
 def my_orders(request):
     registration = get_object_or_404(Registration, authuser=request.user)
-
     orders = (
         Order.objects
         .filter(registration=registration)
@@ -1260,7 +1192,6 @@ def my_orders(request):
         )
         .order_by("-created_at")
     )
-
     return render(request, "my_orders.html", {
         "orders": orders
     })
@@ -1271,54 +1202,38 @@ from .decorators import role_required
     login_url='user_login'
 )
 def dashboard(request):
-
     today = now().date()
-
-    # Admin + Accountant → full orders
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.all().order_by('-created_at')
-
-    # Staff → POS only
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
-
     paid_orders = orders.filter(payment_status=True, is_cancelled=False)
-
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
-
     today_revenue = paid_orders.filter(
         created_at__date=today
     ).aggregate(total=Sum("total"))["total"] or 0
-
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
-
     pending_orders = orders.filter(
         payment_status=False,
         is_cancelled=False
     ).count()
-
     pos_pending_payment = orders.filter(
         is_pos_order=True,
         payment_status=False,
         is_cancelled=False
     ).count()
-
     total_customers = Registration.objects.count()
     total_products = Product.objects.count()
-
     total_income = Decimal("0.00")
-
     order_items = OrderItem.objects.filter(
         order__payment_status=True,
         order__is_cancelled=False
     ).select_related("product")
-
     for item in order_items:
         if item.product and item.product.cost_price:
             profit = (item.price - item.product.cost_price) * item.quantity
             total_income += profit
-
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
@@ -1379,14 +1294,11 @@ def report_page(request):
 @login_required(login_url='user_login')
 @user_passes_test(staff_required, login_url='home')
 def order_list(request):
-
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.all()
     else:
         orders = Order.objects.filter(is_pos_order=True)
-
     orders = orders.order_by('-created_at')
-
     return render(request, 'orders_view.html', {
         'orders': orders,
         'title': 'All Orders'
@@ -1396,7 +1308,6 @@ def order_list(request):
 @login_required(login_url='user_login')
 @user_passes_test(staff_required, login_url='home')
 def paid_orders(request):
-
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.filter(payment_status=True, is_cancelled=False)
     else:
@@ -1405,7 +1316,6 @@ def paid_orders(request):
             payment_status=True,
             is_cancelled=False
         )
-
     return render(request, 'orders_view.html', {
         'orders': orders.order_by('-created_at'),
         'title': 'Paid Orders'
@@ -1415,7 +1325,6 @@ def paid_orders(request):
 @login_required(login_url='user_login')
 @user_passes_test(staff_required, login_url='home')
 def pending_orders(request):
-
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.filter(payment_status=False, is_cancelled=False)
     else:
@@ -1424,7 +1333,6 @@ def pending_orders(request):
             payment_status=False,
             is_cancelled=False
         )
-
     return render(request, 'orders_view.html', {
         'orders': orders.order_by('-created_at'),
         'title': 'Pending Orders'
@@ -1453,62 +1361,39 @@ def order_detail(request, order_id):
 @role_required(["Accountant","Staff"])
 def mark_order_completed(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-
     if request.method == "POST":
         reference = request.POST.get("reference", "").strip()
-
         order.reference = reference
         order.is_completed = True
         order.is_delivered = True
-
         if order.payment_method == "cod":
             order.payment_status = True
-
         order.save()
-
         messages.success(request, "Order marked as completed.")
-
         return redirect("dashboard")
-
     return redirect("dashboard")
-
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib import messages
 
 @role_required(["Accountant","Staff"])
 def cancel_order(request, order_id):
-
     order = get_object_or_404(Order, id=order_id)
-
     if order.is_cancelled:
         messages.warning(request, "Order already cancelled.")
         return redirect("dashboard")
-
     if not order.is_delivered:
-
-        # Restore Stock
         for item in order.items.all():
-
             if hasattr(item, "variant") and item.variant:
                 item.variant.stock = F("stock") + item.quantity
                 item.variant.save(update_fields=["stock"])
-
             else:
                 item.product.stock = F("stock") + item.quantity
                 item.product.save(update_fields=["stock"])
-
-        # Razorpay Refund (only if Razorpay payment completed)
         if order.payment_method == "razorpay" and order.payment_status:
-
             try:
-
                 client = razorpay.Client(auth=(
                     settings.RAZORPAY_KEY_ID,
                     settings.RAZORPAY_KEY_SECRET
                 ))
-
                 refund_amount = int(order.total * 100)
-
                 refund = client.payment.refund(
                     order.razorpay_payment_id,
                     {
@@ -1516,23 +1401,18 @@ def cancel_order(request, order_id):
                         "speed": "normal"
                     }
                 )
-
                 order.refund_id = refund["id"]
                 order.refund_status = True
                 order.refund_processed = True
 
                 messages.success(request, "Order cancelled and Razorpay refund initiated.")
-
             except Exception as e:
                 print("Refund Error:", e)
                 messages.error(request, "Order cancelled but refund failed.")
-
         else:
             messages.success(request, "Order cancelled and stock restored.")
-
         order.is_cancelled = True
         order.save()
-
     return redirect("dashboard")
 
 @role_required(["Accountant","Staff"])
@@ -1808,7 +1688,6 @@ def pos_create_order(request):
             else:
                 if product.stock < quantity:
                     raise Exception(f"{product.name} stock not enough")
-
                 product.stock -= quantity
                 product.save()
                 OrderItem.objects.create(
@@ -1916,27 +1795,20 @@ def pos_update_order(request, order_id):
 @role_required(["Accountant"])
 @staff_member_required
 def total_income_page(request):
-
     order_items = OrderItem.objects.filter(
         order__is_cancelled=False,
         order__is_delivered=True
     ).select_related("product")
-
     product_data = []
     total_income = 0
     total_revenue = 0
-
     for item in order_items:
-
         if item.product.cost_price:
-
             profit_per_item = item.price - item.product.cost_price
             total_profit = profit_per_item * item.quantity
             total_selling = item.price * item.quantity
-
             total_income += total_profit
             total_revenue += total_selling
-
             product_data.append({
                 "product": item.product,
                 "quantity": item.quantity,
@@ -1946,7 +1818,6 @@ def total_income_page(request):
                 "total_profit": total_profit,
                 "total_selling": total_selling
             })
-
     return render(request, "total_income.html", {
         "title": "Total Income Report",
         "products": product_data,
@@ -1956,46 +1827,34 @@ def total_income_page(request):
 
 @role_required(["Accountant"])
 def create_user(request):
-
     if request.method == "POST":
-
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
         group_name = request.POST.get("group")
-
         if User.objects.filter(username=username).exists():
             messages.error(request,"Username already exists")
             return redirect("create_user")
-
         if User.objects.filter(email=email).exists():
             messages.error(request,"Email already exists")
             return redirect("create_user")
-
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
-
         group = Group.objects.get(name=group_name)
         user.groups.add(group)
-
         user.is_staff = True
         user.save()
-
         messages.success(request,"Employee Created Successfully")
-
         return redirect("employee_list")
-
     return render(request,"create_user.html")
 
 def employee_list(request):
-
     employees = User.objects.filter(
         groups__name__in=["Accountant", "Staff"]
     ).distinct()
-
     return render(request,"employee_list.html",{
         "employees":employees
     })
@@ -2004,41 +1863,30 @@ def employee_list(request):
 @role_required(["Accountant"])
 @login_required(login_url="user_login")
 def delete_employee(request, user_id):
-
     user = get_object_or_404(User, id=user_id)
-
-    # Prevent deleting super admin
     if user.is_superuser:
         messages.error(request, "Admin cannot be deleted")
         return redirect("employee_list")
-
     user.delete()
-
     messages.success(request, "Employee deleted successfully")
     return redirect("employee_list")
 
 @login_required
 def cancel_policy(request, order_id):
-
     order = get_object_or_404(Order, id=order_id)
-
     return render(request,"cancel_policy.html",{
         "order":order
     })
 
 @login_required
 def confirm_cancel_request(request, order_id):
-
     order = get_object_or_404(Order, id=order_id)
-
     order.cancel_requested = True
     order.save()
-
     return redirect("my_orders")
 
 @role_required(["Accountant"])
 def refund_requests(request):
-
     orders = Order.objects.filter(
         cancel_requested=True,
         refund_processed=False
@@ -2050,18 +1898,13 @@ def refund_requests(request):
 
 @role_required(["Accountant"])
 def process_refund(request, order_id):
-
     order = get_object_or_404(Order, id=order_id)
-
     try:
-
         client = razorpay.Client(auth=(
             settings.RAZORPAY_KEY_ID,
             settings.RAZORPAY_KEY_SECRET
         ))
-
         refund_amount = int(order.total * 100)
-
         refund = client.payment.refund(
             order.razorpay_payment_id,
             {
@@ -2069,34 +1912,27 @@ def process_refund(request, order_id):
                 "speed": "normal"
             }
         )
-
         order.refund_id = refund["id"]
         order.refund_processed = True
         order.is_cancelled = True
         order.refund_status = True
         order.save()
-
     except Exception as e:
         print("Refund Error:", e)
-
     return redirect("refund_requests")
+
 @role_required(["Admin","Accountant"])
 def refund_report(request):
-
     orders = Order.objects.filter(cancel_requested=True).order_by("-created_at")
-
     total_requests = Order.objects.filter(cancel_requested=True).count()
-
     approved_refunds = Order.objects.filter(
         cancel_requested=True,
         refund_processed=True
     ).count()
-
     pending_refunds = Order.objects.filter(
         cancel_requested=True,
         refund_processed=False
     ).count()
-
     return render(request,"refund_report.html",{
         "orders":orders,
         "total_requests":total_requests,
