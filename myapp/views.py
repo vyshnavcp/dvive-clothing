@@ -817,9 +817,11 @@ def order_success(request):
         order = Order.objects.filter(id=order_id, registration=request.user).first()
     return render(request, "order_success.html", {"order": order})
 
-@login_required
+
+@login_required(login_url='home')
 def profile(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
+
     if request.method == "POST":
         profile.phone = request.POST.get("phone", "").strip()
         profile.address = request.POST.get("address", "").strip()
@@ -827,10 +829,13 @@ def profile(request):
         profile.state = request.POST.get("state", "").strip()
         profile.pincode = request.POST.get("pincode", "").strip()
         profile.land_mark = request.POST.get("land_mark", "").strip()
+
         if "image" in request.FILES:
             profile.image = request.FILES["image"]
+
         profile.save()
         messages.success(request, "Profile updated successfully!")
+
     return render(request, "profile.html", {"profile": profile})
 
 @login_required
@@ -1551,7 +1556,7 @@ def delete_terms(request, pk):
     terms.delete()
     return redirect("terms_list")
 
-@role_required(["Accountant"])
+
 def terms_page(request):
     terms = TermsCondition.objects.first()
     return render(request, "terms_page.html", {"terms": terms})
@@ -1595,7 +1600,7 @@ def delete_privacy(request, pk):
     privacy.delete()
     return redirect("privacy_list")
 
-@role_required(["Accountant"])
+
 def privacy_page(request):
     privacy = PrivacyPolicy.objects.first()
     return render(request, "privacy_page.html", {"privacy": privacy})
@@ -1652,7 +1657,6 @@ def delete_faq(request, pk):
     faq.delete()
     return redirect("faq_list")
 
-@role_required(["Accountant"])
 def faq_page(request):
     faqs = FAQ.objects.all().order_by("created_at")
     return render(request, "faq_page.html", {"faqs": faqs})
