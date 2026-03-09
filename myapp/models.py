@@ -145,7 +145,7 @@ class Size(models.Model):
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="variants")
     size = models.ForeignKey(Size, on_delete=models.CASCADE,null=True, blank=True)
-    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE)
+    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE, null=True, blank=True)
     stock = models.PositiveIntegerField(default=0)
 
 class Review(models.Model):

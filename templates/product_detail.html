@@ -938,37 +938,55 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedColor = document.querySelector('input[name="color"]:checked');
     const selectedSize = document.querySelector('input[name="size"]:checked');
 
+    const hasColors = document.querySelectorAll('input[name="color"]').length > 0;
     const hasSizes = document.querySelectorAll('input[name="size"]').length > 0;
-
-    // No color selected
-    if (!selectedColor) {
-        stockDisplay.innerHTML = "Select color";
-        stockDisplay.style.color = "#6c757d";
-        addToCartBtn.disabled = true;
-        return;
-    }
 
     let key;
 
-    // If product HAS sizes but none selected
-    if (hasSizes && !selectedSize) {
-        stockDisplay.innerHTML = "Select size";
-        stockDisplay.style.color = "#6c757d";
-        addToCartBtn.disabled = true;
-        return;
+    if (!hasColors && !hasSizes) {
+        key = "default";
     }
+    else if (hasColors && hasSizes) {
 
-    // Build key depending on product type
-    if (hasSizes) {
+        if (!selectedColor) {
+            stockDisplay.innerHTML = "Select color";
+            addToCartBtn.disabled = true;
+            return;
+        }
+
+        if (!selectedSize) {
+            stockDisplay.innerHTML = "Select size";
+            addToCartBtn.disabled = true;
+            return;
+        }
+
         key = selectedColor.value + "-" + selectedSize.value;
-    } else {
+    }
+    else if (hasColors) {
+
+        if (!selectedColor) {
+            stockDisplay.innerHTML = "Select color";
+            addToCartBtn.disabled = true;
+            return;
+        }
+
         key = selectedColor.value;
+    }
+    else if (hasSizes) {
+
+        if (!selectedSize) {
+            stockDisplay.innerHTML = "Select size";
+            addToCartBtn.disabled = true;
+            return;
+        }
+
+        key = "size-" + selectedSize.value;
     }
 
     const stock = variantStock[key];
 
     if (stock === undefined) {
-        stockDisplay.innerHTML = "❌ This combination is not available";
+        stockDisplay.innerHTML = "❌ Not available";
         stockDisplay.style.color = "#dc3545";
         addToCartBtn.disabled = true;
         return;
@@ -984,6 +1002,8 @@ document.addEventListener("DOMContentLoaded", function () {
         addToCartBtn.disabled = true;
     }
 }
+
+updateStock();
 
     colorInputs.forEach(input => {
         input.addEventListener("change", updateStock);

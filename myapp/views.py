@@ -148,24 +148,30 @@ def product(request, slug=None):
         'search_query': query,
     })
 
-
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     variants = product.variants.select_related('size', 'color')
+
     colors = list({v.color for v in variants if v.color})
     sizes = list({v.size for v in variants if v.size})
+
     reviews = Review.objects.filter(product=product).order_by('-id')
     first_three_reviews = reviews[:3]
     remaining_reviews = reviews[3:]
+
     average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
     total_reviews = reviews.count()
+
     rating_counts = reviews.values('rating').annotate(count=Count('rating'))
+
     rating_dict = {i: 0 for i in range(1, 6)}
     for item in rating_counts:
         rating_dict[item['rating']] = item['count']
+
     rating_percent = {}
     for i in range(1, 6):
         rating_percent[i] = round((rating_dict[i] / total_reviews) * 100) if total_reviews else 0
+
     related_products = Product.objects.filter(
         subcategory=product.subcategory
     ).exclude(id=product.id)[:4]
@@ -175,14 +181,23 @@ def product_detail(request, slug):
         img = getattr(product, img_field)
         if img:
             product_images.append(img.url)
+
     variant_stock = {}
+
     for v in variants:
-        if v.size_id and v.color_id:
+        if v.color_id and v.size_id:
             key = f"{v.color_id}-{v.size_id}"
-            variant_stock[key] = v.stock
+
         elif v.color_id and not v.size_id:
             key = f"{v.color_id}"
-            variant_stock[key] = v.stock
+
+        elif v.size_id and not v.color_id:
+            key = f"size-{v.size_id}"
+
+        else:
+            key = "default"
+
+        variant_stock[key] = v.stock   # ← FIXED POSITION
 
     return render(request, 'product_detail.html', {
         'product': product,
@@ -198,7 +213,6 @@ def product_detail(request, slug):
         'product_images': product_images,
         'variant_stock': variant_stock,
     })
-
 def add_to_cart(request, product_id):
     if not request.user.is_authenticated:
         return JsonResponse({
@@ -218,11 +232,20 @@ def add_to_cart(request, product_id):
     if quantity < 1:
         quantity = 1
 
-    if not color_id:
-        return JsonResponse({
-            "success": False,
-            "message": "Please select a color."
-        })
+    if color_id and size_id:
+        variant = product.variants.filter(color_id=color_id, size_id=size_id).first()
+
+    elif color_id and not size_id:
+        variant = product.variants.filter(color_id=color_id, size__isnull=True).first()
+
+    elif size_id and not color_id:
+        variant = product.variants.filter(size_id=size_id, color__isnull=True).first()
+
+    else:
+  
+        variant = product.variants.filter(color__isnull=True, size__isnull=True).first()
+    
+    
     variant = product.variants.filter(
         size_id=size_id,
         color_id=color_id
@@ -963,62 +986,95 @@ def delete_subcategory(request, id):
     subcategory = get_object_or_404(SubCategory, id=id)
     subcategory.delete()
     return redirect("subcategory_list")
+from django.shortcuts import render, redirect
+from .models import Product, ProductColor, ProductVariant, Size, SubCategory
+import json
 
-@staff_member_required
-@transaction.atomic
 def add_product(request):
+
     subcategories = SubCategory.objects.all()
     sizes = Size.objects.all()
+
     if request.method == "POST":
+
+        name = request.POST.get("name")
+        slug = request.POST.get("slug")
+        brand = request.POST.get("brand")
+        product_code = request.POST.get("product_code")
+        description = request.POST.get("description")
+        subcategory_id = request.POST.get("subcategory")
+
+        price = request.POST.get("price")
+        cost_price = request.POST.get("cost_price")
+        old_price = request.POST.get("old_price")
+
+        status = True if request.POST.get("status") else False
+        is_signature_collection = True if request.POST.get("is_signature_collection") else False
+        is_featured = True if request.POST.get("is_featured") else False
+        is_best_seller = True if request.POST.get("is_best_seller") else False
+
+        additional_info = request.POST.get("additional_info")
+
+        try:
+            additional_info = json.loads(additional_info) if additional_info else {}
+        except:
+            additional_info = {}
+
         product = Product.objects.create(
-            name=request.POST.get("name"),
-            brand=request.POST.get("brand"),
-            product_code=request.POST.get("product_code"),
-            subcategory_id=request.POST.get("subcategory"),
-            price=request.POST.get("price"),
-            cost_price=request.POST.get("cost_price") or None,
-            old_price=request.POST.get("old_price") or None,
-            description=request.POST.get("description"),
-            additional_info=request.POST.get("additional_info") or {},
+            name=name,
+            slug=slug,
+            brand=brand,
+            product_code=product_code,
+            description=description,
+            subcategory_id=subcategory_id,
+            price=price,
+            cost_price=cost_price if cost_price else None,
+            old_price=old_price if old_price else None,
+            status=status,
+            is_signature_collection=is_signature_collection,
+            is_featured=is_featured,
+            is_best_seller=is_best_seller,
+            additional_info=additional_info,
             image1=request.FILES.get("image1"),
             image2=request.FILES.get("image2"),
             image3=request.FILES.get("image3"),
             image4=request.FILES.get("image4"),
             image5=request.FILES.get("image5"),
-            status=bool(request.POST.get("status")),
-            is_signature_collection=bool(request.POST.get("is_signature_collection")),
-            is_featured=bool(request.POST.get("is_featured")),
-            is_best_seller=bool(request.POST.get("is_best_seller")),
         )
-        color_names = request.POST.getlist("color_name[]")
-        color_hexes = request.POST.getlist("color_hex[]")
-        size_ids = request.POST.getlist("variant_size[]")
-        stocks = request.POST.getlist("variant_stock[]")
-        total_stock = 0
-        created_colors = {}
-        for i in range(len(color_names)):
-            if not color_names[i]:
-                continue
-            if color_names[i] not in created_colors:
-                color = ProductColor.objects.create(
-                    product=product,
-                    name=color_names[i],
-                    hex_code=color_hexes[i]
-                )
-                created_colors[color_names[i]] = color
-            else:
-                color = created_colors[color_names[i]]
 
-            stock_value = int(stocks[i] or 0)
+        color_names = request.POST.getlist("color_name[]")
+        color_hex = request.POST.getlist("color_hex[]")
+        sizes_list = request.POST.getlist("variant_size[]")
+        stocks = request.POST.getlist("variant_stock[]")
+
+        total_stock = 0
+
+        for i in range(len(stocks)):
+
+            stock = int(stocks[i]) if stocks[i] else 0
+            total_stock += stock
+
+            color_name = color_names[i].strip() if i < len(color_names) else ""
+            color_hex_code = color_hex[i] if i < len(color_hex) else "#000000"
+            size_id = sizes_list[i] if i < len(sizes_list) else None
+
+            color_obj = None
+
+            if color_name:  # create color only if exists
+                color_obj, created = ProductColor.objects.get_or_create(
+                    product=product,
+                    name=color_name,
+                    defaults={"hex_code": color_hex_code}
+                )
+
+            size_obj = Size.objects.filter(id=size_id).first() if size_id else None
 
             ProductVariant.objects.create(
                 product=product,
-                color=color,
-                size_id=size_ids[i] if size_ids[i] else None, 
-                stock=stock_value
+                color=color_obj,
+                size=size_obj,
+                stock=stock
             )
-
-            total_stock += stock_value
 
         product.stock = total_stock
         product.save()
@@ -1036,68 +1092,93 @@ def product_list(request):
     return render(request, "product_list.html", {
         "products": products
     })
+
 @staff_member_required
 @transaction.atomic
 def edit_product(request, slug):
     product = get_object_or_404(Product, slug=slug)
     subcategories = SubCategory.objects.all()
     sizes = Size.objects.all()
+
     if request.method == "POST":
+
         product.name = request.POST.get("name")
         product.brand = request.POST.get("brand")
         product.product_code = request.POST.get("product_code")
         product.subcategory_id = request.POST.get("subcategory")
+
         product.price = request.POST.get("price")
         product.cost_price = request.POST.get("cost_price") or None
         product.old_price = request.POST.get("old_price") or None
+
         product.description = request.POST.get("description")
+
         product.status = bool(request.POST.get("status"))
         product.is_signature_collection = bool(request.POST.get("is_signature_collection"))
         product.is_featured = bool(request.POST.get("is_featured"))
         product.is_best_seller = bool(request.POST.get("is_best_seller"))
-        for i in range(1, 6):
+
+        for i in range(1,6):
             img = request.FILES.get(f"image{i}")
             if img:
-                setattr(product, f"image{i}", img)
+                setattr(product,f"image{i}",img)
+
         product.save()
+
+        # delete old variants
         ProductVariant.objects.filter(product=product).delete()
         ProductColor.objects.filter(product=product).delete()
+
         color_names = request.POST.getlist("color_name[]")
         color_hexes = request.POST.getlist("color_hex[]")
         size_ids = request.POST.getlist("variant_size[]")
         stocks = request.POST.getlist("variant_stock[]")
+
         total_stock = 0
         created_colors = {}
-        for i in range(len(color_names)):
-            if not color_names[i]:
-                continue
 
-            if color_names[i] not in created_colors:
-                color = ProductColor.objects.create(
-                    product=product,
-                    name=color_names[i],
-                    hex_code=color_hexes[i]
-                )
-                created_colors[color_names[i]] = color
-            else:
-                color = created_colors[color_names[i]]
+        for i in range(len(stocks)):
+
+            color_name = color_names[i].strip() if i < len(color_names) else ""
+            color_hex = color_hexes[i] if i < len(color_hexes) else "#000000"
+            size_id = size_ids[i] if i < len(size_ids) else None
             stock_value = int(stocks[i] or 0)
+
+            color_obj = None
+
+            # create color only if exists
+            if color_name:
+                if color_name not in created_colors:
+                    color_obj = ProductColor.objects.create(
+                        product=product,
+                        name=color_name,
+                        hex_code=color_hex
+                    )
+                    created_colors[color_name] = color_obj
+                else:
+                    color_obj = created_colors[color_name]
+
             ProductVariant.objects.create(
                 product=product,
-                color=color,
-                size_id=size_ids[i] if size_ids[i] else None,
+                color=color_obj,
+                size_id=size_id if size_id else None,
                 stock=stock_value
             )
+
             total_stock += stock_value
+
         product.stock = total_stock
         product.save()
+
         return redirect("product_list")
-    variants = ProductVariant.objects.filter(product=product).select_related("color", "size")
-    return render(request, "edit_product.html", {
-        "product": product,
-        "subcategories": subcategories,
-        "sizes": sizes,
-        "variants": variants
+
+    variants = ProductVariant.objects.filter(product=product).select_related("color","size")
+
+    return render(request,"edit_product.html",{
+        "product":product,
+        "subcategories":subcategories,
+        "sizes":sizes,
+        "variants":variants
     })
 
 @staff_member_required
