@@ -151,54 +151,39 @@ def product(request, slug=None):
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     variants = product.variants.select_related('size', 'color')
-
     colors = list({v.color for v in variants if v.color})
     sizes = list({v.size for v in variants if v.size})
-
     reviews = Review.objects.filter(product=product).order_by('-id')
     first_three_reviews = reviews[:3]
     remaining_reviews = reviews[3:]
-
     average_rating = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
     total_reviews = reviews.count()
-
     rating_counts = reviews.values('rating').annotate(count=Count('rating'))
-
     rating_dict = {i: 0 for i in range(1, 6)}
     for item in rating_counts:
         rating_dict[item['rating']] = item['count']
-
     rating_percent = {}
     for i in range(1, 6):
         rating_percent[i] = round((rating_dict[i] / total_reviews) * 100) if total_reviews else 0
-
     related_products = Product.objects.filter(
         subcategory=product.subcategory
     ).exclude(id=product.id)[:4]
-
     product_images = []
     for img_field in ['image1', 'image2', 'image3', 'image4', 'image5']:
         img = getattr(product, img_field)
         if img:
             product_images.append(img.url)
-
     variant_stock = {}
-
     for v in variants:
         if v.color_id and v.size_id:
             key = f"{v.color_id}-{v.size_id}"
-
         elif v.color_id and not v.size_id:
             key = f"{v.color_id}"
-
         elif v.size_id and not v.color_id:
             key = f"size-{v.size_id}"
-
         else:
             key = "default"
-
-        variant_stock[key] = v.stock   # ← FIXED POSITION
-
+        variant_stock[key] = v.stock 
     return render(request, 'product_detail.html', {
         'product': product,
         'colors': colors,
@@ -213,6 +198,7 @@ def product_detail(request, slug):
         'product_images': product_images,
         'variant_stock': variant_stock,
     })
+
 def add_to_cart(request, product_id):
     if not request.user.is_authenticated:
         return JsonResponse({
