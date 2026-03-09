@@ -589,6 +589,9 @@ def checkout_post(request):
     pincode = request.POST.get("pincode")
     land_mark = request.POST.get("land_mark")
     payment_method = request.POST.get("payment-option")
+    if not request.POST.get("terms_condition"):
+        messages.error(request, "You must agree to the terms and conditions.")
+        return redirect("checkout")
     profile.address = address
     profile.phone = phone
     profile.town = town

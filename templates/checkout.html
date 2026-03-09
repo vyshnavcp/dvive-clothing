@@ -73,7 +73,7 @@
                     <div class="col-lg-7 pe-50px md-pe-15px md-mb-50px xs-mb-35px">
                         <span class="fs-26 alt-font fw-600 text-dark-gray mb-20px d-block">Billing details</span>
                         
-                        <form action="{% url 'checkout_post' %}" method="post">
+                        <form id="checkoutForm" action="{% url 'checkout_post' %}" method="post">
                             {% csrf_token %}
                             <div class="row">
                                 <div class="col-12 mb-20px">
@@ -313,15 +313,24 @@
                             <p class="fs-14 lh-24">Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our <a class="text-decoration-line-bottom text-dark-gray fw-500" href="#">privacy policy.</a></p>
                             <div class="position-relative terms-condition-box text-start d-flex align-items-center">
                                 <label>
-                                    <input type="checkbox" name="terms_condition" value="1" class="check-box align-middle">
-                                    <span class="box fs-14 lh-28">I have agree to the website <a href="#" class="text-decoration-line-bottom text-dark-gray fw-500">terms and conditions.</a></span>
+                                    <input type="checkbox" id="terms_condition" name="terms_condition" value="1">
+                                    <span class="box fs-14 lh-28">
+                                        I have agree to the website
+                                        <a href="#" class="text-decoration-line-bottom text-dark-gray fw-500">
+                                            terms and conditions.
+                                        </a>
+                                    </span>
                                 </label>
                             </div>
+
+                            <small id="terms_error" style="color:red;"></small>
+
+                            
                             <button type="submit"  class="btn btn-dark-gray btn-large btn-switch-text btn-round-edge btn-box-shadow w-100 mt-30px">
                                 <span>
                                     <span class="btn-double-text" data-text="Place order">Place order</span>
                                 </span>
-                            </button>>
+                            </button>
                         </form>
                         </div>
                     </div>
@@ -384,6 +393,25 @@ function updateShipping() {
 
 // Trigger when state changes
 document.querySelector("select[name='state']").addEventListener("change", updateShipping);
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    const form = document.getElementById("checkoutForm");
+    const checkbox = document.getElementById("terms_condition");
+    const error = document.getElementById("terms_error");
+
+    form.addEventListener("submit", function(e){
+
+        if(!checkbox.checked){
+            e.preventDefault();
+            error.innerText = "You must agree to the terms and conditions before placing the order.";
+        } else {
+            error.innerText = "";
+        }
+
+    });
+
+});
 </script>
 
     </body>
