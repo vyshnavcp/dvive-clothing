@@ -383,7 +383,6 @@ document.querySelectorAll(
     el.addEventListener("keyup", ajaxCheckoutValidate);
     el.addEventListener("change", ajaxCheckoutValidate);
 });
-
 function updateShipping() {
     fetch("{% url 'ajax_shipping_charge' %}")
         .then(res => res.json())
@@ -414,6 +413,8 @@ function updateShipping() {
 document.querySelector("select[name='state']").addEventListener("change", updateShipping);
 
 document.addEventListener("DOMContentLoaded", function() {
+
+    updateShipping(); // ✅ ADD THIS LINE
 
     const form = document.getElementById("checkoutForm");
     const checkbox = document.getElementById("terms_condition");
