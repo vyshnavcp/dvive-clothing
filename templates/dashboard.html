@@ -276,7 +276,18 @@ width:fit-content;
 </div>
 </div>
 </div>
-
+{% if refund_requests_count > 0 %}
+<div class="col-md-3">
+    <a href="{% url 'refund_requests' %}" class="text-decoration-none text-dark">
+        <div class="stat-card border border-danger">
+            <div class="stat-title text-danger">Refund Requests</div>
+            <div class="stat-value text-danger">
+                {{ refund_requests_count }}
+            </div>
+        </div>
+    </a>
+</div>
+{% endif %}
 </div>
 
 <div class="row">

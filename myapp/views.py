@@ -859,41 +859,49 @@ def my_orders(request):
     lambda u: u.is_authenticated and u.is_staff,
     login_url='user_login'
 )
-# Dashbord all options 
+
 
 def dashboard(request):
     today = now().date()
+
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.all().order_by('-created_at')
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
+
     paid_orders = orders.filter(payment_status=True, is_cancelled=False)
+
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
     today_revenue = paid_orders.filter(
         created_at__date=today
     ).aggregate(total=Sum("total"))["total"] or 0
+
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
+
     pending_orders = orders.filter(
         payment_status=False,
         is_cancelled=False
     ).count()
-    pos_pending_payment = orders.filter(
-        is_pos_order=True,
-        payment_status=False,
-        is_cancelled=False
+
+    # ✅ ADD THIS
+    refund_requests_count = Order.objects.filter(
+        cancel_requested=True,
+        refund_processed=False
     ).count()
-    total_customers = Registration.objects.count()
-    total_products = Product.objects.count()
+
     total_income = Decimal("0.00")
+
     order_items = OrderItem.objects.filter(
         order__payment_status=True,
         order__is_cancelled=False
     ).select_related("product")
+
     for item in order_items:
         if item.product and item.product.cost_price:
             profit = (item.price - item.product.cost_price) * item.quantity
             total_income += profit
+
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
@@ -901,9 +909,7 @@ def dashboard(request):
         "total_orders": total_orders,
         "paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
-        "pos_pending_payment": pos_pending_payment,
-        "total_customers": total_customers,
-        "total_products": total_products,
+        "refund_requests_count": refund_requests_count,  # ✅ ADD THIS
         "orders": orders,
     }
 
@@ -1934,6 +1940,7 @@ def refund_requests(request):
 def process_refund(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     try:
+        # 1️⃣ Refund via Razorpay
         client = razorpay.Client(auth=(
             settings.RAZORPAY_KEY_ID,
             settings.RAZORPAY_KEY_SECRET
@@ -1941,18 +1948,28 @@ def process_refund(request, order_id):
         refund_amount = int(order.total * 100)
         refund = client.payment.refund(
             order.razorpay_payment_id,
-            {
-                "amount": refund_amount,
-                "speed": "normal"
-            }
+            {"amount": refund_amount, "speed": "normal"}
         )
         order.refund_id = refund["id"]
+
+        # 2️⃣ Update order status
         order.refund_processed = True
         order.is_cancelled = True
         order.refund_status = True
         order.save()
+
+        # 3️⃣ Restore stock for each ordered item
+        for item in order.items.all():  # 'items' is the related_name on OrderItem
+            if item.variant:  # if product has variant
+                item.variant.stock += item.quantity
+                item.variant.save()
+            else:  # fallback for non-variant products
+                item.product.stock += item.quantity
+                item.product.save()
+
     except Exception as e:
         print("Refund Error:", e)
+
     return redirect("refund_requests")
 
 @role_required(["Admin","Accountant"])
