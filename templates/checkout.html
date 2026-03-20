@@ -248,6 +248,11 @@
                                             ₹<span id="shipping_charge">0</span>
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <small id="shipping_message" style="color: green; font-weight: 500;"></small>
+                                        </td>
+                                    </tr>
 
                                     <!-- Grand Total -->
                                     <tr class="total-amount">
@@ -378,19 +383,33 @@ document.querySelectorAll(
     el.addEventListener("keyup", ajaxCheckoutValidate);
     el.addEventListener("change", ajaxCheckoutValidate);
 });
+
 function updateShipping() {
-    const state = document.querySelector("select[name='state']").value;
-
-    if (!state || state === "Select a state") return;
-
-    fetch("{% url 'ajax_shipping_charge' %}?state=" + state)
+    fetch("{% url 'ajax_shipping_charge' %}")
         .then(res => res.json())
         .then(data => {
-            document.getElementById("shipping_charge").innerText = data.shipping;
-            document.getElementById("order_total").innerText = data.total;
+
+            const shippingEl = document.getElementById("shipping_charge");
+            const totalEl = document.getElementById("order_total");
+            const msgEl = document.getElementById("shipping_message");
+
+            // Shipping display
+            if (data.shipping == 0) {
+                shippingEl.innerText = "FREE";
+                msgEl.innerText = "🎉 Congratulations! You got FREE delivery.";
+                msgEl.style.color = "green";
+            } else {
+                shippingEl.innerText = data.shipping.toFixed(2);
+
+                let remaining = 899 - data.subtotal;
+
+                msgEl.innerText = `Add ₹${remaining.toFixed(2)} more to get FREE delivery`;
+                msgEl.style.color = "orange";
+            }
+
+            totalEl.innerText = data.total.toFixed(2);
         });
 }
-
 // Trigger when state changes
 document.querySelector("select[name='state']").addEventListener("change", updateShipping);
 

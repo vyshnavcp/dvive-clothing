@@ -744,21 +744,20 @@ def ajax_validate_checkout(request):
         data["land_mark_error"] = "Landmark must be at least 3 characters"
 
     return JsonResponse(data)
-def ajax_shipping_charge(request):
-    state = request.GET.get("state")
 
-    if state == "Kerala":
-        shipping = Decimal("80.00")
-    else:
-        shipping = Decimal("120.00")
+def ajax_shipping_charge(request):
     registration = get_object_or_404(Registration, authuser=request.user)
     cart = get_object_or_404(Cart, registration=registration)
     subtotal = cart.subtotal()
+    if subtotal < Decimal("899.00"):
+        shipping = Decimal("80.00")
+    else:
+        shipping = Decimal("0.00")
     total = subtotal - cart.coupon_discount + shipping
     return JsonResponse({
-        "shipping": shipping,
-        "subtotal": subtotal,
-        "total": total
+        "shipping": float(shipping),
+        "subtotal": float(subtotal),
+        "total": float(total)
     })
 
 def payment_success_post(request):
