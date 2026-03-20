@@ -17,14 +17,16 @@ def cart_count(request):
     return {
         'cart_item_count': count
     }
+
 def footer_categories(request):
     """
     Adds categories to all templates for the footer
     """
-    categories = SubCategory.objects.all()
+    categories = Category.objects.all()
     return {
         'footer_categories': categories
     }
+
 def navbar_categories(request):
     """
     Adds categories with subcategories for navbar mega menu

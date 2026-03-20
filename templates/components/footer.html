@@ -33,7 +33,7 @@
                     <ul>
                         {% for category in footer_categories %}
                             <li>
-                                <a href="{% url 'filter_by_subcategory' category.slug %}">
+                                <a href="{% url 'filter_by_category' category.slug %}">
                                     {{ category.name }}
                                 </a>
                             </li>

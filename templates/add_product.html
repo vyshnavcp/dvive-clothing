@@ -240,7 +240,9 @@ Logout
 <select name="subcategory" class="form-select" required>
 <option value="">Select Subcategory</option>
 {% for sub in subcategories %}
-<option value="{{ sub.id }}">{{ sub.name }}</option>
+<option value="{{ sub.id }}">
+    {{ sub.category.name }} → {{ sub.name }}
+</option>
 {% endfor %}
 </select>
 </div>
