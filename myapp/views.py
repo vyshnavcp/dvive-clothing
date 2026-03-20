@@ -37,6 +37,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.db.models import F
 from .decorators import role_required
+from django.utils import timezone
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
@@ -837,6 +838,8 @@ def profile(request):
 
     return render(request, "profile.html", {"profile": profile})
 
+
+
 @login_required
 def my_orders(request):
     registration = get_object_or_404(Registration, authuser=request.user)
@@ -850,8 +853,18 @@ def my_orders(request):
         )
         .order_by("-created_at")
     )
+
+    current_time = timezone.now()
+    orders_with_time = []
+
+    for order in orders:
+        # calculate seconds passed since order creation
+        seconds_passed = (current_time - order.created_at).total_seconds()
+        order.seconds_passed = seconds_passed  # dynamically add attribute
+        orders_with_time.append(order)
+
     return render(request, "my_orders.html", {
-        "orders": orders
+        "orders": orders_with_time,
     })
 
 

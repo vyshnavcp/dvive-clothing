@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html class="no-js" lang="en">
 <head>
@@ -24,7 +23,7 @@ background:#fafafa;
 
 .order-card{
 background:white;
-border-radius:14px;
+border-radius:16px;
 padding:35px;
 margin-bottom:40px;
 box-shadow:0 10px 25px rgba(0,0,0,0.06);
@@ -33,8 +32,8 @@ border:1px solid #f0f0f0;
 }
 
 .order-card:hover{
-transform:translateY(-4px);
-box-shadow:0 20px 40px rgba(0,0,0,0.08);
+transform:translateY(-5px);
+box-shadow:0 20px 45px rgba(0,0,0,0.1);
 }
 
 /* HEADER */
@@ -57,8 +56,8 @@ color:#777;
 }
 
 .order-total{
-font-size:16px;
-font-weight:600;
+font-size:18px;
+font-weight:700;
 }
 
 /* PRODUCT */
@@ -103,16 +102,11 @@ margin-top:25px;
 background:#fafafa;
 }
 
-.cart-products th{
-font-size:14px;
-letter-spacing:.3px;
-}
-
 .cart-products td{
 vertical-align:middle;
 }
 
-/* STATUS BADGES */
+/* STATUS */
 
 .status-badge{
 padding:6px 14px;
@@ -138,6 +132,36 @@ background:#fff4dc;
 color:#9a6b00;
 }
 
+.status-refunded{
+background:#e6f0ff;
+color:#0047b3;
+}
+
+/* INFO BOX */
+
+.info-box{
+margin-top:10px;
+padding:10px 14px;
+border-radius:8px;
+font-size:13px;
+font-weight:500;
+}
+
+.info-warning{
+background:#fff4dc;
+color:#9a6b00;
+}
+
+.info-success{
+background:#e3fff0;
+color:#007c3a;
+}
+
+.info-muted{
+background:#eee;
+color:#555;
+}
+
 /* BUTTONS */
 
 .cancel-btn{
@@ -150,12 +174,10 @@ cursor:pointer;
 margin-top:8px;
 font-size:13px;
 font-weight:500;
-transition:all .2s ease;
 }
 
 .cancel-btn:hover{
 background:#d90000;
-transform:scale(1.04);
 }
 
 .print-btn{
@@ -166,7 +188,6 @@ border:1px solid #000;
 background:white;
 cursor:pointer;
 font-size:13px;
-transition:all .2s ease;
 }
 
 .print-btn:hover{
@@ -174,7 +195,7 @@ background:black;
 color:white;
 }
 
-/* EMPTY STATE */
+/* EMPTY */
 
 .empty-orders{
 padding:80px 0;
@@ -192,7 +213,7 @@ display:none;
 
 </head>
 
-<body data-mobile-nav-style="classic">
+<body>
 
 {% include "components/navbar.html" %}
 
@@ -213,20 +234,29 @@ display:none;
 
 <div class="order-header">
 
+<!-- LEFT -->
 <div>
 <div class="order-id">Order #{{ order.id }}</div>
 <div class="order-date">Placed on {{ order.created_at|date:"d M Y" }}</div>
 
-{% if order.is_cancelled %}
+{% if order.refund_processed %}
+<span class="status-badge status-refunded">Refunded</span>
+
+{% elif order.is_cancelled %}
 <span class="status-badge status-cancel">Cancelled</span>
+
 {% elif order.is_delivered %}
 <span class="status-badge status-delivered">Delivered</span>
+
+{% elif order.cancel_requested %}
+<span class="status-badge status-pending">Cancel Requested</span>
+
 {% else %}
 <span class="status-badge status-pending">Pending</span>
 {% endif %}
-
 </div>
 
+<!-- RIGHT -->
 <div style="text-align:right">
 
 <div class="order-total">
@@ -237,19 +267,42 @@ Total: ₹{{ order.total }}
 Print Invoice
 </button>
 
-{% if order.is_cancelled %}
-<span class="status-badge status-cancel">Cancelled</span>
+{% if order.payment_method == "razorpay" %}
 
-{% elif order.cancel_requested %}
-<span class="status-badge status-pending">Cancel request sent</span>
+{% if not order.is_cancelled and not order.cancel_requested and not order.is_delivered and not order.refund_processed %}
 
-{% elif order.is_delivered %}
-<span class="status-badge status-delivered">Delivered</span>
+{% if order.seconds_passed <= 86400 %}
 
-{% else %}
 <a href="{% url 'cancel_policy' order.id %}">
 <button class="cancel-btn">Cancel Order</button>
 </a>
+
+<div class="info-box info-warning">
+⚠️ Cancel within 24 hours. Refund in 1–7 days.
+</div>
+
+{% else %}
+
+<div class="info-box info-muted">
+❌ Cancellation period expired (24 hrs)
+</div>
+
+{% endif %}
+
+{% elif order.cancel_requested and not order.refund_processed %}
+
+<div class="info-box info-warning">
+⏳ Cancel request sent. Waiting for approval.
+</div>
+
+{% elif order.refund_processed %}
+
+<div class="info-box info-success">
+✅ Refund completed successfully.
+</div>
+
+{% endif %}
+
 {% endif %}
 
 </div>
@@ -260,86 +313,7 @@ Print Invoice
 
 <thead>
 <tr>
-<th class="alt-font fw-600">Product</th>
-<th class="alt-font fw-600">Price</th>
-<th class="alt-font fw-600">Qty</th>
-<th class="alt-font fw-600">Total</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for item in order.items.all %}
-
-<tr>
-
-<td>
-
-<div class="product-box">
-
-<img src="{{ item.product.image1.url }}" class="product-img">
-
-<div>
-
-<div class="product-name">
-{{ item.product.name }}
-</div>
-
-{% if item.variant %}
-<div style="margin-top:5px">
-
-<span class="variant-badge">
-Color : {{ item.variant.color.name }}
-</span>
-
-<span class="variant-badge">
-Size : {{ item.variant.size.name }}
-</span>
-
-</div>
-{% endif %}
-
-</div>
-
-</div>
-
-</td>
-
-<td>₹{{ item.price }}</td>
-
-<td>{{ item.quantity }}</td>
-
-<td>₹{{ item.total_price }}</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-<div class="print-data">
-
-<h2>Order #{{ order.id }}</h2>
-
-<p>Date : {{ order.created_at|date:"d M Y" }}</p>
-
-<h4>Customer</h4>
-
-<p>
-{{ order.first_name }} <br>
-{{ order.phone }} <br>
-{{ order.address }} <br>
-{{ order.town }}, {{ order.state }} - {{ order.pincode }}
-</p>
-
-<table>
-
-<thead>
-<tr>
 <th>Product</th>
-<th>Variant</th>
 <th>Price</th>
 <th>Qty</th>
 <th>Total</th>
@@ -351,22 +325,26 @@ Size : {{ item.variant.size.name }}
 {% for item in order.items.all %}
 
 <tr>
-
-<td>{{ item.product.name }}</td>
-
 <td>
+<div class="product-box">
+<img src="{{ item.product.image1.url }}" class="product-img">
+<div>
+<div class="product-name">{{ item.product.name }}</div>
+
 {% if item.variant %}
-Color : {{ item.variant.color.name }} <br>
-Size : {{ item.variant.size.name }}
+<div>
+<span class="variant-badge">Color : {{ item.variant.color.name }}</span>
+<span class="variant-badge">Size : {{ item.variant.size.name }}</span>
+</div>
 {% endif %}
+
+</div>
+</div>
 </td>
 
 <td>₹{{ item.price }}</td>
-
 <td>{{ item.quantity }}</td>
-
 <td>₹{{ item.total_price }}</td>
-
 </tr>
 
 {% endfor %}
@@ -375,9 +353,50 @@ Size : {{ item.variant.size.name }}
 
 </table>
 
-<h3 style="margin-top:20px">
-Grand Total : ₹{{ order.total }}
-</h3>
+<!-- PRINT (UNCHANGED) -->
+<div class="print-data">
+
+<h2>Order #{{ order.id }}</h2>
+<p>Date : {{ order.created_at|date:"d M Y" }}</p>
+
+<h4>Customer</h4>
+<p>
+{{ order.first_name }} <br>
+{{ order.phone }} <br>
+{{ order.address }} <br>
+{{ order.town }}, {{ order.state }} - {{ order.pincode }}
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Product</th>
+<th>Variant</th>
+<th>Price</th>
+<th>Qty</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in order.items.all %}
+<tr>
+<td>{{ item.product.name }}</td>
+<td>
+{% if item.variant %}
+Color : {{ item.variant.color.name }} <br>
+Size : {{ item.variant.size.name }}
+{% endif %}
+</td>
+<td>₹{{ item.price }}</td>
+<td>{{ item.quantity }}</td>
+<td>₹{{ item.total_price }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<h3>Grand Total : ₹{{ order.total }}</h3>
 
 </div>
 
@@ -403,65 +422,29 @@ Grand Total : ₹{{ order.total }}
 <script src="/static/js/main.js"></script>
 
 <script>
-
 function printOrder(orderId){
-
 var orderDiv = document.getElementById(orderId);
-
 var printContents = orderDiv.querySelector(".print-data").innerHTML;
-
 var newWin = window.open("","","width=900,height=700");
 
 newWin.document.write(`
-
 <html>
-
 <head>
-
 <title>Print Order</title>
-
 <style>
-
-body{
-font-family:Arial;
-padding:20px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-}
-
-table,th,td{
-border:1px solid black;
-}
-
-th,td{
-padding:8px;
-text-align:left;
-}
-
+body{font-family:Arial;padding:20px;}
+table{width:100%;border-collapse:collapse;margin-top:20px;}
+table,th,td{border:1px solid black;}
+th,td{padding:8px;text-align:left;}
 </style>
-
 </head>
-
-<body>
-
-${printContents}
-
-</body>
-
+<body>${printContents}</body>
 </html>
-
 `);
 
 newWin.document.close();
-
 newWin.print();
-
 }
-
 </script>
 
 </body>

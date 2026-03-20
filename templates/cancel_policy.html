@@ -1,46 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
+<meta charset="UTF-8">
 <title>Cancel Order</title>
 
 <style>
-
-body{
-font-family:Arial;
-background:#f7f7f7;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.box{
-width:500px;
-margin:80px auto;
-background:white;
-padding:40px;
-border-radius:8px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
-text-align:center;
+body {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.policy{
-background:#f9f9f9;
-padding:20px;
-margin-top:20px;
-border-radius:6px;
-text-align:left;
+.container {
+    width: 100%;
+    max-width: 520px;
+    padding: 20px;
 }
 
-.confirm-btn{
-background:#e53935;
-color:white;
-border:none;
-padding:10px 20px;
-margin-top:20px;
-border-radius:5px;
-cursor:pointer;
+.card {
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+    animation: fadeIn 0.6s ease-in-out;
 }
 
-.confirm-btn:hover{
-background:#c62828;
+h2 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.order-id {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.policy {
+    background: #f4f6fb;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left;
+    margin-top: 20px;
+}
+
+.policy h4 {
+    margin-bottom: 10px;
+    color: #444;
+}
+
+.policy ul {
+    padding-left: 20px;
+}
+
+.policy li {
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 14px;
+}
+
+.btn {
+    margin-top: 25px;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.cancel-btn {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+.cancel-btn:hover {
+    background: #e60000;
+    transform: scale(1.05);
+}
+
+.back-btn {
+    background: #ddd;
+    color: #333;
+    margin-right: 10px;
+}
+
+.back-btn:hover {
+    background: #bbb;
+}
+
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 </style>
@@ -49,32 +124,37 @@ background:#c62828;
 
 <body>
 
-<div class="box">
+<div class="container">
 
-<h2>Cancel Order #{{order.id}}</h2>
+    <div class="card">
 
-<div class="policy">
+        <h2>Cancel Order</h2>
+        <p class="order-id">Order ID: #{{order.id}}</p>
 
-<h4>Refund Policy</h4>
+        <div class="policy">
+            <h4>Refund Policy</h4>
+            <ul>
+                <li>You can cancel your order within <b>24 hours</b> of placing it.</li>
+                <li>Cancellation requests are subject to admin approval.</li>
+                <li>Refund will be processed within <b>1–7 business days</b>.</li>
+                <li>Amount will be credited to your original payment method.</li>
+                <li>Bank processing may take <b>3–10 days</b>.</li>
+                <li>Cancelled orders cannot be restored.</li>
+            </ul>
+        </div>
 
-<ul>
-<li>Refund will be processed within 3-5 business days.</li>
-<li>The refund will be credited to the original payment method.</li>
-<li>Processing time depends on your bank.</li>
-<li>Once cancelled, the order cannot be restored.</li>
-</ul>
+        <form method="POST" action="{% url 'confirm_cancel_request' order.id %}">
+            {% csrf_token %}
 
-</div>
+            <div class="actions">
+                <a href="/" class="btn back-btn">Go Back</a>
+                <button type="submit" class="btn cancel-btn">
+                    Confirm Cancellation
+                </button>
+            </div>
+        </form>
 
-<form method="POST" action="{% url 'confirm_cancel_request' order.id %}">
-
-{% csrf_token %}
-
-<button class="confirm-btn">
-Yes, Cancel My Order
-</button>
-
-</form>
+    </div>
 
 </div>
 
