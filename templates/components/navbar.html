@@ -44,16 +44,28 @@
     font-size: 18px;
 }
 
+header .navbar {
+    box-shadow: 0px -6px 20px 0px #0000009c;
+}
+
 .dropdown-menu {
     display: none;
     position: absolute;
     top: 110%; /* below the icon */
-    left: 0;
+    left: 0; /* Align left by default */
     background-color: #fff;
     min-width: 140px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     border-radius: 6px;
     z-index: 1000;
+}
+
+/* On mobile, align the dropdown to the right to prevent clipping */
+@media (max-width: 991px) {
+    .dropdown-menu {
+        left: auto;
+        right: 0;
+    }
 }
 
 .dropdown-menu a {
@@ -67,15 +79,37 @@
 .dropdown-menu a:hover {
     background-color: #f5f5f5;
 }
+
+/* Navbar Responsive Tweaks */
+@media (max-width: 991px) {
+    .menu-logo {
+        max-width: 150px;
+    }
+    .header-icon {
+        margin-left: 0 !important;
+    }
+    .user-name {
+        display: none !important;
+    }
+    .navbar-toggler {
+        margin-left: 10px;
+        padding-right: 0;
+        border: none;
+    }
+    .navbar-toggler:focus {
+        box-shadow: none;
+    }
+    #headericon {
+        left: 0 !important;
+    }
+}
            
         </style>
         <!-- start navigation -->
         <nav class="navbar navbar-expand-lg header-light bg-grad disable-fixed center-logo">
-            <div class="container-fluid">
-                <div class="col-auto col-xxl-3 col-lg-2 menu-logo">
-                    <div class="header-icon d-none d-lg-flex">
-
-                    </div>
+            <div class="container-fluid flex-nowrap">
+                <!-- Logo -->
+                <div class="col-auto col-lg-2 menu-logo">
                     <a class="navbar-brand" href="{% url 'home' %}">
                         <img src="/static/images/dvive-new.png" data-at2x="/static/images/dvive-new.png" alt=""
                             class="default-logo">
@@ -85,121 +119,14 @@
                             class="mobile-logo">
                     </a>
                 </div>
-                <div class="col-auto col-xxl-6 col-lg-8 menu-order">
-                    <button class="navbar-toggler float-end" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-line"></span>
-                        <span class="navbar-toggler-line"></span>
-                        <span class="navbar-toggler-line"></span>
-                        <span class="navbar-toggler-line"></span>
-                    </button>
-                    <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
-                        <ul class="navbar-nav alt-font navbar-left justify-content-end">
-                            <li class="nav-item">
-                                <a href="{% url 'home' %}" class="nav-link">Home</a>
-                            </li>
-                            
-                            <li class="nav-item">
-                                <a href="{% url 'about' %}" class="nav-link">About</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{% url 'blog' %}" class="nav-link">Blog</a>
-                            </li>
-                        </ul>
-                        <ul class="navbar-nav alt-font navbar-right justify-content-start">
-                            <li class="nav-item dropdown submenu">
-                                <a href="{% url 'product' %}" class="nav-link">Shop</a>
-                                <i class="fa-solid fa-angle-down dropdown-toggle" id="navbarDropdownMenuLink1"
-                                    role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
-                                <div class="dropdown-menu submenu-content" aria-labelledby="navbarDropdownMenuLink1">
-                                    <div class="d-lg-flex mega-menu m-auto flex-column">
-                                        <div
-                                            class="row row-cols-1 row-cols-lg-5 row-cols-md-3 row-cols-sm-3 mb-50px md-mb-25px xs-mb-15px">
-                                            
-                                            {% for cat in nav_categories %}
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">{{ cat.name }}</li>
 
-                                                    {% for sub in cat.subcategories.all %}
-                                                    <li>
-                                                        <a href="{% url 'filter_by_subcategory' sub.slug %}">
-                                                            {{ sub.name }}
-                                                        </a>
-                                                    </li>
-                                                    {% endfor %}
-
-                                                </ul>
-                                            </div>
-                                            {% endfor %}
-                                            
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Men</li>
-                                                    <li>
-                                                        <span class="text-muted fst-italic">Upcoming collection</span>
-                                                    </li>
-                                                </ul>
-                                            </div>
-
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Kids</li>
-                                                    <li>
-                                                        <span class="text-muted fst-italic">Upcoming collection</span>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <!-- <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Men</li>
-                                                    <li><a href="#">Jeans</a></li>
-                                                    <li><a href="#">Trousers</a></li>
-                                                    <li><a href="#">Swimwear</a></li>
-                                                    <li><a href="#">Casual shirts</a></li>
-                                                    <li><a href="#">Rain jackets</a></li>
-                                                    <li><a href="#">Loungewear</a></li>
-                                                </ul>
-                                            </div>
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Kids</li>
-                                                    <li><a href="#">Dresses</a></li>
-                                                    <li><a href="#">Jumpsuits</a></li>
-                                                    <li><a href="#">Track pants</a></li>
-                                                    <li><a href="#">Ethnic wear</a></li>
-                                                    <li><a href="#">Value packs</a></li>
-                                                    <li><a href="#">Loungewear</a></li>
-                                                </ul>
-                                            </div> -->
-                                        </div>
-                                        <div class="row row-cols-1 row-cols-sm-2">
-                                            <div class="col">
-                                                <a href="demo-fashion-store-shop.html"><img
-                                                        src="/static/images/nav_banner.webp" alt=""></a>
-                                            </div>
-                                            <div class="col">
-                                                <a href="demo-fashion-store-shop.html"><img
-                                                        src="/static/images/nav_banner1.webp" alt=""></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            
-                            
-                            <li class="nav-item">
-                                <a href="{% url 'contact' %}" class="nav-link">Contact</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-auto col-xxl-3 col-lg-2 text-end">
-                    <div class="header-icon">
+                <!-- Right-side Icons & Toggler (Grouped for mobile) -->
+                <div class="col-auto col-lg-2 text-end d-flex align-items-center justify-content-end order-lg-last">
+                    <div class="header-icon d-flex align-items-center gap-3">
+                        <!-- Search -->
                         <div class="header-search-icon icon alt-font ">
                             <a href="javascript:void(0)" class="search-form-icon header-search-form new"><i
-                                    class="feather icon-feather-search me-5px"></i><span
-                                    class="d-none d-xxl-inline-block">Search</span></a>
+                                    class="feather icon-feather-search"></i></a>
                             <div class="search-form-wrapper">
                                 <button title="Close" type="button" class="search-close alt-font">×</button>
                                  <form id="search-form" role="search" method="get" class="search-form text-left" action="{% url 'product' %}">
@@ -221,27 +148,27 @@
                                 </form>
                             </div>
                         </div>
+
+                        <!-- Cart -->
                         <div class="header-cart-icon icon">
                             <div class="header-cart dropdown">
                                 <a href="{% url 'cart_page' %}"><i class="feather icon-feather-shopping-bag"></i><span id="cart-count"
                                     class="cart-count alt-font text-white bg-dark-gray">
                                     {{ cart_item_count }}
                                 </span></a>
-                               
                             </div>
                         </div>
-                      <div id="headericon" class="widget-text icon alt-font user-info">
+
+                        <!-- User Info -->
+                        <div id="headericon" class="widget-text icon alt-font user-info">
                             {% if request.user.is_authenticated %}
                                 <div class="user-dropdown">
                                     <i class="feather icon-feather-user"></i>
                                     <span class="user-name">Account</span>
-
-                                    <!-- Only dropdown for View Profile -->
                                     <div class="dropdown-menu">
                                         <a href="{% url 'profile' %}">View Profile</a>
                                         <a href="{% url 'my_orders' %}">My Orders</a>
                                     </div>
-                                    <!-- Logout stays separate -->
                                     <a href="{% url 'user_logout' %}" class="logout-icon" id="icons">
                                         <i class="feather icon-feather-log-out"></i>
                                     </a>
@@ -254,12 +181,89 @@
                             {% endif %}
                         </div>
 
+                        <!-- Navbar Toggler (Only on mobile) -->
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarNav" aria-controls="navbarNav" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-line"></span>
+                            <span class="navbar-toggler-line"></span>
+                            <span class="navbar-toggler-line"></span>
+                            <span class="navbar-toggler-line"></span>
+                        </button>
+                    </div>
+                </div>
 
-                        
+                <!-- Center Menu -->
+                <div class="col-auto col-lg-8 menu-order">
+                    <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                        <ul class="navbar-nav alt-font navbar-left justify-content-end">
+                            <li class="nav-item">
+                                <a href="{% url 'home' %}" class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'about' %}" class="nav-link">About</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'blog' %}" class="nav-link">Blog</a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav alt-font navbar-right justify-content-start">
+                            <li class="nav-item dropdown submenu">
+                                <a href="{% url 'product' %}" class="nav-link">Shop</a>
+                                <i class="fa-solid fa-angle-down dropdown-toggle" id="navbarDropdownMenuLink1"
+                                    role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
+                                <div class="dropdown-menu submenu-content" aria-labelledby="navbarDropdownMenuLink1">
+                                    <div class="d-lg-flex mega-menu m-auto flex-column">
+                                        <div
+                                            class="row row-cols-1 row-cols-lg-5 row-cols-md-3 row-cols-sm-3 mb-50px md-mb-25px xs-mb-15px">
+                                            
+                                            {% for cat in nav_categories %}
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">{{ cat.name }}</li>
+                                                    {% for sub in cat.subcategories.all %}
+                                                    <li>
+                                                        <a href="{% url 'filter_by_subcategory' sub.slug %}">
+                                                            {{ sub.name }}
+                                                        </a>
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                            {% endfor %}
+                                            
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Men</li>
+                                                    <li><span class="text-muted fst-italic">Upcoming collection</span></li>
+                                                </ul>
+                                            </div>
+                                            <div class="col">
+                                                <ul>
+                                                    <li class="sub-title">Kids</li>
+                                                    <li><span class="text-muted fst-italic">Upcoming collection</span></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="row row-cols-1 row-cols-sm-2">
+                                            <div class="col">
+                                                <a href="demo-fashion-store-shop.html"><img src="/static/images/nav_banner.webp" alt=""></a>
+                                            </div>
+                                            <div class="col">
+                                                <a href="demo-fashion-store-shop.html"><img src="/static/images/nav_banner1.webp" alt=""></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </nav>
+
         
 <script>
 document.addEventListener("DOMContentLoaded", function() {
