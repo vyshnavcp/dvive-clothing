@@ -38,6 +38,10 @@ from django.urls import reverse
 from django.db.models import F
 from .decorators import role_required
 from django.utils import timezone
+from django.core.mail import EmailMultiAlternatives
+import logging
+from django.utils.html import escape
+
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
@@ -100,7 +104,6 @@ def contact(request):
         })
     return render(request, "contact.html")
 
-from django.db.models import Count
 
 def product(request, slug=None):
     products = Product.objects.filter(status=True).distinct()
@@ -858,9 +861,8 @@ def my_orders(request):
     orders_with_time = []
 
     for order in orders:
-        # calculate seconds passed since order creation
         seconds_passed = (current_time - order.created_at).total_seconds()
-        order.seconds_passed = seconds_passed  # dynamically add attribute
+        order.seconds_passed = seconds_passed 
         orders_with_time.append(order)
 
     return render(request, "my_orders.html", {
@@ -927,6 +929,18 @@ def dashboard(request):
     }
 
     return render(request, "dashboard.html", context)
+
+@role_required(["Admin"])
+def contact_list(request):
+    contacts = Contact.objects.all().order_by('-id')
+    return render(request, 'contact_list.html', {'contacts': contacts})
+
+@role_required(["Admin"])
+def delete_contact(request, contact_id):
+    contact = get_object_or_404(Contact, id=contact_id)
+    contact.delete()
+    messages.success(request, "Contact message deleted successfully!")
+    return redirect('contact_list')
 
 @staff_member_required
 def add_category(request):
@@ -995,9 +1009,7 @@ def delete_subcategory(request, id):
     subcategory = get_object_or_404(SubCategory, id=id)
     subcategory.delete()
     return redirect("subcategory_list")
-from django.shortcuts import render, redirect
-from .models import Product, ProductColor, ProductVariant, Size, SubCategory
-import json
+
 
 def add_product(request):
 
@@ -1934,9 +1946,81 @@ def cancel_policy(request, order_id):
 @login_required
 def confirm_cancel_request(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+    if order.cancel_requested:
+        messages.warning(request, "Cancellation already requested")
+        return redirect("my_orders")
+
     order.cancel_requested = True
+    order.cancel_requested_at = timezone.now()
     order.save()
+
+    subject = f"Cancel Request - Order #{order.id}"
+
+    text_content = f"""
+    Cancel request received for Order #{order.id}
+    Customer: {order.first_name}
+    Email: {order.email}
+    Amount: ₹{order.total}
+    """
+
+    # ✅ BEAUTIFUL HTML EMAIL
+    html_content = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; background:#f4f6fb; padding:20px;">
+        
+        <div style="max-width:600px; margin:auto; background:white; padding:25px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+
+            <h2 style="color:#ff4d4d; text-align:center;">🚨 Cancel Request Received</h2>
+
+            <p style="font-size:15px; color:#333;">
+                A customer has requested to cancel an order. Here are the details:
+            </p>
+
+            <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                <tr>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Order ID</b></td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">#{order.id}</td>
+                </tr>
+                <tr>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Name</b></td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">{order.first_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Email</b></td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">{order.email}</td>
+                </tr>
+                <tr>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Phone</b></td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">{order.phone}</td>
+                </tr>
+                <tr>
+                    <td style="padding:10px;"><b>Total Amount</b></td>
+                    <td style="padding:10px;">₹{order.total}</td>
+                </tr>
+            </table>
+
+            <div style="margin-top:25px; text-align:center;">
+                <p style="color:#555;">Please review and process this request.</p>
+            </div>
+
+        </div>
+
+    </body>
+    </html>
+    """
+
+    email = EmailMultiAlternatives(
+        subject,
+        text_content,
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.ADMIN_EMAIL],
+    )
+
+    email.attach_alternative(html_content, "text/html")
+    email.send()
+
     return redirect("my_orders")
+
 
 @role_required(["Accountant"])
 def refund_requests(request):
@@ -1944,26 +2028,45 @@ def refund_requests(request):
         cancel_requested=True,
         refund_processed=False
     ).order_by("-created_at")
+    return render(request, "refund_requests.html", {"orders": orders})
 
-    return render(request, "refund_requests.html", {
-        "orders": orders
-    })
+
+
+logger = logging.getLogger(__name__)
 
 @role_required(["Accountant"])
+@transaction.atomic
 def process_refund(request, order_id):
+    if request.method != "POST":
+        return redirect("refund_requests")
+
     order = get_object_or_404(Order, id=order_id)
+
+    if order.refund_processed:
+        logger.warning(f"Order #{order.id} already refunded.")
+        return redirect("refund_requests")
+
     try:
         # 1️⃣ Refund via Razorpay
-        client = razorpay.Client(auth=(
-            settings.RAZORPAY_KEY_ID,
-            settings.RAZORPAY_KEY_SECRET
-        ))
-        refund_amount = int(order.total * 100)
-        refund = client.payment.refund(
-            order.razorpay_payment_id,
-            {"amount": refund_amount, "speed": "normal"}
-        )
-        order.refund_id = refund["id"]
+        if order.razorpay_payment_id:
+            client = razorpay.Client(auth=(
+                settings.RAZORPAY_KEY_ID,
+                settings.RAZORPAY_KEY_SECRET
+            ))
+
+            # Fetch captured payment to validate amount
+            payment = client.payment.fetch(order.razorpay_payment_id)
+            captured_amount = payment.get("amount", 0)  # in paise
+
+            refund_amount = int(order.total * 100)
+            if refund_amount > captured_amount:
+                refund_amount = captured_amount  # cap to captured amount
+
+            refund = client.payment.refund(
+                order.razorpay_payment_id,
+                {"amount": refund_amount, "speed": "normal"}
+            )
+            order.refund_id = refund.get("id")
 
         # 2️⃣ Update order status
         order.refund_processed = True
@@ -1971,17 +2074,119 @@ def process_refund(request, order_id):
         order.refund_status = True
         order.save()
 
-        # 3️⃣ Restore stock for each ordered item
-        for item in order.items.all():  # 'items' is the related_name on OrderItem
-            if item.variant:  # if product has variant
-                item.variant.stock += item.quantity
-                item.variant.save()
-            else:  # fallback for non-variant products
-                item.product.stock += item.quantity
-                item.product.save()
+        # 3️⃣ Restore stock
+        for item in order.items.all():
+            product_or_variant = item.variant if item.variant else item.product
+            product_or_variant.stock += item.quantity
+            product_or_variant.save()
 
+        # 4️⃣ Prepare email content with brand name
+        items_html = ""
+        text_items = ""
+        for item in order.items.all():
+            if item.variant:
+                # Variant product name + optional size/color
+                variant_details = []
+                if hasattr(item.variant, "size") and item.variant.size:
+                    variant_details.append(str(item.variant.size))
+                if hasattr(item.variant, "color") and item.variant.color:
+                    variant_details.append(str(item.variant.color))
+                variant_str = " / ".join(variant_details)
+                product_name = f"{escape(item.variant.product.name)}"
+                if variant_str:
+                    product_name += f" ({variant_str})"
+                brand_name = getattr(item.variant.product, "brand", "")
+            else:
+                product_name = escape(item.product.name)
+                brand_name = getattr(item.product, "brand", "")
+
+            qty = item.quantity
+            items_html += f"""
+            <tr>
+                <td style="padding:10px; border-bottom:1px solid #eee;">{product_name}</td>
+                <td style="padding:10px; border-bottom:1px solid #eee;">{brand_name}</td>
+                <td style="padding:10px; border-bottom:1px solid #eee;">{qty}</td>
+            </tr>
+            """
+            text_items += f"- {product_name} ({brand_name}) x {qty}\n"
+
+        subject = f"Refund Approved - Order #{order.id}"
+        text_content = f"""
+Hello {order.first_name},
+
+Your refund has been successfully processed.
+
+Order ID: #{order.id}
+Amount: ₹{order.total}
+Items:
+{text_items}
+
+The amount will be credited to your original payment method within 3–10 business days.
+
+Thank you.
+"""
+
+        html_content = f"""
+<html>
+<body style="margin:0; padding:0; background:#f4f6fb; font-family: Arial, sans-serif;">
+<div style="max-width:600px; margin:30px auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+    <div style="background:#28a745; padding:20px; text-align:center;">
+        <h2 style="color:#fff; margin:0;">Refund Approved ✅</h2>
+    </div>
+    <div style="padding:30px; color:#333;">
+        <p>Hello <b>{escape(order.first_name)}</b>,</p>
+        <p>Your refund request has been <b style="color:#28a745;">approved</b> and processed successfully.</p>
+        <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+            <tr>
+                <td style="padding:10px; border-bottom:1px solid #eee;"><b>Order ID</b></td>
+                <td style="padding:10px; border-bottom:1px solid #eee;">#{order.id}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px; border-bottom:1px solid #eee;"><b>Refund Amount</b></td>
+                <td style="padding:10px; border-bottom:1px solid #eee;">₹{order.total}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px;"><b>Payment Method</b></td>
+                <td style="padding:10px;">{order.get_payment_method_display()}</td>
+            </tr>
+        </table>
+        <h4 style="margin-top:20px; color:#333;">Items Refunded:</h4>
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">Product</th>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">Brand</th>
+                <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">Quantity</th>
+            </tr>
+            {items_html}
+        </table>
+        <p style="margin-top:20px; color:#555;">
+            💳 The refunded amount will be credited to your original payment method within <b>3–10 business days</b>.
+        </p>
+        <hr style="margin:25px 0;">
+        <p style="text-align:center; font-size:13px; color:#999;">
+            Thank you for shopping with us ❤️
+        </p>
+    </div>
+</div>
+</body>
+</html>
+"""
+
+        email = EmailMultiAlternatives(
+            subject,
+            text_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [order.email],
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send(fail_silently=False)
+
+    except razorpay.errors.BadRequestError as e:
+        logger.error(f"Razorpay refund failed for Order #{order.id}: {str(e)}")
+        raise e
     except Exception as e:
-        print("Refund Error:", e)
+        logger.error(f"Refund failed for Order #{order.id}: {str(e)}")
+        raise e
 
     return redirect("refund_requests")
 

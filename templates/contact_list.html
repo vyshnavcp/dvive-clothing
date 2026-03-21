@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Contacts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#eef2f7,#f8fafc);
+    min-height:100vh;
+}
+
+/* NAVBAR */
+.navbar-premium{
+    background:#000;
+    padding:18px 30px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+.navbar-brand{
+    color:#fff !important;
+    font-weight:600;
+}
+
+.nav-link{
+    color:#ddd !important;
+    font-weight:500;
+}
+
+.nav-link:hover{
+    color:#fff !important;
+}
+
+.logout{
+    color:#ff5b5b !important;
+}
+
+/* PAGE */
+.page-wrapper{
+    padding:60px 20px;
+}
+
+.container-box{
+    max-width:1100px;
+    margin:auto;
+}
+
+/* TOP BAR */
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.top h2{
+    font-weight:600;
+}
+
+/* TABLE CARD */
+.table-card{
+    background:#fff;
+    border-radius:14px;
+    box-shadow:0 12px 35px rgba(0,0,0,0.08);
+    overflow:hidden;
+}
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    padding:16px;
+    font-size:14px;
+}
+th{
+    background:#f3f4f6;
+    font-weight:600;
+}
+tbody tr{
+    border-bottom:1px solid #eee;
+}
+tbody tr:hover{
+    background:#fafafa;
+}
+
+/* EMPTY */
+.empty{
+    text-align:center;
+    padding:40px;
+    color:#888;
+}
+
+.btn-sm{
+    padding:0.25rem 0.5rem;
+    font-size:0.8rem;
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-premium">
+<div class="container">
+
+<a class="navbar-brand" href="#">
+<i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+</a>
+
+<button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+
+<ul class="navbar-nav gap-lg-3">
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'order_list' %}">Orders</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'category_list' %}">Categories</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link logout" href="{% url 'user_logout' %}">Logout</a>
+</li>
+
+</ul>
+
+</div>
+</div>
+</nav>
+
+<!-- PAGE -->
+<div class="page-wrapper">
+<div class="container-box">
+
+<div class="top">
+<h2>Contact Messages</h2>
+</div>
+
+<div class="table-card">
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Message</th>
+<th>Date</th>
+<th style="width:180px;">Actions</th>
+</tr>
+</thead>
+
+<tbody>
+{% for contact in contacts %}
+<tr>
+<td>{{ contact.name }}</td>
+<td>{{ contact.email }}</td>
+<td>{{ contact.phone }}</td>
+<td>{{ contact.message|truncatechars:30 }}</td>
+<td>{{ contact.created_at|date:"d M Y, h:i A" }}</td> <!-- Replace with created_at if available -->
+<td>
+    <div class="d-flex gap-2">
+        <!-- View button triggers modal -->
+        <button type="button" class="btn btn-primary btn-sm" 
+                data-bs-toggle="modal" 
+                data-bs-target="#viewMessageModal{{ contact.id }}">
+            View
+        </button>
+
+        <!-- Delete button -->
+        <a href="{% url 'delete_contact' contact.id %}" 
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Are you sure you want to delete this message?')">
+           Delete
+        </a>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="viewMessageModal{{ contact.id }}" tabindex="-1" aria-labelledby="viewMessageModalLabel{{ contact.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewMessageModalLabel{{ contact.id }}">Message from {{ contact.name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p><strong>Email:</strong> {{ contact.email }}</p>
+            <p><strong>Phone:</strong> {{ contact.phone }}</p>
+            <p><strong>Message:</strong></p>
+            <p style="white-space: pre-wrap;">{{ contact.message }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="6">
+<div class="empty">
+<i class="bi bi-inbox fs-3"></i><br><br>
+No contact messages found
+</div>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+</div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

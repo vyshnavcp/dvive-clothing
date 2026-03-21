@@ -221,7 +221,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'vyshnavcp01@gmail.com'
-EMAIL_HOST_PASSWORD = 'abyl ijuu ceky kyvk'
+EMAIL_HOST_PASSWORD = 'rkjz ekkx chio dyvt'
+ADMIN_EMAIL = 'vyshnavcp01@gmail.com'
 
 RAZORPAY_KEY_ID = "rzp_test_S7EsrFpQk5ZZSc"
 RAZORPAY_KEY_SECRET = "KL6MQ8EW2I6O73gK7Xhu3IB7"

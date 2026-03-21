@@ -4,13 +4,15 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 from django.contrib.auth.models import User
 from decimal import Decimal
+from django.utils import timezone
 
 class Contact(models.Model):
-    name=models.CharField(max_length=20)
-    email=models.CharField(max_length=200)
-    phone=models.CharField(max_length=20)
-    subject=models.CharField(max_length=400)
-    message=models.CharField(max_length=200)
+    name = models.CharField(max_length=20)
+    email = models.CharField(max_length=200)
+    phone = models.CharField(max_length=20)
+    subject = models.CharField(max_length=400)
+    message = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     
 class Registration(models.Model):
     user_name=models.CharField(max_length=200)

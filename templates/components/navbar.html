@@ -164,15 +164,15 @@ header .navbar {
                             {% if request.user.is_authenticated %}
                                 <div class="user-dropdown">
                                     <i class="feather icon-feather-user"></i>
-                                    <span class="user-name">Account</span>
                                     <div class="dropdown-menu">
                                         <a href="{% url 'profile' %}">View Profile</a>
                                         <a href="{% url 'my_orders' %}">My Orders</a>
                                     </div>
-                                    <a href="{% url 'user_logout' %}" class="logout-icon" id="icons">
+                                    
+                                </div>
+                                <a href="{% url 'user_logout' %}" class="logout-icon" id="icons">
                                         <i class="feather icon-feather-log-out"></i>
                                     </a>
-                                </div>
                             {% else %}
                                 <a href="{% url 'user_login' %}">
                                     <i class="feather icon-feather-user"></i>
@@ -213,36 +213,31 @@ header .navbar {
                                     role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
                                 <div class="dropdown-menu submenu-content" aria-labelledby="navbarDropdownMenuLink1">
                                     <div class="d-lg-flex mega-menu m-auto flex-column">
-                                        <div
+                                       <div
                                             class="row row-cols-1 row-cols-lg-5 row-cols-md-3 row-cols-sm-3 mb-50px md-mb-25px xs-mb-15px">
                                             
                                             {% for cat in nav_categories %}
                                             <div class="col">
                                                 <ul>
                                                     <li class="sub-title">{{ cat.name }}</li>
-                                                    {% for sub in cat.subcategories.all %}
-                                                    <li>
-                                                        <a href="{% url 'filter_by_subcategory' sub.slug %}">
-                                                            {{ sub.name }}
-                                                        </a>
-                                                    </li>
-                                                    {% endfor %}
+
+                                                    {% if cat.subcategories.exists %}
+                                                        {% for sub in cat.subcategories.all %}
+                                                        <li>
+                                                            <a href="{% url 'filter_by_subcategory' sub.slug %}">
+                                                                {{ sub.name }}
+                                                            </a>
+                                                        </li>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <li>
+                                                            <span class="text-muted fst-italic">Upcoming collection</span>
+                                                        </li>
+                                                    {% endif %}
+
                                                 </ul>
                                             </div>
                                             {% endfor %}
-                                            
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Men</li>
-                                                    <li><span class="text-muted fst-italic">Upcoming collection</span></li>
-                                                </ul>
-                                            </div>
-                                            <div class="col">
-                                                <ul>
-                                                    <li class="sub-title">Kids</li>
-                                                    <li><span class="text-muted fst-italic">Upcoming collection</span></li>
-                                                </ul>
-                                            </div>
                                         </div>
                                         <div class="row row-cols-1 row-cols-sm-2">
                                             <div class="col">

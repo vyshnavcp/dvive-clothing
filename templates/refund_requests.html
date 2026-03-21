@@ -218,11 +218,12 @@ Cancel Requested
 
 <td>
 
-<a href="{% url 'process_refund' order.id %}">
-<button class="refund-btn">
-Approve Refund
-</button>
-</a>
+<form method="POST" action="{% url 'process_refund' order.id %}">
+    {% csrf_token %}
+    <button type="submit" class="refund-btn">
+        Approve Refund
+    </button>
+</form>
 
 </td>
 

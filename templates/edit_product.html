@@ -115,11 +115,14 @@ Logout
 <!-- CATEGORY -->
 <div class="mb-4">
 <select name="subcategory" class="form-select" required>
-{% for sub in subcategories %}
-<option value="{{ sub.id }}" {% if product.subcategory_id == sub.id %}selected{% endif %}>
-{{ sub.name }}
-</option>
-{% endfor %}
+    {% for sub in subcategories %}
+    <option value="{{ sub.id }}"
+        {% if product.subcategory_id == sub.id %}selected{% endif %}>
+
+        {{ sub.category.name }} → {{ sub.name }}
+
+    </option>
+    {% endfor %}
 </select>
 </div>
 
