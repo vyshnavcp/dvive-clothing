@@ -151,23 +151,23 @@
     <div class="checkout-body">
         <div class="summary-row">
             <span>Customer</span>
-            <strong>{{ order.first_name }} {{ order.last_name }}</strong>
+            <strong>{{ checkout_data.first_name }}</strong>
         </div>
 
         <div class="summary-row">
             <span>Email</span>
-            <strong>{{ order.email }}</strong>
+            <strong>{{ checkout_data.email }}</strong>
         </div>
 
         <div class="summary-row total">
             <span>Total Amount</span>
-            <strong>₹{{ order.total }}</strong>
+            <strong>₹{{ display_amount }}</strong>
         </div>
 
         <form id="razorpay-form">
             {% csrf_token %}
             <button type="submit" class="pay-btn">
-                Pay ₹{{ order.total }}
+                Pay ₹{{ display_amount }}
             </button>
         </form>
 
@@ -176,21 +176,23 @@
         </div>
 
         <div class="footer-note">
-            You’ll be redirected to our secure payment partner
+            You'll be redirected to our secure payment partner
         </div>
     </div>
 
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
     var options = {
         "key": "{{ razorpay_key_id }}",
-        "amount": "{{ amount }}",
-        "currency": "{{ currency }}",
+        "amount": "{{ amount }}",   // in paise
+        "currency": "INR",
         "name": "My eCommerce Store",
         "description": "Secure Payment",
         "order_id": "{{ razorpay_order_id }}",
+
         "handler": function (response){
             fetch("{% url 'payment_success_post' %}", {
                 method: "POST",
@@ -203,17 +205,19 @@
             .then(res => res.json())
             .then(data => {
                 if(data.success){
-                    window.location.href = "{% url 'order_success' %}";
+                    window.location.href = data.redirect_url;
                 } else {
                     alert("Payment failed. Please try again.");
                     window.location.href = "{% url 'checkout' %}";
                 }
             });
         },
+
         "prefill": {
-            "name": "{{ order.first_name }} {{ order.last_name }}",
-            "email": "{{ order.email }}"
+            "name": "{{ checkout_data.first_name }}",
+            "email": "{{ checkout_data.email }}"
         },
+
         "theme": {
             "color": "#2563eb"
         }

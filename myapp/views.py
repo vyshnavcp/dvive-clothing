@@ -582,17 +582,21 @@ def checkout(request):
     })
 
 @login_required
-@transaction.atomic
 def checkout_post(request):
     if request.method != "POST":
         return redirect("home")
+
     registration = get_object_or_404(Registration, authuser=request.user)
     cart = get_object_or_404(Cart, registration=registration)
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
     items = cart.items.select_related("product", "variant")
+
     if not items.exists():
         messages.warning(request, "Your cart is empty")
         return redirect("cart_page")
+
+    # Form data
     first_name = request.POST.get("first_name")
     email = request.POST.get("email")
     phone = request.POST.get("phone")
@@ -602,9 +606,12 @@ def checkout_post(request):
     pincode = request.POST.get("pincode")
     land_mark = request.POST.get("land_mark")
     payment_method = request.POST.get("payment-option")
+
     if not request.POST.get("terms_condition"):
         messages.error(request, "You must agree to the terms and conditions.")
         return redirect("checkout")
+
+    # Save profile
     profile.address = address
     profile.phone = phone
     profile.town = town
@@ -613,93 +620,89 @@ def checkout_post(request):
     profile.land_mark = land_mark
     profile.save()
 
+    # Stock check
     for item in items:
         if item.quantity > item.variant.stock:
-            messages.error(
-                request,
-                f"{item.product.name} "
-                f"({item.variant.color.name} - {item.variant.size.name}) "
-                f"only {item.variant.stock} item(s) available."
-            )
+            messages.error(request, f"{item.product.name} only {item.variant.stock} available.")
             return redirect("cart_page")
+
+    # ================= COD =================
     if payment_method == "cod":
-        order = Order.objects.create(
-            registration=registration,
-            first_name=first_name,
-            email=email,
-            phone=phone,
-            address=address,
-            town=town,
-            state=state,
-            pincode=pincode,
-            land_mark=land_mark,
-            subtotal=cart.subtotal(),
-            total=cart.total(),
-            coupon_code=cart.coupon_code,
-            coupon_discount=cart.coupon_discount,
-            payment_method="cod",
-            payment_status=False
-        )
+        from django.db import transaction
 
-        for item in items:
-            variant = item.variant
-            variant.stock -= item.quantity
-            variant.save()
-
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                variant=item.variant,  
-                quantity=item.quantity,
-                price=item.price
+        with transaction.atomic():
+            order = Order.objects.create(
+                registration=registration,
+                first_name=first_name,
+                email=email,
+                phone=phone,
+                address=address,
+                town=town,
+                state=state,
+                pincode=pincode,
+                land_mark=land_mark,
+                subtotal=cart.subtotal(),
+                total=cart.total(),
+                coupon_code=cart.coupon_code,
+                coupon_discount=cart.coupon_discount,
+                payment_method="cod",
+                payment_status=False
             )
-        cart.items.all().delete()
-        cart.coupon_code = None
-        cart.coupon_discount = Decimal("0.00")
-        cart.save()
+
+            for item in items:
+                variant = item.variant
+                variant.stock -= item.quantity
+                variant.save()
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    variant=variant,
+                    quantity=item.quantity,
+                    price=item.price
+                )
+
+            cart.items.all().delete()
+            cart.coupon_code = None
+            cart.coupon_discount = Decimal("0.00")
+            cart.save()
 
         return redirect("cash_on_delivery_success", order_id=order.id)
+
+    # ================= RAZORPAY =================
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
+
     amount = int(cart.total() * 100)
+
     razorpay_order = client.order.create({
         "amount": amount,
         "currency": "INR",
         "payment_capture": "1"
     })
-    order = Order.objects.create(
-        registration=registration,
-        first_name=first_name,
-        email=email,
-        phone=phone,
-        address=address,
-        town=town,
-        state=state,
-        pincode=pincode,
-        land_mark=land_mark,
-        subtotal=cart.subtotal(),
-        total=cart.total(),
-        coupon_code=cart.coupon_code,
-        coupon_discount=cart.coupon_discount,
-        payment_method="razorpay",
-        razorpay_order_id=razorpay_order["id"],
-        payment_status=False
-    )
-    for item in items:
-        OrderItem.objects.create(
-            order=order,
-            product=item.product,
-            variant=item.variant,  
-            quantity=item.quantity,
-            price=item.price
-        )
+
+    # Store session data
+    request.session["checkout_data"] = {
+        "first_name": first_name,
+        "email": email,
+        "phone": phone,
+        "address": address,
+        "town": town,
+        "state": state,
+        "pincode": pincode,
+        "land_mark": land_mark,
+        "cart_id": cart.id,
+        "registration_id": registration.id,
+        "display_amount": str(cart.total())
+    }
+
     return render(request, "checkout_payment.html", {
-        "order": order,
         "razorpay_order_id": razorpay_order["id"],
         "razorpay_key_id": settings.RAZORPAY_KEY_ID,
         "amount": amount,
-        "currency": "INR"
+        "display_amount": cart.total(),
+        "checkout_data": request.session["checkout_data"]
     })
 
 @login_required
@@ -764,60 +767,103 @@ def ajax_shipping_charge(request):
         "total": float(total)
     })
 
+@csrf_exempt
+@transaction.atomic
 def payment_success_post(request):
     if request.method != "POST":
         return JsonResponse({"success": False})
-    data = json.loads(request.body)
-    razorpay_payment_id = data.get("razorpay_payment_id")
-    razorpay_order_id = data.get("razorpay_order_id")
-    razorpay_signature = data.get("razorpay_signature")
-    client = razorpay.Client(auth=(
-        settings.RAZORPAY_KEY_ID,
-        settings.RAZORPAY_KEY_SECRET
-    ))
+
     try:
+        data = json.loads(request.body)
+
+        razorpay_payment_id = data.get("razorpay_payment_id")
+        razorpay_order_id = data.get("razorpay_order_id")
+        razorpay_signature = data.get("razorpay_signature")
+
+        client = razorpay.Client(auth=(
+            settings.RAZORPAY_KEY_ID,
+            settings.RAZORPAY_KEY_SECRET
+        ))
+
         client.utility.verify_payment_signature({
             "razorpay_order_id": razorpay_order_id,
             "razorpay_payment_id": razorpay_payment_id,
             "razorpay_signature": razorpay_signature
         })
-        order = get_object_or_404(Order, razorpay_order_id=razorpay_order_id)
-        if order.payment_status:
-            return JsonResponse({
-                "success": True,
-                "redirect_url": f"/payment-success/?order_id={order.id}"
-            })
-        order.razorpay_payment_id = razorpay_payment_id
-        order.payment_status = True
-        order.save(update_fields=["razorpay_payment_id", "payment_status"])
-        for item in order.items.select_related("variant"):
+
+        checkout_data = request.session.get("checkout_data")
+
+        if not checkout_data:
+            return JsonResponse({"success": False, "message": "Session expired"})
+
+        registration = Registration.objects.get(id=checkout_data["registration_id"])
+        cart = Cart.objects.get(id=checkout_data["cart_id"])
+
+        items = cart.items.select_related("product", "variant")
+
+        order = Order.objects.create(
+            registration=registration,
+            first_name=checkout_data["first_name"],
+            email=checkout_data["email"],
+            phone=checkout_data["phone"],
+            address=checkout_data["address"],
+            town=checkout_data["town"],
+            state=checkout_data["state"],
+            pincode=checkout_data["pincode"],
+            land_mark=checkout_data["land_mark"],
+            subtotal=cart.subtotal(),
+            total=cart.total(),
+            coupon_code=cart.coupon_code,
+            coupon_discount=cart.coupon_discount,
+            payment_method="razorpay",
+            razorpay_order_id=razorpay_order_id,
+            razorpay_payment_id=razorpay_payment_id,
+            payment_status=True
+        )
+
+        for item in items:
             variant = item.variant
+
             if variant.stock < item.quantity:
-                return JsonResponse({
-                    "success": False,
-                    "message": "Stock not available"
-                })
+                return JsonResponse({"success": False, "message": "Stock issue"})
+
             variant.stock -= item.quantity
-            variant.save(update_fields=["stock"])
-        cart = Cart.objects.filter(registration=order.registration).first()
-        if cart:
-            cart.items.all().delete()
-            cart.coupon_code = None
-            cart.coupon_discount = Decimal("0.00")
-            cart.update_totals()
+            variant.save()
+
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                variant=variant,
+                quantity=item.quantity,
+                price=item.price
+            )
+
+        cart.items.all().delete()
+        cart.coupon_code = None
+        cart.coupon_discount = Decimal("0.00")
+        cart.save()
+
+        del request.session["checkout_data"]
+
         return JsonResponse({
             "success": True,
-            "redirect_url": f"/payment-success/?order_id={order.id}"
+            "redirect_url": reverse("order_success") + f"?order_id={order.id}"
         })
-    except razorpay.errors.SignatureVerificationError:
+
+    except Exception:
         return JsonResponse({"success": False})
     
 @login_required
 def order_success(request):
     order_id = request.GET.get("order_id")
     order = None
+
     if order_id:
-        order = Order.objects.filter(id=order_id, registration=request.user).first()
+        order = Order.objects.filter(
+            id=order_id,
+            registration__authuser=request.user   # ✅ FIX HERE
+        ).first()
+
     return render(request, "order_success.html", {"order": order})
 
 
