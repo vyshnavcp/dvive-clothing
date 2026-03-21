@@ -581,6 +581,11 @@ def checkout(request):
         "profile_land_mark": profile.land_mark,
     })
 
+def calculate_shipping(subtotal):
+    if subtotal < Decimal("899.00"):
+        return Decimal("80.00")
+    return Decimal("0.00")
+
 @login_required
 def checkout_post(request):
     if request.method != "POST":
@@ -608,7 +613,7 @@ def checkout_post(request):
     payment_method = request.POST.get("payment-option")
 
     if not request.POST.get("terms_condition"):
-        messages.error(request, "You must agree to the terms and conditions.")
+        messages.error(request, "Accept terms & conditions")
         return redirect("checkout")
 
     # Save profile
@@ -623,8 +628,13 @@ def checkout_post(request):
     # Stock check
     for item in items:
         if item.quantity > item.variant.stock:
-            messages.error(request, f"{item.product.name} only {item.variant.stock} available.")
+            messages.error(request, f"{item.product.name} only {item.variant.stock} available")
             return redirect("cart_page")
+
+    # ✅ SHIPPING CALCULATION
+    subtotal = cart.subtotal()
+    shipping = calculate_shipping(subtotal)
+    total = subtotal - cart.coupon_discount + shipping
 
     # ================= COD =================
     if payment_method == "cod":
@@ -641,8 +651,8 @@ def checkout_post(request):
                 state=state,
                 pincode=pincode,
                 land_mark=land_mark,
-                subtotal=cart.subtotal(),
-                total=cart.total(),
+                subtotal=subtotal,
+                total=total,
                 coupon_code=cart.coupon_code,
                 coupon_discount=cart.coupon_discount,
                 payment_method="cod",
@@ -674,7 +684,7 @@ def checkout_post(request):
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
 
-    amount = int(cart.total() * 100)
+    amount = int(total * 100)  # ✅ includes shipping
 
     razorpay_order = client.order.create({
         "amount": amount,
@@ -682,7 +692,7 @@ def checkout_post(request):
         "payment_capture": "1"
     })
 
-    # Store session data
+    # Save session
     request.session["checkout_data"] = {
         "first_name": first_name,
         "email": email,
@@ -694,14 +704,13 @@ def checkout_post(request):
         "land_mark": land_mark,
         "cart_id": cart.id,
         "registration_id": registration.id,
-        "display_amount": str(cart.total())
     }
 
     return render(request, "checkout_payment.html", {
         "razorpay_order_id": razorpay_order["id"],
         "razorpay_key_id": settings.RAZORPAY_KEY_ID,
         "amount": amount,
-        "display_amount": cart.total(),
+        "display_amount": total,  # ✅ includes shipping
         "checkout_data": request.session["checkout_data"]
     })
 
@@ -767,6 +776,7 @@ def ajax_shipping_charge(request):
         "total": float(total)
     })
 
+
 @csrf_exempt
 @transaction.atomic
 def payment_success_post(request):
@@ -801,6 +811,12 @@ def payment_success_post(request):
 
         items = cart.items.select_related("product", "variant")
 
+        # ✅ SHIPPING AGAIN (IMPORTANT)
+        subtotal = cart.subtotal()
+        shipping = calculate_shipping(subtotal)
+        total = subtotal - cart.coupon_discount + shipping
+
+        # ✅ CREATE ORDER AFTER PAYMENT
         order = Order.objects.create(
             registration=registration,
             first_name=checkout_data["first_name"],
@@ -811,8 +827,8 @@ def payment_success_post(request):
             state=checkout_data["state"],
             pincode=checkout_data["pincode"],
             land_mark=checkout_data["land_mark"],
-            subtotal=cart.subtotal(),
-            total=cart.total(),
+            subtotal=subtotal,
+            total=total,
             coupon_code=cart.coupon_code,
             coupon_discount=cart.coupon_discount,
             payment_method="razorpay",
@@ -844,6 +860,8 @@ def payment_success_post(request):
         cart.save()
 
         del request.session["checkout_data"]
+
+        from django.urls import reverse
 
         return JsonResponse({
             "success": True,
