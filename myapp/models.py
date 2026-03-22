@@ -13,6 +13,19 @@ class Contact(models.Model):
     subject = models.CharField(max_length=400)
     message = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+class HomeBanner(models.Model):
+    title_line1 = models.CharField(max_length=100)
+    title_line2 = models.CharField(max_length=100)
+    subtitle = models.CharField(max_length=200, blank=True)
+
+    image = models.ImageField(upload_to='home_banners/')          # Desktop
+    mobile_image = models.ImageField(upload_to='home_banners/', blank=True, null=True)  # ✅ Mobile
+
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.title_line1} {self.title_line2}"
     
 class Registration(models.Model):
     user_name=models.CharField(max_length=200)

@@ -49,7 +49,10 @@ def home(request):
    featured_product= Product.objects.filter(is_featured=True)[:5]
    signature_products = Product.objects.filter( is_signature_collection=True,status=True)[:8]
    categories = Category.objects.prefetch_related("subcategories").all()
-   return render(request, "home.html", {'blogs': blogs,'best_seller_products': best_seller_products,'featured_product':featured_product,'signature_products': signature_products,"categories": categories})
+   banners = HomeBanner.objects.filter(is_active=True)
+   return render(request, "home.html", {'blogs': blogs,
+   'best_seller_products': best_seller_products,'featured_product':featured_product,
+   'signature_products': signature_products,"categories": categories,'banners': banners})
 
 def about(request):
     return render(request, "about.html")
@@ -947,9 +950,7 @@ def dashboard(request):
         orders = Order.objects.all().order_by('-created_at')
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
-
     paid_orders = orders.filter(payment_status=True, is_cancelled=False)
-
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
     today_revenue = paid_orders.filter(
         created_at__date=today
@@ -958,10 +959,7 @@ def dashboard(request):
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
 
-    pending_orders = orders.filter(
-        payment_status=False,
-        is_cancelled=False
-    ).count()
+    pending_orders = orders.filter(is_cancelled=False).exclude(is_delivered=True).exclude(is_completed=True).count()
 
     # ✅ ADD THIS
     refund_requests_count = Order.objects.filter(
@@ -1456,13 +1454,17 @@ def paid_orders(request):
 @user_passes_test(staff_required, login_url='home')
 def pending_orders(request):
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
-        orders = Order.objects.filter(payment_status=False, is_cancelled=False)
+        orders = Order.objects.filter(
+            is_cancelled=False,
+            is_delivered=False
+        )
     else:
         orders = Order.objects.filter(
             is_pos_order=True,
-            payment_status=False,
-            is_cancelled=False
+            is_cancelled=False,
+            is_delivered=False
         )
+
     return render(request, 'orders_view.html', {
         'orders': orders.order_by('-created_at'),
         'title': 'Pending Orders'
@@ -2272,3 +2274,52 @@ def refund_report(request):
         "approved_refunds":approved_refunds,
         "pending_refunds":pending_refunds
     })
+
+# LIST
+def banner_list(request):
+    banners = HomeBanner.objects.all()
+    return render(request, "banner_list.html", {"banners": banners})
+
+
+# ADD
+def add_banner(request):
+    if request.method == "POST":
+        HomeBanner.objects.create(
+            title_line1=request.POST.get("title_line1"),
+            title_line2=request.POST.get("title_line2"),
+            subtitle=request.POST.get("subtitle"),
+            image=request.FILES.get("image"),
+            mobile_image=request.FILES.get("mobile_image"),  )
+        return redirect("banner_list")
+
+    return render(request, "add_banner.html")
+
+
+# EDIT
+def edit_banner(request, id):
+    banner = get_object_or_404(HomeBanner, id=id)
+
+    if request.method == "POST":
+        banner.title_line1 = request.POST.get("title_line1")
+        banner.title_line2 = request.POST.get("title_line2")
+        banner.subtitle = request.POST.get("subtitle")
+
+        # ✅ Desktop image
+        if request.FILES.get("image"):
+            banner.image = request.FILES.get("image")
+
+        # ✅ Mobile image (ADD HERE 👇)
+        if request.FILES.get("mobile_image"):
+            banner.mobile_image = request.FILES.get("mobile_image")
+
+        banner.save()
+        return redirect("banner_list")
+
+    return render(request, "edit_banner.html", {"banner": banner})
+
+
+# DELETE
+def delete_banner(request, id):
+    banner = get_object_or_404(HomeBanner, id=id)
+    banner.delete()
+    return redirect("banner_list")

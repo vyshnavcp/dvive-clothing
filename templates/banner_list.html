@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Banner List</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f5f7fb;
+}
+
+/* NAVBAR */
+.navbar-premium{
+    background:#000;
+    padding:18px 30px;
+    box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+
+.navbar-brand{
+    color:#fff !important;
+    font-weight:600;
+    font-size:22px;
+}
+
+.nav-link{
+    color:#ddd !important;
+    font-weight:500;
+    margin-left:15px;
+}
+
+.nav-link:hover{
+    color:#fff !important;
+}
+
+/* PAGE */
+.page-wrapper{
+    padding:50px 20px;
+}
+
+/* HEADER */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.header h2{
+    font-weight:700;
+}
+
+/* ADD BUTTON */
+.add-btn{
+    background:linear-gradient(135deg,#6c63ff,#5a54e6);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:10px;
+    text-decoration:none;
+    font-size:14px;
+    transition:0.3s;
+}
+
+.add-btn:hover{
+    box-shadow:0 8px 20px rgba(108,99,255,0.2);
+    transform:translateY(-2px);
+}
+
+/* CARD */
+.card{
+    background:#fff;
+    border:none;
+    border-radius:18px;
+    padding:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.06);
+}
+
+/* TABLE */
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+thead{
+    background:#f1f3f9;
+}
+
+th{
+    padding:14px;
+    font-size:13px;
+    color:#666;
+    font-weight:500;
+}
+
+td{
+    padding:14px;
+    border-top:1px solid #eee;
+    vertical-align:middle;
+}
+
+tr:hover{
+    background:#fafbff;
+}
+
+/* IMAGE */
+.banner-img{
+    width:120px;
+    height:70px;
+    object-fit:cover;
+    border-radius:8px;
+}
+
+/* ACTIONS */
+.actions a{
+    text-decoration:none;
+    font-size:13px;
+    padding:6px 12px;
+    border-radius:8px;
+    margin-right:5px;
+    transition:0.3s;
+}
+
+/* EDIT */
+.edit-btn{
+    background:#e3f2fd;
+    color:#1976d2;
+}
+
+.edit-btn:hover{
+    background:#1976d2;
+    color:#fff;
+}
+
+/* DELETE */
+.delete-btn{
+    background:#ffebee;
+    color:#d32f2f;
+}
+
+.delete-btn:hover{
+    background:#d32f2f;
+    color:#fff;
+}
+
+/* EMPTY */
+.empty{
+    text-align:center;
+    padding:30px;
+    color:#888;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+
+    .header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+    }
+
+    .banner-img{
+        width:100px;
+        height:60px;
+    }
+
+    table{
+        font-size:13px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-premium">
+<div class="container">
+
+<a class="navbar-brand" href="#">
+<i class="bi bi-images me-2"></i> Banner
+</a>
+
+<button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#navMenu">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="navMenu">
+<ul class="navbar-nav ms-auto">
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'dashboard' %}">
+<i class="bi bi-house me-1"></i> Dashboard
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link" href="{% url 'banner_list' %}">
+<i class="bi bi-images me-1"></i> Banner List
+</a>
+</li>
+
+</ul>
+</div>
+
+</div>
+</nav>
+
+<!-- PAGE -->
+<div class="page-wrapper">
+<div class="container">
+
+<div class="header">
+    <h2><i class="bi bi-images me-2"></i>Banner Management</h2>
+    <a href="{% url 'add_banner' %}" class="add-btn">
+        <i class="bi bi-plus-circle me-1"></i> Add Banner
+    </a>
+</div>
+
+<div class="card">
+<table>
+
+<thead>
+<tr>
+<th>Banner</th>
+<th>Title</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for banner in banners %}
+<tr>
+<td>
+<img src="{{ banner.image.url }}" class="banner-img">
+</td>
+
+<td>
+<strong>{{ banner.title_line1 }}</strong><br>
+<span style="color:#888;font-size:13px;">
+{{ banner.title_line2 }}
+</span>
+</td>
+
+<td class="actions">
+<a href="{% url 'edit_banner' banner.id %}" class="edit-btn">
+<i class="bi bi-pencil"></i> Edit
+</a>
+
+<a href="{% url 'delete_banner' banner.id %}" 
+   class="delete-btn"
+   onclick="return confirm('Delete this banner?')">
+   <i class="bi bi-trash"></i> Delete
+</a>
+</td>
+</tr>
+
+{% empty %}
+<tr>
+<td colspan="3" class="empty">
+<i class="bi bi-image fs-3 d-block mb-2"></i>
+No banners added yet
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+</div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

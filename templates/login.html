@@ -112,7 +112,7 @@
                         <span class="fs-26 xs-fs-24 alt-font fw-600 text-dark-gray mb-20px d-block">Member login</span>
                         <form action="{% url 'login_post' %}" method="post">
                              {% csrf_token %}
-                            <label class="text-dark-gray mb-10px fw-500">Username or email address<span class="text-red">*</span></label> 
+                            <label class="text-dark-gray mb-10px fw-500">Email address<span class="text-red">*</span></label> 
                             <input class="mb-20px bg-very-light-gray form-control required" type="text" name="name" placeholder="Enter your username" />
                             <label class="text-dark-gray mb-10px fw-500">Password<span class="text-red" >*</span></label> 
                             <input class="mb-20px bg-very-light-gray form-control required" type="password" name="password" placeholder="Enter your password" id="password" minlength="6" required pattern="^(?=.*[A-Za-z]).{6,}$"/>

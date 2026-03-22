@@ -30,18 +30,12 @@
                 position: relative !important;
             left: 23px;
         }
-        /* Home Banner Responsiveness */
-        @media (max-width: 767px) {
-            .home-banner-1 {
-                background-image: url('/static/images/home_banner1a.webp') !important;
-            }
-            .home-banner-2 {
-                background-image: url('/static/images/home_banner2a.webp') !important;
-            }
-            .home-banner-3 {
-                background-image: url('/static/images/home_banner3a.webp') !important;
-            }
-        }
+        @media (max-width: 768px) {
+    .cover-background {
+        background-position: center right !important;
+        background-size: cover !important;
+    }
+}
     </style>
 
 </head>
@@ -56,88 +50,58 @@
             data-swiper-number-pagination-progress="true">
             <div class="swiper-wrapper">
                 <!-- start slider item -->
+               {% for banner in banners %}
                 <div class="swiper-slide overflow-hidden">
-                    <div class="cover-background position-absolute top-0 start-0 w-100 h-100 home-banner-1" data-swiper-parallax="500"
-                        style="background-image:url('/static/images/home_banner1.webp');">
-                        <div class="container h-100">
-                            <div class="row align-items-center h-100 justify-content-start">
-                                <div
-                                    class="col-md-10 position-relative text-white d-flex flex-column justify-content-center h-100">
-                                    <div data-anime='{ "opacity": [0, 1], "translateY": [50, 0], "easing": "easeOutQuad", "duration": 500, "delay": 300 }'
-                                        class="alt-font text-dark-gray mb-25px fs-20 sm-mb-15px"><span
-                                            class="text-highlight">Discount on selected collection!<span
-                                                class="bg-base-color h-8px bottom-0px"></span></span></div>
-                                    <div class="alt-font fs-120 xs-fs-95 lh-100 mb-40px text-dark-gray fw-600 transform-origin-right ls-minus-5px sm-mb-25px"
-                                        data-anime='{ "el": "childs", "rotateX": [90, 0], "opacity": [0,1], "staggervalue": 150, "easing": "easeOutQuad" }'>
-                                        <span class="d-block">Women's</span>
-                                        <span class="d-block fw-300">collection</span>
-                                    </div>
-                                    <div
-                                        data-anime='{ "opacity": [0, 1], "translateY": [100, 0], "easing": "easeOutQuad", "duration": 800, "delay": 400 }'>
-                                        <a href="{% url 'product' %}"
-                                            class="btn btn-dark-gray btn-box-shadow btn-large">View collection</a>
-                                    </div>
+                    
+                    <!-- Desktop Image -->
+                    <div class="cover-background position-absolute top-0 start-0 w-100 h-100 home-banner-2 d-none d-md-block"
+                        data-swiper-parallax="500"
+                        style="background-image:url('{{ banner.image.url }}');">
+                    </div>
+
+                    <!-- Mobile Image -->
+                    <div class="cover-background position-absolute top-0 start-0 w-100 h-100 d-block d-md-none"
+                        data-swiper-parallax="500"
+                        style="background-image:url('{% if banner.mobile_image %}{{ banner.mobile_image.url }}{% else %}{{ banner.image.url }}{% endif %}');">
+                    </div>
+
+                    <div class="container h-100">
+                        <div class="row align-items-center h-100 justify-content-start">
+                            <div class="col-md-10 position-relative text-white d-flex flex-column justify-content-center h-100">
+
+                                <!-- Subtitle -->
+                                <div data-anime='{ "opacity": [0, 1], "translateY": [50, 0], "easing": "easeOutQuad", "duration": 500, "delay": 300 }'
+                                    class="alt-font text-dark-gray mb-25px fs-20 sm-mb-15px">
+                                    <span class="text-highlight">
+                                        {{ banner.subtitle }}
+                                        <span class="bg-base-color h-8px bottom-0px"></span>
+                                    </span>
                                 </div>
+
+                                <!-- Title -->
+                                <div class="alt-font fs-120 xs-fs-95 lh-100 mb-40px text-dark-gray fw-600 transform-origin-right ls-minus-5px sm-mb-25px"
+                                    data-anime='{ "el": "childs", "rotateX": [90, 0], "opacity": [0,1], "staggervalue": 150, "easing": "easeOutQuad" }'>
+
+                                    <span class="d-block">{{ banner.title_line1 }}</span>
+                                    <span class="d-block fw-300">{{ banner.title_line2 }}</span>
+
+                                </div>
+
+                                <!-- Button -->
+                                <div data-anime='{ "opacity": [0, 1], "translateY": [100, 0], "easing": "easeOutQuad", "duration": 800, "delay": 400 }'>
+                                    <a href="{% url 'product' %}"
+                                        class="btn btn-dark-gray btn-box-shadow btn-large">
+                                        View collection
+                                    </a>
+                                </div>
+
                             </div>
                         </div>
                     </div>
+
                 </div>
+                {% endfor %}
                 <!-- end slider item -->
-                <!-- start slider item -->
-                <div class="swiper-slide overflow-hidden">
-                    <div class="cover-background position-absolute top-0 start-0 w-100 h-100 home-banner-2" data-swiper-parallax="500"
-                        style="background-image:url('/static/images/home_banner2.webp');">
-                        <div class="container h-100">
-                            <div class="row align-items-center h-100 justify-content-start">
-                                <div
-                                    class="col-md-10 position-relative text-white d-flex flex-column justify-content-center h-100">
-                                    <div data-anime='{ "opacity": [0, 1], "translateY": [50, 0], "easing": "easeOutQuad", "duration": 500, "delay": 300 }'
-                                        class="alt-font text-dark-gray mb-25px fs-20 sm-mb-15px"><span
-                                            class="text-highlight">Discount on selected collection!<span
-                                                class="bg-base-color h-8px bottom-0px"></span></span></div>
-                                    <div class="alt-font fs-120 xs-fs-95 lh-100 mb-40px text-dark-gray fw-600 transform-origin-right ls-minus-5px sm-mb-25px"
-                                        data-anime='{ "el": "childs", "rotateX": [90, 0], "opacity": [0,1], "staggervalue": 150, "easing": "easeOutQuad" }'>
-                                        <span class="d-block">Women's</span>
-                                        <span class="d-block fw-300">Fashion</span>
-                                    </div>
-                                    <div
-                                        data-anime='{ "opacity": [0, 1], "translateY": [100, 0], "easing": "easeOutQuad", "duration": 800, "delay": 400 }'>
-                                        <a href="{% url 'product' %}"
-                                            class="btn btn-dark-gray btn-box-shadow btn-large">View collection</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- end slider item -->
-                <!-- start slider item -->
-                <div class="swiper-slide overflow-hidden">
-                    <div class="cover-background position-absolute top-0 start-0 w-100 h-100 home-banner-3" data-swiper-parallax="500"
-                        style="background-image:url('/static/images/home_banner3.webp');">
-                        <div class="container h-100">
-                            <div class="row align-items-center h-100 justify-content-start">
-                                <div
-                                    class="col-md-10 position-relative text-white d-flex flex-column justify-content-center h-100">
-                                    <div data-anime='{ "opacity": [0, 1], "translateY": [50, 0], "easing": "easeOutQuad", "duration": 500, "delay": 300 }'
-                                        class="alt-font text-dark-gray mb-25px fs-20 sm-mb-15px"><span
-                                            class="text-highlight">Discount on selected collection!<span
-                                                class="bg-base-color h-8px bottom-0px"></span></span></div>
-                                    <div class="alt-font fs-120 xs-fs-95 lh-100 mb-40px text-dark-gray fw-600 transform-origin-right ls-minus-5px sm-mb-25px"
-                                        data-anime='{ "el": "childs", "rotateX": [90, 0], "opacity": [0,1], "staggervalue": 150, "easing": "easeOutQuad" }'>
-                                        <span class="d-block">Women's</span>
-                                        <span class="d-block fw-300">Style</span>
-                                    </div>
-                                    <div
-                                        data-anime='{ "opacity": [0, 1], "translateY": [100, 0], "easing": "easeOutQuad", "duration": 800, "delay": 400 }'>
-                                        <a href="{% url 'product' %}"
-                                            class="btn btn-dark-gray btn-box-shadow btn-large">View collection</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <!-- end slider item -->
             </div>
             <!-- start slider pagination -->
