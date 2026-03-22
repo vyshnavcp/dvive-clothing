@@ -223,7 +223,7 @@ Logout
 </div>
 
 <div class="col-md-6">
-<input type="text" name="slug" id="slug" class="form-control" placeholder="Slug">
+<input type="text" name="slug" id="slug" class="form-control" placeholder="Slug auto generate" readonly>
 </div>
 
 <div class="col-md-6">
@@ -349,77 +349,50 @@ Logout
 <script>
 
 function addColorVariant(){
+    const wrapper = document.getElementById("variantWrapper");
 
-const wrapper = document.getElementById("variantWrapper");
+    const html = `
+    <div class="variant-box">
 
-const html = `
-<div class="variant-box">
+        <div class="color-pill mb-2">
+            <input type="text" name="color_name[]" class="form-control" placeholder="Color Name">
+            <input type="color" name="color_hex[]" class="form-control form-control-color" value="#000000">
+            <button type="button" class="remove-btn" onclick="this.closest('.variant-box').remove();calculateTotalStock()">✖</button>
+        </div>
 
-<div class="color-pill mb-2">
+        <div class="size-stock-row">
+            <select name="variant_size[]" class="form-select">
+                <option value="">No Size</option>
+                {% for size in sizes %}
+                <option value="{{ size.id }}">{{ size.name }}</option>
+                {% endfor %}
+            </select>
 
-<input type="text" name="color_name[]" class="form-control" placeholder="Color Name">
+            <input type="number" name="variant_stock[]" class="form-control stock-input" placeholder="Stock" oninput="calculateTotalStock()" required>
+        </div>
 
-<input type="color" name="color_hex[]" class="form-control form-control-color" value="#000000">
+    </div>
+    `;
 
-<button type="button" class="remove-btn" onclick="this.closest('.variant-box').remove();calculateTotalStock()">✖</button>
-
-</div>
-
-<div class="size-stock-row">
-
-<select name="variant_size[]" class="form-select">
-<option value="">No Size</option>
-{% for size in sizes %}
-<option value="{{ size.id }}">{{ size.name }}</option>
-{% endfor %}
-</select>
-
-<input type="number" name="variant_stock[]" class="form-control stock-input" placeholder="Stock" oninput="calculateTotalStock()" required>
-
-</div>
-
-</div>
-`;
-
-wrapper.insertAdjacentHTML("beforeend", html);
-
+    wrapper.insertAdjacentHTML("beforeend", html);
 }
 
 function calculateTotalStock(){
-
-let total = 0;
-
-document.querySelectorAll(".stock-input").forEach(i => total += parseInt(i.value || 0));
-
-document.getElementById("totalStock").value = total;
-
+    let total = 0;
+    document.querySelectorAll(".stock-input").forEach(i => total += parseInt(i.value || 0));
+    document.getElementById("totalStock").value = total;
 }
 
 document.addEventListener("DOMContentLoaded", function(){
 
-const nameInput = document.getElementById("product_name");
-const slugInput = document.getElementById("slug");
+    const textarea = document.querySelector('textarea[name="additional_info"]');
 
-if(nameInput){
-
-nameInput.addEventListener("keyup", function(){
-
-slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
-
-});
-
-}
-
-const textarea = document.querySelector('textarea[name="additional_info"]');
-
-if (textarea && textarea.value.trim() === "") {
-
-textarea.value = JSON.stringify({
-style_type: "Zari",
-material_type: "Silk"
-}, null, 4);
-
-}
+    if (textarea && textarea.value.trim() === "") {
+        textarea.value = JSON.stringify({
+            style_type: "Zari",
+            material_type: "Silk"
+        }, null, 4);
+    }
 
 });
 

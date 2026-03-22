@@ -1081,7 +1081,6 @@ def add_product(request):
     if request.method == "POST":
 
         name = request.POST.get("name")
-        slug = request.POST.get("slug")
         brand = request.POST.get("brand")
         product_code = request.POST.get("product_code")
         description = request.POST.get("description")
@@ -1103,28 +1102,32 @@ def add_product(request):
         except:
             additional_info = {}
 
-        product = Product.objects.create(
-            name=name,
-            slug=slug,
-            brand=brand,
-            product_code=product_code,
-            description=description,
-            subcategory_id=subcategory_id,
-            price=price,
-            cost_price=cost_price if cost_price else None,
-            old_price=old_price if old_price else None,
-            status=status,
-            is_signature_collection=is_signature_collection,
-            is_featured=is_featured,
-            is_best_seller=is_best_seller,
-            additional_info=additional_info,
-            image1=request.FILES.get("image1"),
-            image2=request.FILES.get("image2"),
-            image3=request.FILES.get("image3"),
-            image4=request.FILES.get("image4"),
-            image5=request.FILES.get("image5"),
-        )
+        try:
+            product = Product.objects.create(
+                name=name,
+                brand=brand,
+                product_code=product_code,
+                description=description,
+                subcategory_id=subcategory_id,
+                price=price,
+                cost_price=cost_price if cost_price else None,
+                old_price=old_price if old_price else None,
+                status=status,
+                is_signature_collection=is_signature_collection,
+                is_featured=is_featured,
+                is_best_seller=is_best_seller,
+                additional_info=additional_info,
+                image1=request.FILES.get("image1"),
+                image2=request.FILES.get("image2"),
+                image3=request.FILES.get("image3"),
+                image4=request.FILES.get("image4"),
+                image5=request.FILES.get("image5"),
+            )
+        except IntegrityError:
+            messages.error(request, "Product with same code already exists!")
+            return redirect("add_product")
 
+        # ✅ VARIANTS
         color_names = request.POST.getlist("color_name[]")
         color_hex = request.POST.getlist("color_hex[]")
         sizes_list = request.POST.getlist("variant_size[]")
@@ -1143,8 +1146,8 @@ def add_product(request):
 
             color_obj = None
 
-            if color_name:  # create color only if exists
-                color_obj, created = ProductColor.objects.get_or_create(
+            if color_name:
+                color_obj, _ = ProductColor.objects.get_or_create(
                     product=product,
                     name=color_name,
                     defaults={"hex_code": color_hex_code}
@@ -1162,6 +1165,7 @@ def add_product(request):
         product.stock = total_stock
         product.save()
 
+        messages.success(request, "Product added successfully!")
         return redirect("product_list")
 
     return render(request, "add_product.html", {

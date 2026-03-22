@@ -5,6 +5,7 @@ from django.utils.text import slugify
 from django.contrib.auth.models import User
 from decimal import Decimal
 from django.utils import timezone
+from django.db import IntegrityError
 
 class Contact(models.Model):
     name = models.CharField(max_length=20)
@@ -117,21 +118,21 @@ class Product(models.Model):
     image5 = models.ImageField(upload_to='products/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
     def save(self, *args, **kwargs):
+
+        # 🔥 BEST: use product_code to guarantee uniqueness
         if not self.slug:
-            base_slug = slugify(self.name)
-            slug = base_slug
-            counter = 1
-            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            self.slug = slug
+            self.slug = slugify(f"{self.name}-{self.product_code}")
 
         if self.additional_info is None:
             self.additional_info = {}
+
         super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
+
     @property
     def style_type(self):
         return self.additional_info.get("style_type", [])
