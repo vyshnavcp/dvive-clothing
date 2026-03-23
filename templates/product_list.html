@@ -5,7 +5,6 @@
 <title>Products</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Bootstrap + Icons + Font -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -14,14 +13,12 @@
 body{
     font-family:'Poppins', sans-serif;
     background:#f4f6f9;
-    margin:0;
 }
 
-/* ================= NAVBAR ================= */
 .header-with-topbar{
     background:#000;
-    box-shadow:0 4px 20px rgba(0,0,0,0.35);
 }
+
 .dashboard-header{
     padding:18px 24px;
 }
@@ -30,160 +27,91 @@ body{
 .dashboard-header i{
     color:#fff;
 }
-.dashboard-header .nav-link{
-    color:#fff !important;
-    font-weight:500;
-    transition:0.3s;
-}
-.dashboard-header .nav-link:hover{
-    color:#bdbdbd !important;
-}
-.navbar-toggler{
-    border:0;
-}
-.navbar-toggler-icon{
-    filter:invert(1);
+
+.page-wrapper{
+    padding:40px 20px;
 }
 
-/* ================= PAGE CONTENT ================= */
-.page-wrapper{
-    padding:50px 20px;
-}
 .container-box{
     max-width:1200px;
     margin:auto;
 }
 
-.card{
-    border-radius: 16px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-.card:hover{
-    transform: translateY(-4px);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.12);
-}
-
 .table{
+    background:#fff;
     border-radius:12px;
     overflow:hidden;
-    box-shadow:0 6px 20px rgba(0,0,0,0.05);
-    background:#fff;
 }
+
 .table thead th{
-    background:#f0f0f0;
-    font-weight:600;
-    color:#1f2937;
+    background:#111827;
+    color:#fff;
 }
-.table-hover tbody tr:hover{
+
+.table tbody tr:hover{
     background:#f3f4f6;
 }
 
-.btn-edit, .btn-add{
+.btn-add, .btn-edit{
     background:#111;
     color:#fff;
-    border-radius:8px;
-    font-weight:500;
-    transition:0.3s;
-}
-.btn-edit:hover, .btn-add:hover{
-    background:#333;
-    transform:translateY(-2px);
-    box-shadow:0 6px 12px rgba(0,0,0,0.25);
 }
 .btn-delete{
     background:black;
     color:#fff;
-    border-radius:8px;
-    font-weight:500;
-    transition:0.3s;
 }
 .btn-delete:hover{
-    background:#c0392b;
-    transform:translateY(-2px);
-    box-shadow:0 6px 12px rgba(0,0,0,0.25);
+    background:red;
 }
 
-@media(max-width:768px){
-    .table, th, td{
-        font-size:14px;
-    }
-    .btn-edit, .btn-delete, .btn-add{
-        font-size:13px;
-        padding:4px 10px;
-    }
+td img:hover{
+    transform:scale(1.2);
+    transition:.3s;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
+<!-- NAVBAR -->
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
-    <div class="container-fluid px-0">
+<div class="container-fluid">
 
-        <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-speedometer2 fs-2"></i>
-            <div>
-                <h4 class="mb-0">Product List</h4>
-                <small>Overview of store performance</small>
-            </div>
-        </div>
+<h4 class="text-white">Product List</h4>
 
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+<div class="collapse navbar-collapse justify-content-end">
+<ul class="navbar-nav gap-3">
+<li><a class="nav-link text-white" href="{% url 'dashboard' %}">Home</a></li>
+<li><a class="nav-link text-white" href="{% url 'order_list' %}">Orders</a></li>
+<li><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
+</ul>
+</div>
 
-        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
-                        Logout
-                    </a>
-                </li>
-
-            </ul>
-        </div>
-
-    </div>
+</div>
 </nav>
 </header>
 
-<!-- ================= PAGE CONTENT ================= -->
 <div class="page-wrapper">
 <div class="container-box">
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold">Products</h4>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Products</h4>
     <a href="{% url 'add_product' %}" class="btn btn-sm btn-add">+ Add Product</a>
+</div>
+
+<!-- ✅ SEARCH BAR -->
+<div class="mb-3">
+    <input type="text" id="searchInput" class="form-control"
+           placeholder="Search name, brand, code...">
 </div>
 
 <table class="table table-hover align-middle">
 <thead>
 <tr>
+    <th>Image</th>
     <th>Name</th>
+    <th>Code</th>
     <th>Brand</th>
     <th>Price</th>
     <th>Stock</th>
@@ -191,24 +119,38 @@ body{
 </tr>
 </thead>
 
-<tbody>
+<tbody id="productTable">
 {% for product in products %}
 <tr>
-    <td>{{ product.name }}</td>
-    <td>{{ product.brand }}</td>
-    <td>₹ {{ product.price }}</td>
-    <td>{{ product.stock }}</td>
-    <td>
-        <a href="{% url 'edit_product' product.slug %}" class="btn btn-sm btn-edit">Edit</a>
-        <a href="{% url 'delete_product' product.slug %}" class="btn btn-sm btn-delete"
-           onclick="return confirm('Delete product?')">Delete</a>
-    </td>
+
+<td>
+{% if product.image1 %}
+<img src="{{ product.image1.url }}"
+     style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+{% endif %}
+</td>
+
+<td>{{ product.name }}</td>
+
+<td>
+<span class="badge bg-dark">{{ product.product_code }}</span>
+</td>
+
+<td>{{ product.brand }}</td>
+
+<td>₹ {{ product.price }}</td>
+
+<td>{{ product.stock }}</td>
+
+<td>
+<a href="{% url 'edit_product' product.slug %}" class="btn btn-sm btn-edit">Edit</a>
+<a href="{% url 'delete_product' product.slug %}" class="btn btn-sm btn-delete">Delete</a>
+</td>
+
 </tr>
 {% empty %}
 <tr>
-    <td colspan="5" class="text-center text-muted py-4">
-        No products found
-    </td>
+<td colspan="7" class="text-center">No products found</td>
 </tr>
 {% endfor %}
 </tbody>
@@ -217,6 +159,27 @@ body{
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ✅ SAME SEARCH LOGIC AS ORDERS PAGE
+document.getElementById("searchInput").addEventListener("keyup", function(){
+
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#productTable tr");
+
+    rows.forEach(row => {
+
+        let text = row.innerText.toLowerCase();
+
+        if(text.includes(filter)){
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+
+    });
+
+});
+</script>
+
 </body>
 </html>

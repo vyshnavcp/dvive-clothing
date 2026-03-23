@@ -1175,7 +1175,7 @@ def add_product(request):
 
 @staff_member_required
 def product_list(request):
-    products = Product.objects.select_related("subcategory").all()
+    products = Product.objects.all()
     return render(request, "product_list.html", {
         "products": products
     })
