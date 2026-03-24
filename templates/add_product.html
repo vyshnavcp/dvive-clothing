@@ -232,7 +232,15 @@ Logout
 </div>
 
 <div class="col-md-6">
-<input type="text" name="product_code" class="form-control" placeholder="Product Code" required>
+    <input type="text" name="product_code" id="product_code" class="form-control" placeholder="Product Code" required>
+    
+    <small id="productCodeError" style="color:red; display:none;">
+    Product code already exists!
+</small>
+
+<small id="productCodeSuccess" style="color:green; display:none;">
+    Product code available ✔
+</small>
 </div>
 
 </div>
@@ -393,6 +401,44 @@ document.addEventListener("DOMContentLoaded", function(){
             style_type: "Zari",
             material_type: "Silk"
         }, null, 4);
+    }
+
+});
+document.getElementById("product_code").addEventListener("input", function () {
+
+    let code = this.value;
+    let errorEl = document.getElementById("productCodeError");
+    let successEl = document.getElementById("productCodeSuccess");
+
+    if (code.length === 0) {
+        errorEl.style.display = "none";
+        successEl.style.display = "none";
+        return;
+    }
+
+    fetch(`/ajax/validate-product-code/?product_code=${code}`)
+        .then(response => response.json())
+        .then(data => {
+
+            if (data.exists) {
+                errorEl.style.display = "block";
+                successEl.style.display = "none";
+            } else {
+                errorEl.style.display = "none";
+                successEl.style.display = "block";
+            }
+
+        });
+
+});
+
+document.querySelector("form").addEventListener("submit", function(e){
+
+    let errorVisible = document.getElementById("productCodeError").style.display === "block";
+
+    if (errorVisible) {
+        e.preventDefault();
+        alert("Fix product code before submitting!");
     }
 
 });

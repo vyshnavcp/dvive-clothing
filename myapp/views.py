@@ -1173,6 +1173,15 @@ def add_product(request):
         "sizes": sizes
     })
 
+def ajax_validate_product_code(request):
+    product_code = request.GET.get("product_code", "").strip()
+
+    exists = Product.objects.filter(product_code=product_code).exists()
+
+    return JsonResponse({
+        "exists": exists
+    })
+
 @staff_member_required
 def product_list(request):
     products = Product.objects.all()
