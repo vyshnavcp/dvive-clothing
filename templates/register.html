@@ -81,7 +81,24 @@
         <script type="text/javascript" src="/static/js/jquery.js"></script>
         <script type="text/javascript" src="/static/js/vendors.min.js"></script>
         <script type="text/javascript" src="/static/js/main.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
+// ✅ ADD THIS AT THE TOP
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 const nameField = document.getElementById("name");
 const emailField = document.getElementById("email");
 const phoneField = document.getElementById("phone");
@@ -98,19 +115,24 @@ let validPhone = false;
 let validPassword = false;
 
 function validateForm() {
-    fetch(`/ajax/validate-register/?name=${nameField.value}&email=${emailField.value}&phone=${phoneField.value}&password=${passwordField.value}`)
-        .then(res => res.json())
-        .then(data => {
-            nameErr.innerText = data.name_error;
-            emailErr.innerText = data.email_error;
-            phoneErr.innerText = data.phone_error;
-            passErr.innerText = data.password_error;
+    fetch(`/ajax/validate-register/?name=${nameField.value}&email=${emailField.value}&phone=${phoneField.value}&password=${passwordField.value}`, {
+        method: "GET",
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')  // ✅ ADD THIS LINE
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        nameErr.innerText = data.name_error;
+        emailErr.innerText = data.email_error;
+        phoneErr.innerText = data.phone_error;
+        passErr.innerText = data.password_error;
 
-            validName = !data.name_error;
-            validEmail = !data.email_error;
-            validPhone = !data.phone_error;
-            validPassword = !data.password_error;
-        });
+        validName = !data.name_error;
+        validEmail = !data.email_error;
+        validPhone = !data.phone_error;
+        validPassword = !data.password_error;
+    });
 }
 
 nameField.addEventListener("input", validateForm);
@@ -125,5 +147,20 @@ document.getElementById("regForm").addEventListener("submit", function(e){
     }
 });
 </script>
+{% if messages %}
+<script>
+    {% for message in messages %}
+    Swal.fire({
+        icon: 'success',
+        title: 'Welcome 🎉',
+        text: '{{ message }}',
+        showConfirmButton: false,
+        timer: 2000
+    }).then(() => {
+        window.location.href = "{% url 'user_login' %}";
+    });
+    {% endfor %}
+</script>
+{% endif %}
     </body>
 </html>

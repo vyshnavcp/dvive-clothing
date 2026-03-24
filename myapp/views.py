@@ -341,6 +341,7 @@ def reg_post(request):
         phone=phone,
         authuser=user
     )
+    messages.success(request, "Account created successfully. Please login.")
     return redirect('user_login')
 
 def ajax_validate_register(request):
