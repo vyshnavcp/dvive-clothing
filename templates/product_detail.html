@@ -965,8 +965,98 @@ updateStock();
     });
 
 });
+document.addEventListener("DOMContentLoaded", function () {
 
+    const variantStock = JSON.parse(
+        document.getElementById("variantStockData").textContent
+    );
 
+    const colorInputs = document.querySelectorAll('input[name="color"]');
+    const sizeInputs = document.querySelectorAll('input[name="size"]');
+
+    let validCombinations = [];
+
+    // Step 1: Find ALL valid combinations (stock > 0)
+    for (let key in variantStock) {
+        if (variantStock[key] > 0) {
+
+            let parts = key.split("-");
+
+            let color = null;
+            let size = null;
+
+            if (parts.length === 2) {
+                color = parts[0];
+                size = parts[1];
+            } else if (key.startsWith("size-")) {
+                size = parts[1];
+            } else {
+                color = parts[0];
+            }
+
+            validCombinations.push({ color, size });
+        }
+    }
+
+    if (validCombinations.length === 0) return;
+
+    // Step 2: Get unique colors & sizes
+    const uniqueColors = new Set(validCombinations.map(v => v.color).filter(Boolean));
+    const uniqueSizes = new Set(validCombinations.map(v => v.size).filter(Boolean));
+
+    let selectedColor = null;
+    let selectedSize = null;
+
+    // 🎯 CASE 1: ONLY ONE VALID COMBINATION
+    if (validCombinations.length === 1) {
+        selectedColor = validCombinations[0].color;
+        selectedSize = validCombinations[0].size;
+    }
+
+    // 🎯 CASE 2: ONE COLOR AVAILABLE
+    else if (uniqueColors.size === 1) {
+        selectedColor = [...uniqueColors][0];
+
+        // pick first size for that color
+        let combo = validCombinations.find(v => v.color === selectedColor);
+        selectedSize = combo.size;
+    }
+
+    // 🎯 CASE 3: ONE SIZE AVAILABLE
+    else if (uniqueSizes.size === 1) {
+        selectedSize = [...uniqueSizes][0];
+
+        let combo = validCombinations.find(v => v.size === selectedSize);
+        selectedColor = combo.color;
+    }
+
+    // 🎯 CASE 4: MULTIPLE → PICK FIRST VALID
+    else {
+        selectedColor = validCombinations[0].color;
+        selectedSize = validCombinations[0].size;
+    }
+
+    // Step 3: Apply selection
+    if (selectedColor) {
+        const colorInput = document.querySelector(`input[name="color"][value="${selectedColor}"]`);
+        if (colorInput) colorInput.checked = true;
+    }
+
+    if (selectedSize) {
+        const sizeInput = document.querySelector(`input[name="size"][value="${selectedSize}"]`);
+        if (sizeInput) sizeInput.checked = true;
+    }
+
+    // Step 4: Trigger stock update
+    const event = new Event('change');
+
+    const selectedColorEl = document.querySelector('input[name="color"]:checked');
+    const selectedSizeEl = document.querySelector('input[name="size"]:checked');
+
+    if (selectedColorEl) selectedColorEl.dispatchEvent(event);
+    if (selectedSizeEl) selectedSizeEl.dispatchEvent(event);
+
+});
 
 
 
