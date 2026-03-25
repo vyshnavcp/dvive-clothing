@@ -2052,27 +2052,42 @@ def cancel_policy(request, order_id):
         "order":order
     })
 
+
+
 @login_required
 def confirm_cancel_request(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+
+    # Prevent duplicate cancel requests
     if order.cancel_requested:
-        messages.warning(request, "Cancellation already requested")
+        messages.warning(request, "Cancellation already requested.")
         return redirect("my_orders")
 
+    # Update order status
     order.cancel_requested = True
     order.cancel_requested_at = timezone.now()
     order.save()
 
-    subject = f"Cancel Request - Order #{order.id}"
+    # ✅ Payment method (Django choice display)
+    payment_method = order.get_payment_method_display()
 
+    # Email subject
+    subject = f"🚨 Cancel Request - Order #{order.id}"
+
+    # TEXT VERSION (fallback)
     text_content = f"""
-    Cancel request received for Order #{order.id}
-    Customer: {order.first_name}
-    Email: {order.email}
-    Amount: ₹{order.total}
-    """
+Cancel request received for Order #{order.id}
 
-    # ✅ BEAUTIFUL HTML EMAIL
+Customer: {order.first_name}
+Email: {order.email}
+Phone: {order.phone}
+Amount: ₹{order.total}
+Payment Method: {payment_method}
+
+Please review and process this request.
+"""
+
+    # HTML EMAIL
     html_content = f"""
     <html>
     <body style="font-family: Arial, sans-serif; background:#f4f6fb; padding:20px;">
@@ -2086,31 +2101,47 @@ def confirm_cancel_request(request, order_id):
             </p>
 
             <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                
                 <tr>
                     <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Order ID</b></td>
                     <td style="padding:10px; border-bottom:1px solid #ddd;">#{order.id}</td>
                 </tr>
+
                 <tr>
                     <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Name</b></td>
                     <td style="padding:10px; border-bottom:1px solid #ddd;">{order.first_name}</td>
                 </tr>
+
                 <tr>
                     <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Email</b></td>
                     <td style="padding:10px; border-bottom:1px solid #ddd;">{order.email}</td>
                 </tr>
+
                 <tr>
                     <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Phone</b></td>
                     <td style="padding:10px; border-bottom:1px solid #ddd;">{order.phone}</td>
                 </tr>
+
+                <tr>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Payment Method</b></td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">{payment_method}</td>
+                </tr>
+
                 <tr>
                     <td style="padding:10px;"><b>Total Amount</b></td>
                     <td style="padding:10px;">₹{order.total}</td>
                 </tr>
+
             </table>
 
-            <div style="margin-top:25px; text-align:center;">
-                <p style="color:#555;">Please review and process this request.</p>
+            <div style="margin-top:25px; padding:15px; background:#fff3f3; border-left:5px solid #ff4d4d; border-radius:8px;">
+                <strong>⚠️ Action Required:</strong><br>
+                Please review and process this cancellation request.
             </div>
+
+            <p style="text-align:center; margin-top:20px; font-size:12px; color:#999;">
+                Trendo Admin Notification System
+            </p>
 
         </div>
 
@@ -2118,16 +2149,17 @@ def confirm_cancel_request(request, order_id):
     </html>
     """
 
+    # Send email
     email = EmailMultiAlternatives(
         subject,
         text_content,
         settings.DEFAULT_FROM_EMAIL,
         [settings.ADMIN_EMAIL],
     )
-
     email.attach_alternative(html_content, "text/html")
     email.send()
 
+    messages.success(request, "Cancellation request sent successfully.")
     return redirect("my_orders")
 @login_required
 def cod_cancel_policy(request, order_id):
@@ -2159,14 +2191,111 @@ def confirm_cod_cancel(request, order_id):
     order = get_object_or_404(Order, id=order_id, registration=registration)
 
     if request.method == "POST":
+
         if order.payment_method == "cod" and not order.cancel_requested and not order.is_cancelled:
+
+            # ✅ Update order
             order.cancel_requested = True
             order.cancel_requested_at = timezone.now()
             order.save()
+
+            # ✅ Payment method (will show "Cash on Delivery")
+            payment_method = order.get_payment_method_display()
+
+            # ✅ Email subject
+            subject = f"🚨 COD Cancel Request - Order #{order.id}"
+
+            # ✅ TEXT VERSION
+            text_content = f"""
+COD cancel request received for Order #{order.id}
+
+Customer: {order.first_name}
+Email: {order.email}
+Phone: {order.phone}
+Amount: ₹{order.total}
+Payment Method: {payment_method}
+
+Please review and process this request.
+"""
+
+            # ✅ HTML EMAIL
+            html_content = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; background:#f4f6fb; padding:20px;">
+                
+                <div style="max-width:600px; margin:auto; background:white; padding:25px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+
+                    <h2 style="color:#ff6f61; text-align:center;">📦 COD Cancellation Request</h2>
+
+                    <p style="font-size:15px; color:#333;">
+                        A customer has requested to cancel a <b>Cash on Delivery</b> order.
+                    </p>
+
+                    <table style="width:100%; border-collapse:collapse; margin-top:15px;">
+                        
+                        <tr>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Order ID</b></td>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;">#{order.id}</td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Name</b></td>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;">{order.first_name}</td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Email</b></td>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;">{order.email}</td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Phone</b></td>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;">{order.phone}</td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;"><b>Payment Method</b></td>
+                            <td style="padding:10px; border-bottom:1px solid #ddd;">{payment_method}</td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding:10px;"><b>Total Amount</b></td>
+                            <td style="padding:10px;">₹{order.total}</td>
+                        </tr>
+
+                    </table>
+
+                    <div style="margin-top:25px; padding:15px; background:#fff3f3; border-left:5px solid #ff6f61; border-radius:8px;">
+                        <strong>⚠️ Action Required:</strong><br>
+                        Please review and process this cancellation request.
+                    </div>
+
+                    <p style="text-align:center; margin-top:20px; font-size:12px; color:#999;">
+                        Trendo Admin Notification System
+                    </p>
+
+                </div>
+
+            </body>
+            </html>
+            """
+
+            # ✅ Send email
+            email = EmailMultiAlternatives(
+                subject,
+                text_content,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.ADMIN_EMAIL],
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+
             messages.success(request, "COD order cancel request sent successfully.")
+
         else:
             messages.error(request, "Cannot cancel this order.")
-        return redirect("my_orders")
+
+    return redirect("my_orders")
 
 @role_required(["Accountant"])
 def refund_requests(request):
