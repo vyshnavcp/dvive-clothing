@@ -21,6 +21,75 @@
         <link rel="stylesheet" href="/static/css/style.css"/>
         <link rel="stylesheet" href="/static/css/responsive.css"/>
         <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
+        <style>
+
+/* 💎 PREMIUM VALIDATION BOX */
+.error-box {
+    display: none;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 15px; /* 👈 BIGGER FONT */
+    font-weight: 500;
+    margin-top: 8px;
+    margin-bottom: 14px;
+    line-height: 1.4;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(8px);
+    border: 1px solid transparent;
+    animation: smoothFade 0.35s ease;
+}
+
+/* ❌ ERROR STYLE */
+.error-box.error {
+    background: linear-gradient(135deg, #fff0f0, #ffe5e5);
+    color: #b30000;
+    border: 1px solid #ffb3b3;
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.08);
+}
+
+/* ✅ SUCCESS STYLE */
+.error-box.success {
+    background: linear-gradient(135deg, #eafff3, #d4ffe8);
+    color: #007c3a;
+    border: 1px solid #a6f5c4;
+    box-shadow: 0 4px 12px rgba(0, 128, 0, 0.08);
+}
+
+/* INPUT STATES */
+.input-error {
+    border: 1.5px solid #ff3b3b !important;
+    box-shadow: 0 0 12px rgba(255, 59, 59, 0.25);
+}
+
+.input-success {
+    border: 1.5px solid #28a745 !important;
+    box-shadow: 0 0 12px rgba(40, 167, 69, 0.25);
+}
+
+/* ✨ PREMIUM INPUT */
+input {
+    transition: all 0.25s ease;
+    font-size: 15px;
+}
+
+input:focus {
+    border: 1.5px solid #000 !important;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+/* ✨ ANIMATION */
+@keyframes smoothFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+</style>
     </head>
     <body data-mobile-nav-style="classic">
         <!-- start header -->
@@ -51,21 +120,23 @@
                         <form id="regForm" action="{% url 'reg_post' %}" method="post">
                             {% csrf_token %}
 
-                            <label>Username<span class="text-red">*</span></label>
+                            <label>Name<span class="text-red">*</span></label>
                             <input name="name" id="name" type="text" placeholder="Enter your username" style="border-radius: 10px;">
-                            <div id="name_error" class="text-danger fs-12 mb-2"></div>
+                            <div id="name_error" class="error-box"></div>
+
 
                             <label>Email address<span class="text-red">*</span></label>
                             <input type="email" name="email" id="email" placeholder="Enter your email"style="border-radius: 10px;" >
-                            <div id="email_error" class="text-danger fs-12 mb-2"></div>
+                            <div id="email_error" class="error-box"></div>
 
                             <label>Phone<span class="text-red">*</span></label>
                             <input type="text" name="phone" id="phone" placeholder="Enter your phone number" style="border-radius: 10px;">
-                            <div id="phone_error" class="text-danger fs-12 mb-2"></div>
+                            <div id="phone_error" class="error-box"></div>
+
 
                             <label>Password<span class="text-red">*</span></label>
                             <input type="password" name="password" id="password" placeholder="Enter your password" style="border-radius: 10px;">
-                            <div id="password_error" class="text-danger fs-12 mb-2"></div>
+                            <div id="password_error" class="error-box"></div>
 
                             <button style="border-radius: 10px; padding: 12px;" class="btn btn-dark-gray w-100" type="submit">Register</button>
                             <a href="{% url 'user_login' %}" class="btn btn-outline-dark-gray w-100 mt-3">Already have an account?</a>
@@ -123,16 +194,46 @@ function validateForm() {
     })
     .then(res => res.json())
     .then(data => {
-        nameErr.innerText = data.name_error;
-        emailErr.innerText = data.email_error;
-        phoneErr.innerText = data.phone_error;
-        passErr.innerText = data.password_error;
 
-        validName = !data.name_error;
-        validEmail = !data.email_error;
-        validPhone = !data.phone_error;
-        validPassword = !data.password_error;
-    });
+    function showValidation(field, box, message) {
+        if (message) {
+            box.innerHTML = `
+                <span style="font-size:16px;">❌</span>
+                <span style="margin-left:6px;">${message}</span>
+            `;
+            box.className = "error-box error";
+            box.style.display = "block";
+
+            field.classList.remove("input-success");
+            field.classList.add("input-error");
+
+        } else if (field.value.length > 0) {
+            box.innerHTML = `
+                <span style="font-size:16px;">✔</span>
+                <span style="margin-left:6px;">Looks perfect</span>
+            `;
+            box.className = "error-box success";
+            box.style.display = "block";
+
+            field.classList.remove("input-error");
+            field.classList.add("input-success");
+
+        } else {
+            box.style.display = "none";
+            field.classList.remove("input-error", "input-success");
+        }
+    }
+
+    showValidation(nameField, nameErr, data.name_error);
+    showValidation(emailField, emailErr, data.email_error);
+    showValidation(phoneField, phoneErr, data.phone_error);
+    showValidation(passwordField, passErr, data.password_error);
+
+    validName = !data.name_error;
+    validEmail = !data.email_error;
+    validPhone = !data.phone_error;
+    validPassword = !data.password_error;
+});
 }
 
 nameField.addEventListener("input", validateForm);

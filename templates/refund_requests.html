@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Refund Requests</title>
+<title>Refund/Cancel order</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,7 +18,6 @@ min-height:100vh;
 }
 
 /* NAVBAR */
-
 .navbar-premium{
 background:#000;
 padding:18px 30px;
@@ -40,13 +39,11 @@ color:#fff !important;
 }
 
 /* PAGE */
-
 .page-wrapper{
 padding:50px 20px;
 }
 
 /* CARD */
-
 .premium-card{
 background:#fff;
 border:none;
@@ -56,7 +53,6 @@ box-shadow:0 25px 60px rgba(0,0,0,.08);
 }
 
 /* SEARCH */
-
 .search-box input{
 border-radius:12px;
 padding:10px;
@@ -64,7 +60,6 @@ border:1px solid #ddd;
 }
 
 /* TABLE */
-
 table{
 width:100%;
 border-collapse:collapse;
@@ -82,7 +77,6 @@ background:#fafafa;
 }
 
 /* BADGE */
-
 .badge-request{
 background:#fff4cc;
 color:#b58100;
@@ -92,7 +86,6 @@ font-size:12px;
 }
 
 /* BUTTON */
-
 .refund-btn{
 background:#28a745;
 color:white;
@@ -111,8 +104,6 @@ background:#1f8a36;
 
 <body>
 
-<!-- NAVBAR -->
-
 <nav class="navbar navbar-expand-lg navbar-premium">
 <div class="container">
 
@@ -128,41 +119,18 @@ background:#1f8a36;
 
 <ul class="navbar-nav gap-lg-3">
 
-<li class="nav-item">
-<a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="{% url 'order_list' %}">Orders</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="{% url 'product_list' %}">Products</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="{% url 'refund_requests' %}">Refund Requests</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="{% url 'refund_report' %}">Refund Report</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="{% url 'customer_list' %}">Customers</a>
-</li>
-
-<li class="nav-item">
-<a class="nav-link" href="{% url 'user_logout' %}">Logout</a>
-</li>
+<li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}">Products</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'refund_report' %}">Refund/Cancel order</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'user_logout' %}">Logout</a></li>
 
 </ul>
 
 </div>
 </div>
 </nav>
-
-<!-- PAGE -->
 
 <div class="page-wrapper">
 
@@ -171,7 +139,7 @@ background:#1f8a36;
 <div class="premium-card">
 
 <h3 class="fw-bold mb-4">
-<i class="bi bi-arrow-counterclockwise me-2"></i> Refund Requests
+<i class="bi bi-arrow-counterclockwise me-2"></i> Refund/Cancel order
 </h3>
 
 <div class="search-box mb-3">
@@ -220,9 +188,17 @@ Cancel Requested
 
 <form method="POST" action="{% url 'process_refund' order.id %}">
     {% csrf_token %}
-    <button type="submit" class="refund-btn">
-        Approve Refund
-    </button>
+
+    {% if order.payment_method == "cod" %}
+        <button type="submit" class="refund-btn">
+            Approve Cancel
+        </button>
+    {% else %}
+        <button type="submit" class="refund-btn">
+            Approve Refund
+        </button>
+    {% endif %}
+
 </form>
 
 </td>
@@ -248,7 +224,6 @@ Cancel Requested
 </div>
 
 <script>
-
 const input = document.getElementById("searchInput");
 
 input.addEventListener("keyup", function(){
@@ -257,19 +232,11 @@ let filter = input.value.toLowerCase();
 let rows = document.querySelectorAll("#refundTable tbody tr");
 
 rows.forEach(row => {
-
 let text = row.innerText.toLowerCase();
-
-if(text.includes(filter)){
-row.style.display="";
-}else{
-row.style.display="none";
-}
-
+row.style.display = text.includes(filter) ? "" : "none";
 });
 
 });
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

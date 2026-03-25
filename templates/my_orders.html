@@ -266,42 +266,58 @@ Total: ₹{{ order.total }}
 <button onclick="printOrder('order-{{ order.id }}')" class="print-btn">
 Print Invoice
 </button>
-
-{% if order.payment_method == "razorpay" %}
-
 {% if not order.is_cancelled and not order.cancel_requested and not order.is_delivered and not order.refund_processed %}
 
-{% if order.seconds_passed <= 86400 %}
+    {% if order.seconds_passed <= 86400 %}
 
-<a href="{% url 'cancel_policy' order.id %}">
-<button class="cancel-btn">Cancel Order</button>
-</a>
+        {% if order.payment_method == "cod" %}
 
-<div class="info-box info-warning">
-⚠️ Cancel within 24 hours. Refund in 1–7 days.
-</div>
+            <a href="{% url 'cod_cancel_policy' order.id %}">
+                <button class="cancel-btn">Cancel Order (COD)</button>
+            </a>
 
-{% else %}
+            <div class="info-box info-warning">
+                ⚠️ COD orders can be cancelled within 24 hours before dispatch.
+            </div>
 
-<div class="info-box info-muted">
-❌ Cancellation period expired (24 hrs)
-</div>
+        {% else %}
 
-{% endif %}
+            <a href="{% url 'cancel_policy' order.id %}">
+                <button class="cancel-btn">Cancel Order</button>
+            </a>
+
+            <div class="info-box info-warning">
+                ⚠️ Cancel within 24 hours. Refund will be processed in 1–7 days.
+            </div>
+
+        {% endif %}
+
+    {% else %}
+
+        <!-- ✅ AFTER 24 HOURS -->
+        <div class="info-box info-muted">
+            ❌ Cancellation period expired (24 hours passed)
+        </div>
+
+    {% endif %}
 
 {% elif order.cancel_requested and not order.refund_processed %}
 
-<div class="info-box info-warning">
-⏳ Cancel request sent. Waiting for approval.
-</div>
+    <div class="info-box info-warning">
+        ⏳ Cancel request sent. Waiting for approval.
+    </div>
 
 {% elif order.refund_processed %}
 
-<div class="info-box info-success">
-✅ Refund completed successfully.
-</div>
+    <div class="info-box info-success">
+        ✅ Refund completed successfully.
+    </div>
 
-{% endif %}
+{% elif order.is_cancelled %}
+
+    <div class="info-box info-muted">
+        ❌ Order has been cancelled.
+    </div>
 
 {% endif %}
 
