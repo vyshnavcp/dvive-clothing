@@ -1524,38 +1524,87 @@ def delete_article(request, slug):
     messages.success(request, "Article Deleted Successfully")
     return redirect('article_list')
 
+
+
 @role_required(["Accountant"])
 @login_required(login_url='user_login')
 def report_page(request):
+
     orders = Order.objects.all()
+
+    # ================= DATE FILTER =================
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
+
     if from_date:
         orders = orders.filter(created_at__date__gte=datetime.strptime(from_date, "%Y-%m-%d"))
+
     if to_date:
         orders = orders.filter(created_at__date__lte=datetime.strptime(to_date, "%Y-%m-%d"))
+
+    # ================= PAYMENT FILTER =================
     payment = request.GET.get('payment')
+
     if payment:
         if payment == "cod":
             orders = orders.filter(payment_method="cod", is_pos_order=False)
+
         elif payment == "razorpay":
             orders = orders.filter(payment_method="razorpay", is_pos_order=False)
+
         elif payment == "pos_paid":
             orders = orders.filter(is_pos_order=True, payment_status=True)
+
         elif payment == "pos_pending":
             orders = orders.filter(is_pos_order=True, payment_status=False)
+
+    # ================= STATUS FILTER =================
     status = request.GET.get('status')
+
     if status:
         if status == "pending":
-            orders = orders.filter(is_delivered=False, is_cancelled=False)
+            orders = orders.filter(
+                is_delivered=False,
+                is_cancelled=False
+            )
+
         elif status == "completed":
-            orders = orders.filter(is_delivered=True)
+            orders = orders.filter(
+                is_delivered=True,
+                is_cancelled=False,
+                return_approved=False
+            )
+
         elif status == "cancelled":
             orders = orders.filter(is_cancelled=True)
+
+        elif status == "returned":
+            orders = orders.filter(return_approved=True)
+
+    # ================= COUNTS =================
     total_orders = orders.count()
-    total_revenue = orders.aggregate(Sum('total'))['total__sum'] or 0
-    total_paid_orders = orders.filter(is_delivered=True).count()
-    pending_orders = orders.filter(is_delivered=False, is_cancelled=False).count()
+
+    # ✅ ONLY VALID REVENUE (IMPORTANT FIX)
+    valid_orders = orders.filter(
+        is_delivered=True,
+        is_cancelled=False,
+        return_approved=False,
+        refund_processed=False
+    )
+
+    total_revenue = valid_orders.aggregate(Sum('total'))['total__sum'] or 0
+
+    total_paid_orders = valid_orders.count()
+
+    pending_orders = orders.filter(
+        is_delivered=False,
+        is_cancelled=False
+    ).count()
+
+    # ✅ NEW
+    returned_orders = orders.filter(return_approved=True).count()
+
+    # ================= RESPONSE =================
     return render(request, "report_page.html", {
         "title": "Order Report",
         "orders": orders.order_by("-created_at"),
@@ -1563,6 +1612,7 @@ def report_page(request):
         "total_revenue": total_revenue,
         "total_paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
+        "returned_orders": returned_orders,  # ✅ NEW
     })
 
 @role_required(["Accountant","Staff"])
@@ -1758,11 +1808,10 @@ def cancel_pos_payment(request, order_id):
 @role_required(["Accountant","Staff"])
 @login_required(login_url='user_login')
 def customer_list(request):
-    customers = Registration.objects.all().order_by('-id')
+    customers = Registration.objects.select_related('authuser').all().order_by('-id')
     return render(request, 'customers_view.html', {
         'customers': customers
     })
-
 @role_required(["Accountant","Staff"])
 @role_required(["Accountant","Staff"])
 def shipping_address_list(request):

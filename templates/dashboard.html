@@ -214,27 +214,30 @@ width:fit-content;
 
 <!-- METRICS -->
  
-
 <div class="row g-4 mb-4">
 
 {% if request.user.is_superuser or request.user.groups.first.name == "Accountant" %}
 
 <div class="col-md-3">
+<a href="{% url 'report_page' %}" class="text-decoration-none text-dark d-block">
 <div class="stat-card">
 <div class="stat-title">Total Revenue</div>
 <div class="stat-value">₹ {{ total_revenue }}</div>
 </div>
+</a>
 </div>
 
 <div class="col-md-3">
+<a href="{% url 'report_page' %}?today=1" class="text-decoration-none text-dark d-block">
 <div class="stat-card">
 <div class="stat-title">Today Revenue</div>
 <div class="stat-value">₹ {{ today_revenue }}</div>
 </div>
+</a>
 </div>
 
 <div class="col-md-3">
-<a href="{% url 'total_income' %}" class="text-decoration-none text-dark">
+<a href="{% url 'total_income' %}" class="text-decoration-none text-dark d-block">
 <div class="stat-card">
 <div class="stat-title">Total Income</div>
 <div class="stat-value">₹ {{ total_income }}</div>
@@ -245,62 +248,64 @@ width:fit-content;
 {% endif %}
 
 <div class="col-md-3">
+<a href="{% url 'order_list' %}" class="text-decoration-none text-dark d-block">
 <div class="stat-card">
 <div class="stat-title">Total Orders</div>
 <div class="stat-value">
-<a href="{% url 'order_list' %}" class="text-dark text-decoration-none">
 {{ total_orders }}
+</div>
+</div>
 </a>
-</div>
-</div>
 </div>
 
 <div class="col-md-3">
+<a href="{% url 'paid_orders' %}" class="text-decoration-none text-dark d-block">
 <div class="stat-card">
 <div class="stat-title">Paid Orders</div>
 <div class="stat-value">
-<a href="{% url 'paid_orders' %}" class="text-dark text-decoration-none">
 {{ paid_orders }}
+</div>
+</div>
 </a>
-</div>
-</div>
 </div>
 
 <div class="col-md-3">
+<a href="{% url 'pending_orders' %}" class="text-decoration-none text-dark d-block">
 <div class="stat-card">
 <div class="stat-title">Pending Orders</div>
 <div class="stat-value">
-<a href="{% url 'pending_orders' %}" class="text-dark text-decoration-none">
 {{ pending_orders }}
+</div>
+</div>
 </a>
 </div>
-</div>
-</div>
+
 {% if refund_requests_count > 0 %}
 <div class="col-md-3">
-    <a href="{% url 'refund_requests' %}" class="text-decoration-none text-dark">
-        <div class="stat-card border border-danger">
-            <div class="stat-title text-danger">Refund/Cancel order Requests</div>
-            <div class="stat-value text-danger">
-                {{ refund_requests_count }}
-            </div>
-        </div>
-    </a>
+<a href="{% url 'refund_requests' %}" class="text-decoration-none text-dark d-block">
+<div class="stat-card border border-danger">
+<div class="stat-title text-danger">Refund/Cancel order Requests</div>
+<div class="stat-value text-danger">
+{{ refund_requests_count }}
+</div>
+</div>
+</a>
 </div>
 {% endif %}
 
 {% if return_requests_count > 0 %}
 <div class="col-md-3">
-    <a href="{% url 'return_requests' %}" class="text-decoration-none text-dark">
-        <div class="stat-card border border-warning">
-            <div class="stat-title text-warning">Return Requests</div>
-            <div class="stat-value text-warning">
-                {{ return_requests_count }}
-            </div>
-        </div>
-    </a>
+<a href="{% url 'return_requests' %}" class="text-decoration-none text-dark d-block">
+<div class="stat-card border border-warning">
+<div class="stat-title text-warning">Return Requests</div>
+<div class="stat-value text-warning">
+{{ return_requests_count }}
+</div>
+</div>
+</a>
 </div>
 {% endif %}
+
 </div>
 
 <div class="row">

@@ -85,7 +85,6 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
             <option value="cod" {% if request.GET.payment == 'cod' %}selected{% endif %}>COD</option>
             <option value="razorpay" {% if request.GET.payment == 'razorpay' %}selected{% endif %}>Razorpay</option>
             <option value="pos_paid" {% if request.GET.payment == 'pos_paid' %}selected{% endif %}>Retail Shop</option>
-           
         </select>
     </div>
     <div class="col-md-3">
@@ -95,6 +94,8 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
             <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
             <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
             <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            <!-- ✅ NEW -->
+            <option value="returned" {% if request.GET.status == 'returned' %}selected{% endif %}>Returned</option>
         </select>
     </div>
     <div class="col-md-12">
@@ -126,7 +127,6 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 <td>{{ order.first_name }}</td>
 <td>₹ {{ order.total }}</td>
 
-<!-- Payment Method Column -->
 <td>
 {% if order.is_pos_order %}
     Retail Shop
@@ -139,7 +139,6 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 {% endif %}
 </td>
 
-<!-- Payment Choice Column -->
 <td>
 {% if order.is_pos_order %}
     {% if order.payment_status %}
@@ -152,14 +151,28 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 {% endif %}
 </td>
 
+<!-- ✅ FIXED STATUS -->
 <td>
-{% if order.is_cancelled %}<span class="status-badge cancelled">Cancelled</span>
-{% elif order.is_delivered %}<span class="status-badge completed">Delivered</span>
-{% else %}<span class="status-badge pending">Pending</span>{% endif %}
+{% if order.return_approved and order.refund_processed %}
+    <span class="status-badge cancelled">Returned</span>
+
+{% elif order.return_requested %}
+    <span class="status-badge pending">Return Requested</span>
+
+{% elif order.is_cancelled %}
+    <span class="status-badge cancelled">Cancelled</span>
+
+{% elif order.is_delivered %}
+    <span class="status-badge completed">Delivered</span>
+
+{% else %}
+    <span class="status-badge pending">Pending</span>
+{% endif %}
 </td>
 
 <td>{{ order.created_at|date:"d M Y" }}</td>
 </tr>
+
 {% empty %}
 <tr>
 <td colspan="7" class="text-center text-muted">No orders found.</td>
@@ -177,6 +190,10 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 <p>Total Revenue: <strong>₹ {{ total_revenue }}</strong></p>
 <p>Paid Orders: <strong>{{ total_paid_orders }}</strong></p>
 <p>Pending Orders: <strong>{{ pending_orders }}</strong></p>
+
+<!-- ✅ NEW -->
+<p>Returned Orders: <strong>{{ returned_orders }}</strong></p>
+
 </div>
 
 </div>

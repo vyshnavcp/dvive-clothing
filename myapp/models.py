@@ -29,10 +29,14 @@ class HomeBanner(models.Model):
         return f"{self.title_line1} {self.title_line2}"
     
 class Registration(models.Model):
-    user_name=models.CharField(max_length=200)
-    email=models.EmailField(max_length=80,unique=True)
-    phone=models.CharField(max_length=20)
-    authuser=models.ForeignKey(User,on_delete=models.CASCADE)
+    user_name = models.CharField(max_length=200)
+    email = models.EmailField(max_length=80, unique=True)
+    phone = models.CharField(max_length=20)
+    authuser = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # ✅ NEW FIELD
+    created_at = models.DateTimeField(auto_now_add=True, blank=True,null=True)
+
     def __str__(self):
         return self.user_name
 

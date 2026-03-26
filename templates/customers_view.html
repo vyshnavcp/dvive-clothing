@@ -1,261 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Customers</title>
+<meta charset="UTF-8">
+<title>Customers</title>
 
-    <!-- Bootstrap + Icons + Font -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Bootstrap + Icons + Font -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        body{
-            background: linear-gradient(135deg,#eef2ff,#f8fafc);
-            font-family:'Poppins', sans-serif;
-            margin:0;
-        }
+<style>
+body{
+    background: linear-gradient(135deg,#eef2ff,#f8fafc);
+    font-family:'Poppins', sans-serif;
+}
 
-        /* ================= NAVBAR ================= */
+/* NAVBAR */
+.header-with-topbar{
+    background:#000;
+    box-shadow:0 4px 20px rgba(0,0,0,0.35);
+}
 
-        .header-with-topbar{
-            background:#000;
-            box-shadow:0 4px 20px rgba(0,0,0,0.35);
-        }
+.dashboard-header{
+    padding:18px 24px;
+}
 
-        .dashboard-header{
-            padding:18px 24px;
-        }
+.dashboard-header h4,
+.dashboard-header small,
+.dashboard-header i{
+    color:#fff;
+}
 
-        .dashboard-header h4,
-        .dashboard-header small,
-        .dashboard-header i{
-            color:#fff;
-        }
+.dashboard-header .nav-link{
+    color:#fff !important;
+    font-weight:500;
+    transition:0.3s;
+}
 
-        .dashboard-header .nav-link{
-            color:#fff !important;
-            font-weight:500;
-            transition:0.3s;
-        }
+.dashboard-header .nav-link:hover{
+    color:#bdbdbd !important;
+    transform: translateY(-2px);
+}
 
-        .dashboard-header .nav-link:hover{
-            color:#bdbdbd !important;
-        }
+/* PAGE HEADER */
+.page-header{
+    background: linear-gradient(135deg,#111827,#1f2937);
+    color:#fff;
+    padding:25px 30px;
+    border-radius:16px;
+    margin-bottom:25px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+    animation: fadeInDown 0.5s ease;
+}
 
-        .navbar-toggler{
-            border:0;
-        }
+.stats-badge{
+    background:rgba(255,255,255,.15);
+    padding:8px 16px;
+    border-radius:30px;
+}
 
-        .navbar-toggler-icon{
-            filter:invert(1);
-        }
+/* CARD */
+.premium-card{
+    background:rgba(255,255,255,0.75);
+    backdrop-filter: blur(12px);
+    border-radius:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+    overflow:hidden;
+    animation: fadeInUp 0.5s ease;
+}
 
-        /* ================= PAGE HEADER ================= */
+/* TABLE */
+.table tbody tr{
+    transition:0.3s;
+}
 
-        .page-header{
-            background: linear-gradient(135deg,#111827,#1f2937);
-            color:#fff;
-            padding:25px 30px;
-            border-radius:16px;
-            margin-bottom:25px;
-            box-shadow:0 10px 30px rgba(0,0,0,.15);
-        }
+.table tbody tr:hover{
+    background:#f3f4f6;
+    transform: scale(1.01);
+}
 
-        .page-header h4{
-            font-weight:600;
-            margin:0;
-        }
+/* AVATAR */
+.avatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#6366f1,#4f46e5);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:600;
+    margin-right:10px;
+}
 
-        .stats-badge{
-            background:rgba(255,255,255,.15);
-            padding:8px 16px;
-            border-radius:30px;
-            font-weight:500;
-        }
+/* COPY BUTTON */
+.copy-btn{
+    border-radius:50%;
+    width:30px;
+    height:30px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:0.3s;
+}
 
-        /* ================= CARD ================= */
+.copy-btn:hover{
+    background:#6366f1;
+    color:#fff;
+}
 
-        .premium-card{
-            background:rgba(255,255,255,0.75);
-            backdrop-filter: blur(10px);
-            border-radius:20px;
-            box-shadow:0 15px 40px rgba(0,0,0,.08);
-            overflow:hidden;
-        }
+/* ANIMATION */
+@keyframes fadeInUp{
+    from{opacity:0; transform:translateY(20px);}
+    to{opacity:1; transform:translateY(0);}
+}
 
-        /* ================= TABLE ================= */
+@keyframes fadeInDown{
+    from{opacity:0; transform:translateY(-20px);}
+    to{opacity:1; transform:translateY(0);}
+}
 
-        .table thead th{
-            background:#f9fafb;
-            font-size:12px;
-            text-transform:uppercase;
-            letter-spacing:.05em;
-            color:#6b7280;
-            border-bottom:1px solid #e5e7eb;
-        }
-
-        .table tbody td{
-            vertical-align:middle;
-            font-size:14px;
-            color:#374151;
-        }
-
-        .table tbody tr{
-            transition:0.2s;
-        }
-
-        .table tbody tr:hover{
-            background:#f3f4f6;
-        }
-
-        .avatar{
-            width:42px;
-            height:42px;
-            border-radius:50%;
-            background:linear-gradient(135deg,#6366f1,#4f46e5);
-            color:#fff;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            font-weight:600;
-            margin-right:12px;
-            box-shadow:0 5px 15px rgba(99,102,241,.3);
-        }
-
-        .email-text{
-            color:#6b7280;
-            font-size:13px;
-        }
-
-    </style>
+</style>
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
-
+<!-- NAVBAR -->
 <header class="header-with-topbar">
 <nav class="navbar dashboard-header navbar-expand-lg">
-    <div class="container-fluid px-0">
+<div class="container-fluid">
 
-        <div class="d-flex align-items-center gap-3">
-            <i class="bi bi-speedometer2 fs-2"></i>
-            <div>
-                <h4 class="mb-0">Admin Dashboard</h4>
-                <small>Manage your store</small>
-            </div>
-        </div>
-
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse" data-bs-target="#adminNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-            <ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'order_list' %}">Orders</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'paid_orders' %}">Paid</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'pending_orders' %}">Pending</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'customer_list' %}">Customers</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="{% url 'user_logout' %}">
-                        Logout
-                    </a>
-                </li>
-
-            </ul>
-        </div>
-
-    </div>
-</nav>
-</header>
-
-<!-- ================= PAGE CONTENT ================= -->
-
-<div class="container-fluid px-4 mt-4">
-
-    <!-- Header -->
-    <div class="page-header d-flex justify-content-between align-items-center">
-        <h4>Customers</h4>
-        <div class="stats-badge">
-            Total Customers: {{ customers|length }}
+    <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-speedometer2 fs-2"></i>
+        <div>
+            <h4 class="mb-0">Admin Dashboard</h4>
+            <small>Manage your store</small>
         </div>
     </div>
 
-    <!-- Table Card -->
-    <div class="premium-card p-4">
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
+    <div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
+        <ul class="navbar-nav gap-3">
 
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Customer</th>
-                        <th>Email</th>
-                        <th>Joined</th>
-                    </tr>
-                </thead>
+            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
+            <li class="nav-item"><a class="nav-link active" href="{% url 'customer_list' %}">Customers</a></li>
+            <li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
 
-                <tbody>
-                {% for user in customers %}
-                    <tr>
-
-                        <td class="text-muted">{{ forloop.counter }}</td>
-
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar">
-                                    {{ user.user_name|slice:":1"|upper }}
-                                </div>
-                                <span class="fw-medium">{{ user.user_name }}</span>
-                            </div>
-                        </td>
-
-                        <td class="email-text">
-                            {{ user.email }}
-                        </td>
-
-                        <td>
-                            {{ user.authuser.date_joined|date:"d M Y" }}
-                        </td>
-
-                    </tr>
-
-                {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">
-                            No customers found
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
-        </div>
-
+        </ul>
     </div>
 
 </div>
+</nav>
+</header>
 
+<!-- CONTENT -->
+<div class="container-fluid px-4 mt-4">
+
+<!-- HEADER -->
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h4>Customers</h4>
+
+    <div>
+        <span class="stats-badge me-2">
+            Total: {{ customers|length }}
+        </span>
+
+        <button class="btn btn-light btn-sm" onclick="copyAllNumbers()">
+            <i class="bi bi-clipboard-check"></i> Copy All
+        </button>
+    </div>
+</div>
+
+<!-- CARD -->
+<div class="premium-card p-4">
+
+<div class="table-responsive">
+<table class="table align-middle">
+
+<thead>
+<tr>
+    <th>#</th>
+    <th>Customer</th>
+    <th>Email</th>
+    <th>Phone</th>
+    <th>Joined</th>
+</tr>
+</thead>
+
+<tbody>
+{% for user in customers %}
+<tr>
+
+<td>{{ forloop.counter }}</td>
+
+<td>
+    <div class="d-flex align-items-center">
+        <div class="avatar">
+            {{ user.user_name|slice:":1"|upper }}
+        </div>
+        {{ user.user_name }}
+    </div>
+</td>
+
+<td class="text-muted">
+    {{ user.email }}
+</td>
+
+<td>
+    <div class="d-flex align-items-center gap-2">
+
+        <span id="phone-{{ forloop.counter }}">
+            {{ user.phone }}
+        </span>
+
+        <button class="btn btn-outline-secondary copy-btn"
+                onclick="copyText('phone-{{ forloop.counter }}')">
+            <i class="bi bi-clipboard"></i>
+        </button>
+
+    </div>
+</td>
+
+<td>
+    {{ user.created_at|date:"d M Y" }}
+</td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="5" class="text-center py-4 text-muted">
+    No customers found
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+</div>
+
+</div>
+
+</div>
+
+<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function copyText(id) {
+    let text = document.getElementById(id).innerText;
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast("Copied: " + text);
+    });
+}
+
+function copyAllNumbers() {
+    let numbers = [];
+
+    document.querySelectorAll("[id^='phone-']").forEach(el => {
+        numbers.push(el.innerText.trim());
+    });
+
+    navigator.clipboard.writeText(numbers.join(", ")).then(() => {
+        showToast("All numbers copied!");
+    });
+}
+
+// Toast Notification
+function showToast(message){
+    let toast = document.createElement("div");
+    toast.innerText = message;
+
+    toast.style.position = "fixed";
+    toast.style.bottom = "20px";
+    toast.style.right = "20px";
+    toast.style.background = "#111";
+    toast.style.color = "#fff";
+    toast.style.padding = "10px 20px";
+    toast.style.borderRadius = "8px";
+    toast.style.opacity = "0.9";
+
+    document.body.appendChild(toast);
+
+    setTimeout(()=>toast.remove(),2000);
+}
+</script>
+
 </body>
 </html>
