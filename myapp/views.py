@@ -305,21 +305,35 @@ def delete_review(request, id):
 
 def register(request):
     return render(request,'register.html')
-
 def reg_post(request):
     name = request.POST['name']
     email = request.POST['email']
     password = request.POST['password']
+    confirm_password = request.POST.get('confirm_password', '').strip()
     phone = request.POST['phone']
+
+    # ✅ CHECK FIRST (IMPORTANT)
+    if password != confirm_password:
+        messages.error(request, "Passwords do not match")
+        return redirect('register')
+
+    # (optional safety)
+    if User.objects.filter(username=email).exists():
+        messages.error(request, "Email already exists")
+        return redirect('register')
+
+    # ✅ CREATE USER AFTER VALIDATION
     user = User.objects.create_user(
         username=email,
         email=email,
         password=password,
         first_name=name
     )
+
     gp = Group.objects.get(name='registration')
     user.groups.add(gp)
     user.save()
+
     send_mail(
         subject="Account Created Successfully",
         message=(
@@ -335,37 +349,52 @@ def reg_post(request):
         from_email=settings.EMAIL_HOST_USER,
         recipient_list=[email],
     )
+
     Registration.objects.create(
         user_name=name,
         email=email,
         phone=phone,
         authuser=user
     )
+
     messages.success(request, "Account created successfully. Please login.")
     return redirect('user_login')
+import re
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from .models import Registration
 
 def ajax_validate_register(request):
     email = request.GET.get('email', '').strip()
     phone = request.GET.get('phone', '').strip()
     password = request.GET.get('password', '').strip()
+    confirm_password = request.GET.get('confirm_password', '').strip()  # ✅ ADD
     name = request.GET.get('name', '').strip()
+
     data = {
         'email_error': '',
         'phone_error': '',
         'password_error': '',
+        'confirm_password_error': '',  # ✅ ADD
         'name_error': '',
     }
+
+    # ✅ NAME
     if name:
         if len(name) < 3:
             data['name_error'] = 'Name must be at least 3 characters'
         elif not re.match(r'^[A-Za-z ]+$', name):
             data['name_error'] = 'Name must contain only letters and spaces'
+
+    # ✅ EMAIL
     email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     if email:
         if not re.match(email_regex, email):
             data['email_error'] = 'Enter a valid email address'
         elif User.objects.filter(username=email).exists():
             data['email_error'] = 'Email already exists'
+
+    # ✅ PHONE
     if phone:
         if not phone.isdigit():
             data['phone_error'] = 'Phone must contain only numbers'
@@ -373,6 +402,8 @@ def ajax_validate_register(request):
             data['phone_error'] = 'Phone must be exactly 10 digits'
         elif Registration.objects.filter(phone=phone).exists():
             data['phone_error'] = 'Phone number already registered'
+
+    # ✅ PASSWORD
     if password:
         if len(password) < 8:
             data['password_error'] = 'Minimum 8 characters required'
@@ -382,7 +413,14 @@ def ajax_validate_register(request):
             data['password_error'] = 'Must contain at least 1 number'
         elif not re.search(r'[!@#$%^&*]', password):
             data['password_error'] = 'Must contain at least 1 special character (!@#$%^&*)'
+
+    # ✅ CONFIRM PASSWORD (NEW)
+    if confirm_password:
+        if confirm_password != password:
+            data['confirm_password_error'] = 'Passwords do not match'
+
     return JsonResponse(data)
+
 def staff_required(user):
     return user.is_staff
 

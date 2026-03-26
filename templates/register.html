@@ -22,6 +22,15 @@
         <link rel="stylesheet" href="/static/css/responsive.css"/>
         <link rel="stylesheet" href="/static/demos/fashion-store/fashion-store.css" />
         <style>
+#confirm_password {
+    margin-bottom: 20px;
+}
+.swal2-popup.swal2-toast {
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
 
 /* 💎 PREMIUM VALIDATION BOX */
 .error-box {
@@ -137,6 +146,10 @@ input:focus {
                             <label>Password<span class="text-red">*</span></label>
                             <input type="password" name="password" id="password" placeholder="Enter your password" style="border-radius: 10px;">
                             <div id="password_error" class="error-box"></div>
+                            <label>Confirm Password<span class="text-red">*</span></label>
+                            <input type="password" name="confirm_password" id="confirm_password"
+                                placeholder="Re-enter your password" style="border-radius: 10px;">
+                            <div id="confirm_password_error" class="error-box"></div>
 
                             <button style="border-radius: 10px; padding: 12px;" class="btn btn-dark-gray w-100" type="submit">Register</button>
                             <a href="{% url 'user_login' %}" class="btn btn-outline-dark-gray w-100 mt-3">Already have an account?</a>
@@ -153,8 +166,8 @@ input:focus {
         <script type="text/javascript" src="/static/js/vendors.min.js"></script>
         <script type="text/javascript" src="/static/js/main.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
-// ✅ ADD THIS AT THE TOP
+<script>
+// ✅ CSRF
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -170,84 +183,145 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// ✅ FIELDS
 const nameField = document.getElementById("name");
 const emailField = document.getElementById("email");
 const phoneField = document.getElementById("phone");
 const passwordField = document.getElementById("password");
+const confirmPasswordField = document.getElementById("confirm_password");
 
+// ✅ ERROR BOXES
 const nameErr = document.getElementById("name_error");
 const emailErr = document.getElementById("email_error");
 const phoneErr = document.getElementById("phone_error");
 const passErr = document.getElementById("password_error");
+const confirmPassErr = document.getElementById("confirm_password_error");
 
+// ✅ FLAGS
 let validName = false;
 let validEmail = false;
 let validPhone = false;
 let validPassword = false;
+let validConfirmPassword = false;
 
+// ✅ MAIN VALIDATION
 function validateForm() {
-    fetch(`/ajax/validate-register/?name=${nameField.value}&email=${emailField.value}&phone=${phoneField.value}&password=${passwordField.value}`, {
+
+    // 🔥 CONFIRM PASSWORD (NO API NEEDED)
+    if (confirmPasswordField.value.length === 0) {
+        confirmPassErr.style.display = "none";
+        confirmPasswordField.classList.remove("input-error", "input-success");
+        validConfirmPassword = false;
+
+    } else if (confirmPasswordField.value !== passwordField.value) {
+        confirmPassErr.innerHTML = `
+            <span style="font-size:16px;">❌</span>
+            <span style="margin-left:6px;">Passwords do not match</span>
+        `;
+        confirmPassErr.className = "error-box error";
+        confirmPassErr.style.display = "block";
+
+        confirmPasswordField.classList.add("input-error");
+        confirmPasswordField.classList.remove("input-success");
+
+        validConfirmPassword = false;
+
+    } else {
+        confirmPassErr.innerHTML = `
+            <span style="font-size:16px;">✔</span>
+            <span style="margin-left:6px;">Passwords match</span>
+        `;
+        confirmPassErr.className = "error-box success";
+        confirmPassErr.style.display = "block";
+
+        confirmPasswordField.classList.add("input-success");
+        confirmPasswordField.classList.remove("input-error");
+
+        validConfirmPassword = true;
+    }
+
+    // ✅ API CALL (now includes confirm_password)
+    fetch(`/ajax/validate-register/?name=${nameField.value}&email=${emailField.value}&phone=${phoneField.value}&password=${passwordField.value}&confirm_password=${confirmPasswordField.value}`, {
         method: "GET",
         headers: {
-            'X-CSRFToken': getCookie('csrftoken')  // ✅ ADD THIS LINE
+            'X-CSRFToken': getCookie('csrftoken')
         }
     })
     .then(res => res.json())
     .then(data => {
 
-    function showValidation(field, box, message) {
-        if (message) {
-            box.innerHTML = `
-                <span style="font-size:16px;">❌</span>
-                <span style="margin-left:6px;">${message}</span>
-            `;
-            box.className = "error-box error";
-            box.style.display = "block";
+        function showValidation(field, box, message) {
+            if (message) {
+                box.innerHTML = `
+                    <span style="font-size:16px;">❌</span>
+                    <span style="margin-left:6px;">${message}</span>
+                `;
+                box.className = "error-box error";
+                box.style.display = "block";
 
-            field.classList.remove("input-success");
-            field.classList.add("input-error");
+                field.classList.remove("input-success");
+                field.classList.add("input-error");
 
-        } else if (field.value.length > 0) {
-            box.innerHTML = `
-                <span style="font-size:16px;">✔</span>
-                <span style="margin-left:6px;">Looks perfect</span>
-            `;
-            box.className = "error-box success";
-            box.style.display = "block";
+            } else if (field.value.length > 0) {
+                box.innerHTML = `
+                    <span style="font-size:16px;">✔</span>
+                    <span style="margin-left:6px;">Looks perfect</span>
+                `;
+                box.className = "error-box success";
+                box.style.display = "block";
 
-            field.classList.remove("input-error");
-            field.classList.add("input-success");
+                field.classList.remove("input-error");
+                field.classList.add("input-success");
 
-        } else {
-            box.style.display = "none";
-            field.classList.remove("input-error", "input-success");
+            } else {
+                box.style.display = "none";
+                field.classList.remove("input-error", "input-success");
+            }
         }
-    }
 
-    showValidation(nameField, nameErr, data.name_error);
-    showValidation(emailField, emailErr, data.email_error);
-    showValidation(phoneField, phoneErr, data.phone_error);
-    showValidation(passwordField, passErr, data.password_error);
+        // ✅ NORMAL VALIDATION
+        showValidation(nameField, nameErr, data.name_error);
+        showValidation(emailField, emailErr, data.email_error);
+        showValidation(phoneField, phoneErr, data.phone_error);
+        showValidation(passwordField, passErr, data.password_error);
 
-    validName = !data.name_error;
-    validEmail = !data.email_error;
-    validPhone = !data.phone_error;
-    validPassword = !data.password_error;
-});
+        validName = !data.name_error;
+        validEmail = !data.email_error;
+        validPhone = !data.phone_error;
+        validPassword = !data.password_error;
+    });
 }
 
+// ✅ EVENTS
 nameField.addEventListener("input", validateForm);
 emailField.addEventListener("input", validateForm);
 phoneField.addEventListener("input", validateForm);
 passwordField.addEventListener("input", validateForm);
+confirmPasswordField.addEventListener("input", validateForm);
 
+// ✅ SUBMIT BLOCK
 document.getElementById("regForm").addEventListener("submit", function(e){
-    if (!validName || !validEmail || !validPhone || !validPassword) {
+    if (!validName || !validEmail || !validPhone || !validPassword || !validConfirmPassword) {
         e.preventDefault();
-        alert("Please fix the errors before submitting");
+        Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'error',
+    title: 'Please fix the highlighted fields',
+    showConfirmButton: false,
+    timer: 2500,
+    timerProgressBar: true,
+    background: '#fff',
+    color: '#333',
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
     }
 });
 </script>
+
 {% if messages %}
 <script>
     {% for message in messages %}
@@ -262,6 +336,6 @@ document.getElementById("regForm").addEventListener("submit", function(e){
     });
     {% endfor %}
 </script>
-{% endif %}
-    </body>
+{% endif %}    
+</body>
 </html>
