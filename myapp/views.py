@@ -41,7 +41,7 @@ from django.utils import timezone
 from django.core.mail import EmailMultiAlternatives
 import logging
 from django.utils.html import escape
-
+from datetime import timedelta
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
@@ -1013,16 +1013,19 @@ def confirm_cod_cancel(request, order_id):
     login_url='user_login'
 )
 
+
 @login_required
-@role_required(["admin","Accountant","Staff"])
+@role_required(["admin", "Accountant", "Staff"])
 def dashboard(request):
     today = now().date()
 
+    # ✅ Role-based orders
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
         orders = Order.objects.all().order_by('-created_at')
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
 
+    # ✅ Paid orders (clean + strict)
     paid_orders = orders.filter(
         payment_status=True,
         is_cancelled=False,
@@ -1030,15 +1033,18 @@ def dashboard(request):
         return_approved=False
     )
 
-    total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
+    # ✅ Revenue
+    total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or Decimal("0.00")
 
     today_revenue = paid_orders.filter(
         created_at__date=today
-    ).aggregate(total=Sum("total"))["total"] or 0
+    ).aggregate(total=Sum("total"))["total"] or Decimal("0.00")
 
+    # ✅ Order counts
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
 
+    # ✅ Pending orders
     pending_orders = orders.filter(
         is_cancelled=False
     ).exclude(
@@ -1047,15 +1053,39 @@ def dashboard(request):
         is_completed=True
     ).count()
 
-    refund_requests_count = Order.objects.filter(
-        cancel_requested=True,
-        refund_processed=False
-    ).count()
-    return_requests_count = Order.objects.filter(
-    return_requested=True,
-    refund_processed=False
+    # ✅ POS pending payments
+    pos_pending_payment = orders.filter(
+        is_pos_order=True,
+        payment_status=False,
+        is_cancelled=False
     ).count()
 
+    # ✅ Customers & Products
+    total_customers = Registration.objects.count()
+    total_products = Product.objects.count()
+
+    # ✅ Refund & Return Requests
+    pending_refunds = Order.objects.filter(
+        cancel_requested=True,
+        refund_processed=False
+    )
+    refund_count = pending_refunds.count()
+
+    new_refunds_count = pending_refunds.filter(
+        created_at__gte=now() - timedelta(days=1)
+    ).count()
+
+    return_requests = Order.objects.filter(
+        return_requested=True,
+        refund_processed=False
+    )
+    return_requests_count = return_requests.count()
+
+    new_return_requests_count = return_requests.filter(
+        created_at__gte=now() - timedelta(days=1)
+    ).count()
+
+    # ✅ Profit / Income Calculation
     total_income = Decimal("0.00")
 
     order_items = OrderItem.objects.filter(
@@ -1070,16 +1100,28 @@ def dashboard(request):
             profit = (item.price - item.product.cost_price) * item.quantity
             total_income += profit
 
+    # ✅ Context
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
         "total_income": total_income,
+
         "total_orders": total_orders,
         "paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
-        "refund_requests_count": refund_requests_count,
+
+        "pos_pending_payment": pos_pending_payment,
+
+        "total_customers": total_customers,
+        "total_products": total_products,
+
+        "refund_count": refund_count if refund_count > 0 else None,
+        "new_refunds_count": new_refunds_count if new_refunds_count > 0 else None,
+
+        "return_requests_count": return_requests_count if return_requests_count > 0 else None,
+        "new_return_requests_count": new_return_requests_count if new_return_requests_count > 0 else None,
+
         "orders": orders,
-        "return_requests_count": return_requests_count,
     }
 
     return render(request, "dashboard.html", context)
