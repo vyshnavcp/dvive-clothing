@@ -243,12 +243,23 @@ border-radius:12px;
 </td>
 
 <td>
-{% if order.is_cancelled %}
-<span class="status-badge cancelled">Cancelled</span>
+{% if order.return_approved and order.refund_processed %}
+    <span class="status-badge completed">Returned</span>
+
+{% elif order.return_requested and not order.return_approved %}
+    <span class="status-badge pending">Return Requested</span>
+
+{% elif order.return_approved and not order.refund_processed %}
+    <span class="status-badge pending">Return Approved</span>
+
+{% elif order.is_cancelled %}
+    <span class="status-badge cancelled">Cancelled</span>
+
 {% elif order.is_delivered %}
-<span class="status-badge completed">Delivered</span>
+    <span class="status-badge completed">Delivered</span>
+
 {% else %}
-<span class="status-badge pending">Pending</span>
+    <span class="status-badge pending">Pending</span>
 {% endif %}
 </td>
 

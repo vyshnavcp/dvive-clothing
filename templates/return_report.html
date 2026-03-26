@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Return Orders</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+background:#f4f6fb;
+font-family:'Poppins',sans-serif;
+}
+
+.header-with-topbar{
+background:#000;
+}
+
+.dashboard-header{
+padding:18px 24px;
+}
+
+.dashboard-header h4,
+.dashboard-header small,
+.dashboard-header i{
+color:#fff;
+}
+
+.container-fluid{
+padding:30px 40px;
+}
+
+.page-header{
+background:linear-gradient(135deg,#0f172a,#1e293b);
+color:#fff;
+padding:18px;
+border-radius:12px;
+margin-bottom:20px;
+}
+
+.stat-card{
+background:#fff;
+border-radius:12px;
+padding:20px;
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
+text-align:center;
+}
+
+.stat-card h3{
+margin:0;
+font-weight:600;
+}
+
+.table thead th{
+background:#0f172a;
+color:#fff;
+}
+
+.badge-status{
+padding:6px 12px;
+border-radius:30px;
+font-size:12px;
+}
+
+.pending{
+background:#fef3c7;
+color:#92400e;
+}
+
+.approved{
+background:#dcfce7;
+color:#166534;
+}
+</style>
+</head>
+
+<body>
+
+<header class="header-with-topbar">
+<nav class="navbar dashboard-header navbar-expand-lg">
+<div class="container-fluid px-0">
+
+<div class="d-flex align-items-center gap-3">
+<i class="bi bi-box-arrow-in-left fs-2"></i>
+<div>
+<h4 class="mb-0">Return Dashboard</h4>
+<small>Return request monitoring</small>
+</div>
+</div>
+
+<div class="collapse navbar-collapse justify-content-end">
+<ul class="navbar-nav gap-3">
+
+<li class="nav-item">
+<a class="nav-link text-white" href="{% url 'dashboard' %}">Home</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link text-white" href="{% url 'refund_requests' %}">Refund</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a>
+</li>
+
+</ul>
+</div>
+
+</div>
+</nav>
+</header>
+
+<div class="container-fluid">
+
+<div class="page-header d-flex justify-content-between align-items-center">
+<h4>Return Report</h4>
+<i class="bi bi-arrow-repeat fs-2"></i>
+</div>
+
+<!-- STATS -->
+<div class="row mb-4">
+
+<div class="col-md-4">
+<div class="stat-card">
+<h3>{{ total_requests }}</h3>
+<p>Total Return Requests</p>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="stat-card">
+<h3>{{ approved_returns }}</h3>
+<p>Approved Returns</p>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="stat-card">
+<h3>{{ pending_returns }}</h3>
+<p>Pending Returns</p>
+</div>
+</div>
+
+</div>
+
+<!-- SEARCH -->
+<div class="mb-3">
+<input type="text" id="searchInput" class="form-control" placeholder="Search order, customer, phone...">
+</div>
+
+<div class="card shadow-sm">
+<div class="card-body p-0">
+
+<table class="table mb-0 align-middle">
+
+<thead>
+<tr>
+<th>Order ID</th>
+<th>Customer</th>
+<th>Phone</th>
+<th>Amount</th>
+<th>Status</th>
+<th>Date</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for order in orders %}
+
+<tr>
+
+<td>
+<a href="{% url 'order_detail' order.id %}" class="fw-bold text-primary text-decoration-none">
+#{{ order.id }}
+</a>
+</td>
+
+<td>{{ order.first_name }}</td>
+<td>{{ order.phone }}</td>
+<td>₹ {{ order.total }}</td>
+
+<td>
+{% if order.refund_processed %}
+<span class="badge-status approved">Return Approved</span>
+{% else %}
+<span class="badge-status pending">Return Pending</span>
+{% endif %}
+</td>
+
+<td>{{ order.created_at|date:"d M Y" }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+<script>
+document.getElementById("searchInput").addEventListener("keyup", function(){
+let filter = this.value.toLowerCase();
+let rows = document.querySelectorAll("tbody tr");
+
+rows.forEach(row => {
+let text = row.innerText.toLowerCase();
+row.style.display = text.includes(filter) ? "" : "none";
+});
+});
+</script>
+
+</body>
+</html>

@@ -149,7 +149,12 @@ urlpatterns = [
     path("dashboard/banner/add/", views.add_banner, name="add_banner"),
     path("dashboard/banner/edit/<int:id>/", views.edit_banner, name="edit_banner"),
     path("dashboard/banner/delete/<int:id>/", views.delete_banner, name="delete_banner"),
+    path("return-policy/<int:order_id>/", views.return_policy, name="return_policy"),
+    path("confirm-return/<int:order_id>/", views.confirm_return, name="confirm_return"),
+    path("admin-return-requests/", views.return_requests, name="return_requests"),
+    path("process-return/<int:order_id>/", views.process_return, name="process_return"),
     path("refund-report/", views.refund_report, name="refund_report"),
+    path("return-report/", views.return_report, name="return_report"),
     path('faq/', views.faq_page, name='faq_page'),
     
     

@@ -239,7 +239,16 @@ display:none;
 <div class="order-id">Order #{{ order.id }}</div>
 <div class="order-date">Placed on {{ order.created_at|date:"d M Y" }}</div>
 
-{% if order.refund_processed %}
+{% if order.return_requested and not order.return_approved %}
+<span class="status-badge status-pending">Return Requested</span>
+
+{% elif order.return_approved and not order.refund_processed %}
+<span class="status-badge status-pending">Return Approved</span>
+
+{% elif order.return_approved and order.refund_processed %}
+<span class="status-badge status-refunded">Returned</span>
+
+{% elif order.refund_processed %}
 <span class="status-badge status-refunded">Refunded</span>
 
 {% elif order.is_cancelled %}
@@ -307,12 +316,17 @@ Print Invoice
         ⏳ Cancel request sent. Waiting for approval.
     </div>
 
+{% elif order.return_approved and order.refund_processed %}
+
+    <div class="info-box info-success">
+        🔄 Return completed successfully.
+    </div>
+
 {% elif order.refund_processed %}
 
     <div class="info-box info-success">
-        ✅ Refund completed successfully.
+        💰 Refund completed successfully.
     </div>
-
 {% elif order.is_cancelled %}
 
     <div class="info-box info-muted">
@@ -320,7 +334,33 @@ Print Invoice
     </div>
 
 {% endif %}
+{% if order.is_delivered and not order.return_requested and not order.refund_processed %}
 
+    {% if order.seconds_passed <= 604800 %}  {# 7 days #}
+
+        <a href="{% url 'return_policy' order.id %}">
+            <button class="cancel-btn" style="background:#0066ff;">
+                Return Order
+            </button>
+        </a>
+
+        <div class="info-box info-warning">
+            🔄 Return allowed within 7 days after delivery.
+        </div>
+
+    {% else %}
+        <div class="info-box info-muted">
+            ❌ Return period expired
+        </div>
+    {% endif %}
+
+{% elif order.return_requested and not order.refund_processed %}
+
+    <div class="info-box info-warning">
+        ⏳ Return request sent. Waiting for approval.
+    </div>
+
+{% endif %}
 </div>
 
 </div>

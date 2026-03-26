@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Return Request</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background: linear-gradient(135deg,#0f172a,#1e293b);
+    color:#111;
+}
+
+/* WRAPPER */
+.wrapper{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:30px;
+}
+
+/* CARD */
+.card{
+    width:100%;
+    max-width:900px;
+    background:rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-radius:24px;
+    padding:40px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.35);
+    animation:fadeIn .5s ease;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+}
+
+/* HEADER */
+.header{
+    margin-bottom:25px;
+}
+
+.header h2{
+    font-size:28px;
+    font-weight:700;
+    margin-bottom:6px;
+}
+
+.order-info{
+    font-size:14px;
+    color:#555;
+}
+
+/* PRODUCT SECTION */
+.product-box{
+    background:#f8fafc;
+    border-radius:16px;
+    padding:20px;
+    margin-bottom:25px;
+}
+
+.product-title{
+    font-weight:600;
+    margin-bottom:12px;
+}
+
+.product-item{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+}
+
+.product-item:last-child{
+    border-bottom:none;
+}
+
+/* POLICY GRID */
+.policy-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-bottom:25px;
+}
+
+/* POLICY CARD */
+.policy{
+    padding:20px;
+    border-radius:16px;
+}
+
+.policy h3{
+    margin-bottom:10px;
+    font-size:16px;
+}
+
+/* COLORS */
+.eligible{
+    background:#ecfdf5;
+    border:1px solid #10b98133;
+}
+
+.eligible h3{color:#047857;}
+
+.not-eligible{
+    background:#fff1f2;
+    border:1px solid #ef444433;
+}
+
+.not-eligible h3{color:#b91c1c;}
+
+.rules{
+    background:#eef2ff;
+    border:1px solid #6366f133;
+    margin-top:10px;
+}
+
+.rules h3{color:#3730a3;}
+
+.policy ul{
+    padding-left:18px;
+    font-size:14px;
+}
+
+/* INFO */
+.info{
+    margin-top:15px;
+    padding:12px;
+    border-radius:10px;
+    background:#fff7ed;
+    color:#9a3412;
+    font-size:13px;
+}
+
+/* BUTTONS */
+.btn-group{
+    margin-top:25px;
+    display:flex;
+    gap:12px;
+}
+
+.confirm-btn{
+    flex:1;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(135deg,#6366f1,#4338ca);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.confirm-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 30px rgba(99,102,241,0.4);
+}
+
+.back-btn{
+    flex:1;
+    text-align:center;
+    padding:14px;
+    border-radius:12px;
+    border:1px solid #ccc;
+    text-decoration:none;
+    color:#333;
+    font-weight:500;
+    transition:.3s;
+}
+
+.back-btn:hover{
+    background:#111;
+    color:white;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+    .policy-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="card">
+
+<!-- HEADER -->
+<div class="header">
+    <h2>Return Request</h2>
+    <div class="order-info">
+        Order ID: <strong>#{{ order.id }}</strong> <br>
+        Delivered on: {{ order.created_at|date:"d M Y" }} <br>
+        Total Amount: ₹{{ order.total }}
+    </div>
+</div>
+
+<!-- PRODUCTS -->
+<div class="product-box">
+    <div class="product-title">Eligible Products</div>
+
+    {% for item in order.items.all %}
+    <div class="product-item">
+        <div>
+            {{ item.product.name }} × {{ item.quantity }}
+
+            {% if item.variant %}
+            <br>
+            <small>{{ item.variant.color.name }} / {{ item.variant.size.name }}</small>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- POLICY -->
+<div class="policy-grid">
+
+<div class="policy eligible">
+    <h3>✔ Eligible for Return</h3>
+    <ul>
+        <li>Damaged or defective products</li>
+        <li>Wrong item delivered</li>
+        <li>Size mismatch</li>
+        <li>Missing items</li>
+        <li>Manufacturing defects</li>
+    </ul>
+</div>
+
+<div class="policy not-eligible">
+    <h3>❌ Not Eligible</h3>
+    <ul>
+        <li>Used or worn items</li>
+        <li>Washed products</li>
+        <li>No original tags</li>
+        <li>Customer-damaged</li>
+        <li>Late requests</li>
+    </ul>
+</div>
+
+</div>
+
+<!-- RULES -->
+<div class="policy rules">
+    <h3>📌 Return Policy Rules</h3>
+    <ul>
+        <li>Return must be requested within <strong>7 days</strong></li>
+        <li>Product must be unused</li>
+        <li>Pickup arranged after approval</li>
+        <li>QC check after receiving</li>
+        <li>Refund after verification</li>
+    </ul>
+
+    <div class="info">
+        💰 Refund processed within <strong>3–10 working days</strong>
+    </div>
+</div>
+
+<!-- ACTION -->
+<form method="POST" action="{% url 'confirm_return' order.id %}">
+{% csrf_token %}
+<div class="btn-group">
+    <button type="submit" class="confirm-btn">
+        Confirm Return Request
+    </button>
+    <a href="{% url 'my_orders' %}" class="back-btn">
+        Back
+    </a>
+</div>
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>

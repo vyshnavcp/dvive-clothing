@@ -405,6 +405,7 @@ def login_post(request):
     user = authenticate(request,username=username,password=password)
     if user:
         login(request,user)
+        messages.success(request, f"Welcome back, {user.username}")
         if user.is_superuser:
             return redirect("dashboard")
         if user.groups.filter(name="Accountant").exists():
@@ -936,6 +937,46 @@ def my_orders(request):
     return render(request, "my_orders.html", {
         "orders": orders_with_time,
     })
+
+@login_required
+def return_policy(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    return render(request, "return_policy.html", {"order": order})
+
+@login_required
+def confirm_return(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if not order.return_requested:
+        order.return_requested = True
+        order.return_requested_at = timezone.now()
+        order.save()
+
+    return redirect("my_orders")
+
+@role_required(["admin", "Accountant"])
+def return_report(request):
+
+    orders = Order.objects.filter(return_requested=True).order_by("-created_at")
+
+    total_requests = orders.count()
+    approved_returns = orders.filter(refund_processed=True).count()
+    pending_returns = orders.filter(refund_processed=False).count()
+
+    return render(request, "return_report.html", {
+        "orders": orders,
+        "total_requests": total_requests,
+        "approved_returns": approved_returns,
+        "pending_returns": pending_returns,
+    })
+
+@role_required(["admin", "Accountant"])
+def return_requests(request):
+    orders = Order.objects.filter(return_requested=True, refund_processed=False)
+    return render(request, "return_requests.html", {"orders": orders})
+
+
 @login_required
 def confirm_cod_cancel(request, order_id):
     registration = get_object_or_404(Registration, authuser=request.user)
@@ -972,7 +1013,8 @@ def confirm_cod_cancel(request, order_id):
     login_url='user_login'
 )
 
-
+@login_required
+@role_required(["admin","Accountant","Staff"])
 def dashboard(request):
     today = now().date()
 
@@ -980,8 +1022,16 @@ def dashboard(request):
         orders = Order.objects.all().order_by('-created_at')
     else:
         orders = Order.objects.filter(is_pos_order=True).order_by('-created_at')
-    paid_orders = orders.filter(payment_status=True, is_cancelled=False)
+
+    paid_orders = orders.filter(
+        payment_status=True,
+        is_cancelled=False,
+        refund_processed=False,
+        return_approved=False
+    )
+
     total_revenue = paid_orders.aggregate(total=Sum("total"))["total"] or 0
+
     today_revenue = paid_orders.filter(
         created_at__date=today
     ).aggregate(total=Sum("total"))["total"] or 0
@@ -989,19 +1039,30 @@ def dashboard(request):
     total_orders = orders.count()
     total_paid_orders = paid_orders.count()
 
-    pending_orders = orders.filter(is_cancelled=False).exclude(is_delivered=True).exclude(is_completed=True).count()
+    pending_orders = orders.filter(
+        is_cancelled=False
+    ).exclude(
+        is_delivered=True
+    ).exclude(
+        is_completed=True
+    ).count()
 
-    # ✅ ADD THIS
     refund_requests_count = Order.objects.filter(
         cancel_requested=True,
         refund_processed=False
+    ).count()
+    return_requests_count = Order.objects.filter(
+    return_requested=True,
+    refund_processed=False
     ).count()
 
     total_income = Decimal("0.00")
 
     order_items = OrderItem.objects.filter(
         order__payment_status=True,
-        order__is_cancelled=False
+        order__is_cancelled=False,
+        order__refund_processed=False,
+        order__return_approved=False
     ).select_related("product")
 
     for item in order_items:
@@ -1016,8 +1077,9 @@ def dashboard(request):
         "total_orders": total_orders,
         "paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
-        "refund_requests_count": refund_requests_count,  # ✅ ADD THIS
+        "refund_requests_count": refund_requests_count,
         "orders": orders,
+        "return_requests_count": return_requests_count,
     }
 
     return render(request, "dashboard.html", context)
@@ -1533,20 +1595,33 @@ def order_detail(request, order_id):
         "payment_display": payment_display,
     })
 
-@role_required(["Accountant","Staff"])
+@role_required(["Accountant", "Staff"])
 def mark_order_completed(request, order_id):
+
+    if request.method != "POST":
+        return redirect("order_detail", order_id=order_id)
+
     order = get_object_or_404(Order, id=order_id)
-    if request.method == "POST":
-        reference = request.POST.get("reference", "").strip()
+
+    # 🚫 Prevent invalid completion
+    if order.is_cancelled or order.refund_processed or order.return_approved:
+        messages.error(request, "Cannot complete this order.")
+        return redirect("order_detail", order_id=order.id)
+
+    # ✅ Mark as completed
+    order.is_completed = True
+    order.is_delivered = True
+    order.payment_status = True  # ensures revenue counted
+
+    # ✅ Save reference
+    reference = request.POST.get("reference")
+    if reference:
         order.reference = reference
-        order.is_completed = True
-        order.is_delivered = True
-        if order.payment_method == "cod":
-            order.payment_status = True
-        order.save()
-        messages.success(request, "Order marked as completed.")
-        return redirect("dashboard")
-    return redirect("dashboard")
+
+    order.save()
+
+    messages.success(request, "Order marked as completed successfully.")
+    return redirect("order_detail", order_id=order.id)
 
 @role_required(["Accountant","Staff"])
 def cancel_order(request, order_id):
@@ -1966,23 +2041,32 @@ def pos_update_order(request, order_id):
             "message": str(e)
         })
     
+
+
 @role_required(["Accountant"])
 @staff_member_required
 def total_income_page(request):
+
     order_items = OrderItem.objects.filter(
-        order__is_cancelled=False,
-        order__is_delivered=True
+        order__payment_status=True,     # ✅ only paid
+        order__is_cancelled=False,      # ✅ not cancelled
+        order__refund_processed=False   # ✅ not refunded (covers returns too)
     ).select_related("product")
+
     product_data = []
-    total_income = 0
-    total_revenue = 0
+    total_income = Decimal("0.00")
+    total_revenue = Decimal("0.00")
+
     for item in order_items:
-        if item.product.cost_price:
+        if item.product and item.product.cost_price:
+
             profit_per_item = item.price - item.product.cost_price
             total_profit = profit_per_item * item.quantity
             total_selling = item.price * item.quantity
+
             total_income += total_profit
             total_revenue += total_selling
+
             product_data.append({
                 "product": item.product,
                 "quantity": item.quantity,
@@ -1992,6 +2076,7 @@ def total_income_page(request):
                 "total_profit": total_profit,
                 "total_selling": total_selling
             })
+
     return render(request, "total_income.html", {
         "title": "Total Income Report",
         "products": product_data,
@@ -2515,6 +2600,130 @@ Thank you.
         raise e
 
     return redirect("refund_requests")
+
+@role_required(["Accountant", "admin"])
+@transaction.atomic
+def process_return(request, order_id):
+
+    if request.method != "POST":
+        return redirect("return_requests")
+
+    order = get_object_or_404(Order, id=order_id)
+
+    if order.refund_processed:
+        logger.warning(f"Order #{order.id} already processed.")
+        return redirect("return_requests")
+
+    try:
+        is_cod = order.payment_method == "cod"
+
+        # =========================
+        # 💳 RAZORPAY REFUND (ONLY IF PAID ONLINE)
+        # =========================
+        if not is_cod and order.razorpay_payment_id:
+
+            client = razorpay.Client(auth=(
+                settings.RAZORPAY_KEY_ID,
+                settings.RAZORPAY_KEY_SECRET
+            ))
+
+            payment = client.payment.fetch(order.razorpay_payment_id)
+            captured_amount = payment.get("amount", 0)
+
+            refund_amount = int(order.total * 100)
+
+            if refund_amount > captured_amount:
+                refund_amount = captured_amount
+
+            refund = client.payment.refund(
+                order.razorpay_payment_id,
+                {"amount": refund_amount}
+            )
+
+            order.refund_id = refund.get("id")
+            order.refund_status = True
+
+        # =========================
+        # 💵 COD RETURN (NO REFUND)
+        # =========================
+        if is_cod:
+            order.refund_status = False
+
+        # =========================
+        # ❌ DO NOT RESTORE STOCK
+        # =========================
+        # (INTENTIONALLY NO STOCK UPDATE)
+
+        # =========================
+        # ✅ UPDATE STATUS
+        # =========================
+        order.return_approved = True
+        order.refund_processed = True
+        order.is_cancelled = False
+        order.save()
+
+        # =========================
+        # 📧 EMAIL CONTENT
+        # =========================
+        if is_cod:
+            subject = f"Return Approved - Order #{order.id}"
+            heading = "Return Approved 🔄"
+            message_line = "Your return request has been approved."
+            extra_note = "Our team will contact you for pickup."
+        else:
+            subject = f"Return & Refund Processed - Order #{order.id}"
+            heading = "Return & Refund Successful ✅"
+            message_line = "Your return has been approved and refund processed."
+            extra_note = "Refund will be credited within 3–10 business days."
+
+        text_content = f"""
+Hello {order.first_name},
+
+{message_line}
+
+Order ID: #{order.id}
+Amount: ₹{order.total}
+
+{extra_note}
+
+Thank you.
+"""
+
+        html_content = f"""
+<html>
+<body style="font-family: Arial; background:#f4f6fb; padding:20px;">
+<div style="max-width:600px;margin:auto;background:white;padding:25px;border-radius:10px;">
+
+<h2 style="text-align:center;color:#28a745;">{heading}</h2>
+
+<p>Hello <b>{escape(order.first_name)}</b>,</p>
+<p>{message_line}</p>
+
+<p><b>Order ID:</b> #{order.id}</p>
+<p><b>Amount:</b> ₹{order.total}</p>
+
+<p style="margin-top:20px;">{extra_note}</p>
+
+</div>
+</body>
+</html>
+"""
+
+        email = EmailMultiAlternatives(
+            subject,
+            text_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [order.email],
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
+    except Exception as e:
+        logger.error(f"Return failed: {str(e)}")
+        raise e
+
+    return redirect("return_requests")
+
 
 @role_required(["Admin","Accountant"])
 def refund_report(request):
