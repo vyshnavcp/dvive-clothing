@@ -241,28 +241,39 @@ border-radius:12px;
 {% endif %}
 
 </td>
-
 <td>
-{% if order.return_approved and order.refund_processed %}
-    <span class="status-badge completed">Returned</span>
+    {% if order.is_cancelled %}
+        <span class="badge bg-danger">Cancelled</span>
 
-{% elif order.return_requested and not order.return_approved %}
-    <span class="status-badge pending">Return Requested</span>
+    {% elif order.return_requested and not order.return_approved %}
+        <span class="badge bg-warning text-dark">Return Requested</span>
 
-{% elif order.return_approved and not order.refund_processed %}
-    <span class="status-badge pending">Return Approved</span>
+    {% elif order.return_approved and not order.refund_processed %}
+        <span class="badge bg-info text-dark">Return Approved</span>
 
-{% elif order.is_cancelled %}
-    <span class="status-badge cancelled">Cancelled</span>
+    {% elif order.return_approved and order.refund_processed %}
+        <span class="badge bg-success">Returned</span>
 
-{% elif order.is_delivered %}
-    <span class="status-badge completed">Delivered</span>
+    {% elif order.is_shipped and not order.is_delivered %}
+        <span class="badge bg-primary">Shipping Processing</span>
 
-{% else %}
-    <span class="status-badge pending">Pending</span>
-{% endif %}
+    {% elif order.is_delivered %}
+        <span class="badge bg-success">Delivered</span>
+
+    {% elif order.is_pos_order %}
+        {% if order.payment_status %}
+            <span class="badge bg-success">Paid</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">Pending Payment</span>
+        {% endif %}
+
+    {% elif order.payment_status %}
+        <span class="badge bg-success">Paid</span>
+
+    {% else %}
+        <span class="badge bg-secondary">Pending</span>
+    {% endif %}
 </td>
-
 <td>{{ order.created_at|date:"d M Y" }}</td>
 
 <td>

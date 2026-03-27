@@ -288,6 +288,7 @@ class Order(models.Model):
     is_pos_order = models.BooleanField(default=False)
     cancel_requested = models.BooleanField(default=False)
     cancel_requested_at = models.DateTimeField(blank=True, null=True)
+    is_shipped = models.BooleanField(default=False)
 
     refund_processed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -310,7 +311,7 @@ class Order(models.Model):
 
     def get_status_display(self):
 
-
+    # RETURN FLOW
         if self.return_requested and not self.return_approved:
             return "Return Requested"
 
@@ -318,30 +319,27 @@ class Order(models.Model):
             return "Return Approved"
 
         if self.return_approved and self.refund_processed:
-            return "Returned"
+            return "Returned & Refunded"
 
-
+    # CANCEL
         if self.is_cancelled:
             return "Cancelled"
 
         if self.cancel_requested:
             return "Cancel Requested"
 
-    
-        if self.refund_processed:
-            return "Refunded"
-
+    # SHIPPING FLOW 👇 NEW
+        if self.is_shipped and not self.is_delivered:
+            return "Shipping Processing"
 
         if self.is_delivered:
             return "Delivered"
 
-        if self.is_pos_order and not self.payment_status:
-            return "POS Payment Pending"
-
+    # DEFAULT
         if not self.is_completed:
             return "Pending"
 
-        return "Completed"
+        return "Order Placed"
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)

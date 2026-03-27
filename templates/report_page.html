@@ -150,8 +150,6 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
     —
 {% endif %}
 </td>
-
-<!-- ✅ FIXED STATUS -->
 <td>
 {% if order.return_approved and order.refund_processed %}
     <span class="status-badge cancelled">Returned</span>
@@ -164,6 +162,13 @@ body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
 
 {% elif order.is_delivered %}
     <span class="status-badge completed">Delivered</span>
+
+{% elif order.is_pos_order %}
+    {% if order.payment_status %}
+        <span class="status-badge completed">Paid</span>
+    {% else %}
+        <span class="status-badge pending">Pending</span>
+    {% endif %}
 
 {% else %}
     <span class="status-badge pending">Pending</span>

@@ -1576,7 +1576,10 @@ def delete_article(request, slug):
     messages.success(request, "Article Deleted Successfully")
     return redirect('article_list')
 
-
+from django.db.models import Q, Sum
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from datetime import datetime
 
 @role_required(["Accountant"])
 @login_required(login_url='user_login')
@@ -1618,13 +1621,16 @@ def report_page(request):
             orders = orders.filter(
                 is_delivered=False,
                 is_cancelled=False
+            ).exclude(
+                is_pos_order=True,
+                payment_status=True
             )
 
         elif status == "completed":
+            # Include delivered online orders OR POS paid orders
             orders = orders.filter(
-                is_delivered=True,
-                is_cancelled=False,
-                return_approved=False
+                Q(is_delivered=True, is_cancelled=False, return_approved=False) |
+                Q(is_pos_order=True, payment_status=True)
             )
 
         elif status == "cancelled":
@@ -1636,7 +1642,7 @@ def report_page(request):
     # ================= COUNTS =================
     total_orders = orders.count()
 
-    # ✅ ONLY VALID REVENUE (IMPORTANT FIX)
+    # ✅ VALID REVENUE = delivered online orders (exclude cancelled, returned, refunded)
     valid_orders = orders.filter(
         is_delivered=True,
         is_cancelled=False,
@@ -1646,14 +1652,22 @@ def report_page(request):
 
     total_revenue = valid_orders.aggregate(Sum('total'))['total__sum'] or 0
 
-    total_paid_orders = valid_orders.count()
+    # ✅ Paid orders = delivered online OR POS paid
+    total_paid_orders = orders.filter(
+        Q(is_delivered=True, is_cancelled=False, return_approved=False, refund_processed=False) |
+        Q(is_pos_order=True, payment_status=True)
+    ).count()
 
+    # Pending orders = not delivered and not cancelled
     pending_orders = orders.filter(
         is_delivered=False,
         is_cancelled=False
+    ).exclude(
+        is_pos_order=True,
+        payment_status=True
     ).count()
 
-    # ✅ NEW
+    # Returned orders
     returned_orders = orders.filter(return_approved=True).count()
 
     # ================= RESPONSE =================
@@ -1664,7 +1678,7 @@ def report_page(request):
         "total_revenue": total_revenue,
         "total_paid_orders": total_paid_orders,
         "pending_orders": pending_orders,
-        "returned_orders": returned_orders,  # ✅ NEW
+        "returned_orders": returned_orders,
     })
 
 @role_required(["Accountant","Staff"])
@@ -1703,15 +1717,18 @@ def paid_orders(request):
 @user_passes_test(staff_required, login_url='home')
 def pending_orders(request):
     if request.user.is_superuser or request.user.groups.filter(name="Accountant").exists():
+        # Only orders that are not cancelled, not delivered, and not paid
         orders = Order.objects.filter(
             is_cancelled=False,
-            is_delivered=False
+            is_delivered=False,
+            payment_status=False  # <-- add this
         )
     else:
         orders = Order.objects.filter(
             is_pos_order=True,
             is_cancelled=False,
-            is_delivered=False
+            is_delivered=False,
+            payment_status=False  # <-- add this
         )
 
     return render(request, 'orders_view.html', {
@@ -1739,7 +1756,6 @@ def order_detail(request, order_id):
         "payment_display": payment_display,
     })
 
-@role_required(["Accountant", "Staff"])
 def mark_order_completed(request, order_id):
 
     if request.method != "POST":
@@ -1747,25 +1763,55 @@ def mark_order_completed(request, order_id):
 
     order = get_object_or_404(Order, id=order_id)
 
-    # 🚫 Prevent invalid completion
-    if order.is_cancelled or order.refund_processed or order.return_approved:
-        messages.error(request, "Cannot complete this order.")
+    if order.is_cancelled or order.refund_processed:
+        messages.error(request, "Cannot process this order.")
         return redirect("order_detail", order_id=order.id)
 
-    # ✅ Mark as completed
+    # ✅ SHIPPING START
     order.is_completed = True
-    order.is_delivered = True
-    order.payment_status = True  # ensures revenue counted
+    order.is_shipped = True
+    order.payment_status = True
 
-    # ✅ Save reference
     reference = request.POST.get("reference")
     if reference:
         order.reference = reference
 
     order.save()
 
-    messages.success(request, "Order marked as completed successfully.")
+    messages.success(request, "Order moved to Shipping Processing.")
+
+    # 🔥 REDIRECT TO NEW PAGE
+    return redirect("delivery_page", order_id=order.id)
+
+def mark_as_delivered(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if order.is_cancelled or order.refund_processed:
+        messages.error(request, "Cannot deliver this order.")
+        return redirect("order_detail", order_id=order.id)
+
+    order.is_delivered = True
+    order.save()
+
+    messages.success(request, "Order marked as Delivered.")
     return redirect("order_detail", order_id=order.id)
+
+@role_required(["Accountant","Staff"])
+@login_required
+def delivery_page(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    return render(request, "delivery_page.html", {
+        "order": order
+    })
+@role_required(["Accountant","Staff"])
+@login_required
+def shipping_orders(request):
+    orders = Order.objects.filter(is_shipped=True, is_delivered=False).order_by("-created_at")
+
+    return render(request, "shipping_orders.html", {
+        "orders": orders
+    })
 
 @role_required(["Accountant","Staff"])
 def cancel_order(request, order_id):
@@ -2028,6 +2074,7 @@ def pos_page(request):
     return render(request, "pos.html", {"products": products})
 
 @role_required(["Accountant","Staff"])
+@role_required(["Accountant","Staff"])
 @staff_member_required
 @csrf_exempt
 @transaction.atomic
@@ -2041,29 +2088,35 @@ def pos_create_order(request):
         customer_phone = data.get("customer_phone")
         pos_payment_type = data.get("pos_payment_type")
         reference = data.get("reference", "").strip() 
+
         if not items:
             return JsonResponse({"status": "error", "message": "Cart is empty"})
         if not customer_name or not customer_phone:
             return JsonResponse({"status": "error", "message": "Customer details required"})
+
         total_amount = Decimal("0.00")
+
+        # ✅ Create order as completed and paid
         order = Order.objects.create(
             registration=None,
             first_name=customer_name,
             phone=customer_phone,
-            payment_method="pos",
+            payment_method=pos_payment_type,  # cash / card / upi
             pos_payment_type=pos_payment_type,
-            payment_status=True,
+            payment_status=True,               # mark as paid immediately
             is_completed=True,
             is_pos_order=True,
             reference=reference, 
             subtotal=0,
             total=0
         )
+
         for item in items:
             product = Product.objects.select_for_update().get(id=item["id"])
             quantity = int(item["quantity"])
             price = Decimal(str(item["price"]))
             variant_data = item.get("variant")
+
             if variant_data:
                 variant = ProductVariant.objects.select_for_update().get(id=variant_data["id"])
                 if variant.stock < quantity:
@@ -2088,11 +2141,15 @@ def pos_create_order(request):
                     quantity=quantity,
                     price=price
                 )
+
             total_amount += price * quantity
+
         order.subtotal = total_amount
         order.total = total_amount
         order.save()
+
         return JsonResponse({"status": "success"})
+
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
     

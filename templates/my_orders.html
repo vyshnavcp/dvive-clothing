@@ -254,6 +254,10 @@ display:none;
 {% elif order.is_cancelled %}
 <span class="status-badge status-cancel">Cancelled</span>
 
+<!-- ✅ ADDED SHIPPING STATUS -->
+{% elif order.is_shipped and not order.is_delivered %}
+<span class="status-badge status-pending">Shipping Processing</span>
+
 {% elif order.is_delivered %}
 <span class="status-badge status-delivered">Delivered</span>
 

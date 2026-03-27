@@ -130,7 +130,7 @@ urlpatterns = [
     path("dashboard/pos/", views.pos_page, name="pos_page"),
     path("dashboard/pos/create/", views.pos_create_order, name="pos_create_order"),
     path("total-income/", views.total_income_page, name="total_income"),
-    path("order/<int:order_id>/pos-complete/", views.pos_payment_complete, name="pos_payment_complete"),
+    # path("order/<int:order_id>/pos-complete/", views.pos_payment_complete, name="pos_payment_complete"),
     path("pos/edit/<int:order_id>/", views.pos_edit_page, name="pos_edit_page"),
     path("pos/update/<int:order_id>/", views.pos_update_order, name="pos_update_order"),
     path("dashboard/employee/create/",views.create_user, name="create_user"),
@@ -155,6 +155,9 @@ urlpatterns = [
     path("process-return/<int:order_id>/", views.process_return, name="process_return"),
     path("refund-report/", views.refund_report, name="refund_report"),
     path("return-report/", views.return_report, name="return_report"),
+    path('order/<int:order_id>/deliver/', views.mark_as_delivered, name='mark_as_delivered'),
+    path("delivery/<int:order_id>/", views.delivery_page, name="delivery_page"),
+    path("shipping-orders/", views.shipping_orders, name="shipping_orders"),
     path('faq/', views.faq_page, name='faq_page'),
     
     

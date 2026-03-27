@@ -305,7 +305,18 @@ width:fit-content;
 </a>
 </div>
 {% endif %}
-
+{% if shipping_orders_count > 0 %}
+<div class="col-md-3">
+<a href="{% url 'shipping_orders' %}" class="text-decoration-none text-dark d-block">
+<div class="stat-card border border-primary">
+<div class="stat-title text-primary">Shipping Orders</div>
+<div class="stat-value text-primary">
+{{ shipping_orders_count }}
+</div>
+</div>
+</a>
+</div>
+{% endif %}
 </div>
 
 <div class="row">
@@ -416,13 +427,25 @@ Retail Shop
 {% elif order.return_approved and order.refund_processed %}
 <span class="badge bg-success">Returned</span>
 
+{% elif order.is_shipped and not order.is_delivered %}
+<span class="badge bg-primary">Shipping Processing</span>
+
 {% elif order.is_delivered %}
 <span class="badge bg-success">Delivered</span>
 
-{% else %}
-<span class="badge bg-warning text-dark">Pending</span>
-{% endif %}
+{% elif order.is_pos_order %}
+    {% if order.payment_status %}
+        <span class="badge bg-success">Paid</span>
+    {% else %}
+        <span class="badge bg-warning text-dark">Pending Payment</span>
+    {% endif %}
 
+{% elif order.payment_status %}
+    <span class="badge bg-success">Paid</span>
+
+{% else %}
+    <span class="badge bg-secondary">Pending</span>
+{% endif %}
 </td>
 
 <td>{{ order.created_at|date:"d M Y" }}</td>
@@ -474,7 +497,9 @@ Quick Actions
 </div>
 
 <div class="card-body d-grid gap-2">
-
+<a href="{% url 'shipping_orders' %}" class="quick-btn">
+    <i class="bi bi-truck"></i> Shipping Orders
+</a>
 <a href="{% url 'pos_page' %}" class="quick-btn"><i class="bi bi-receipt"></i> POS Billing</a>
 <a href="{% url 'add_category' %}" class="quick-btn"><i class="bi bi-plus-square"></i> Add Category</a>
 <a href="{% url 'category_list' %}" class="quick-btn"><i class="bi bi-card-list"></i> View Category</a>

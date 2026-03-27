@@ -208,6 +208,9 @@ Order Already Completed
 
 {% else %}
 
+<!-- ✅ ONLY CHANGE: hide buttons for POS -->
+{% if not order.is_pos_order %}
+
 {% if show_pos_payment_buttons %}
 <form method="POST" action="{% url 'pos_payment_complete' order.id %}" class="mb-2">
 {% csrf_token %}
@@ -216,8 +219,17 @@ Order Already Completed
 </button>
 </form>
 {% else %}
+{% if order.is_shipped and not order.is_delivered %}
+
+<a href="{% url 'delivery_page' order.id %}" class="btn btn-primary w-100 mb-2">
+<i class="bi bi-truck"></i> Go to Shipping Page
+</a>
+
+{% else %}
+
 <form method="POST" action="{% url 'mark_order_completed' order.id %}" class="mb-2">
 {% csrf_token %}
+
 <div class="mb-2">
 <label class="form-label">Reference Name (Optional)</label>
 <input type="text"
@@ -226,10 +238,14 @@ class="form-control"
 value="{{ order.reference|default:'' }}"
 placeholder="Enter reference name">
 </div>
+
 <button type="submit" class="btn btn-success w-100">
-<i class="bi bi-check-circle"></i> Mark as Completed
+<i class="bi bi-check-circle"></i> Mark as Shipping
 </button>
+
 </form>
+
+{% endif %}
 {% endif %}
 
 <form method="POST" action="{% url 'cancel_order' order.id %}">
@@ -238,6 +254,8 @@ placeholder="Enter reference name">
 <i class="bi bi-x-circle"></i> Cancel Order
 </button>
 </form>
+
+{% endif %}
 
 {% endif %}
 
