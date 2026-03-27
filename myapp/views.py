@@ -426,24 +426,38 @@ def staff_required(user):
 
 def user_login(request):
     return render(request,'login.html')
+
 def login_post(request):
     login_input = request.POST.get('name','').strip()
     password = request.POST.get('password','').strip()
+
     if not login_input:
         messages.error(request,"Username or Email required")
         return redirect('user_login')
+
     if not password:
         messages.error(request,"Password required")
         return redirect('user_login')
+
     try:
         user_obj = User.objects.get(email__iexact=login_input)
         username = user_obj.username
     except User.DoesNotExist:
         username = login_input
-    user = authenticate(request,username=username,password=password)
+
+    user = authenticate(request, username=username, password=password)
+
     if user:
-        login(request,user)
+        login(request, user)
+
+        # ✅ ADD THIS HERE (clear old messages)
+        from django.contrib.messages import get_messages
+        storage = get_messages(request)
+        for _ in storage:
+            pass
+
         messages.success(request, f"Welcome back, {user.username}")
+
         if user.is_superuser:
             return redirect("dashboard")
         if user.groups.filter(name="Accountant").exists():

@@ -167,7 +167,7 @@
                         <ul class="shop-filter fs-16">
 
                             {% for subcat in subcategory_counts %}
-                            {% if subcat.product_count > 0 %}
+                            <!-- {% if subcat.product_count > 0 %} -->
                             <li>
                                 <a href="{% url 'filter_by_subcategory' slug=subcat.slug %}"
                                 class="{% if subcat.slug == active_slug %}active{% endif %}">
@@ -176,9 +176,9 @@
                                     {{ subcat.name }}
                                 </a>
 
-                                <span class="item-qty">
+                                <!-- <span class="item-qty">
                                     {{ subcat.product_count }}
-                                </span>
+                                </span> -->
                             </li>
                             {% endif %}
                             {% endfor %}
@@ -195,7 +195,7 @@
                                     class="{% if size.name == active_size %}active{% endif %}">
                                         <span class="product-cb product-category-cb"></span>{{ size.name }}
                                     </a>
-                                    <span class="item-qty">{{ size.product_count }}</span>
+                                    <!-- <span class="item-qty">{{ size.product_count }}</span> -->
                                 </li>
                                 {% endfor %}
                             </ul>
