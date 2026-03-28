@@ -281,7 +281,7 @@ Print Invoice
 </button>
 {% if not order.is_cancelled and not order.cancel_requested and not order.is_delivered and not order.refund_processed %}
 
-    {% if order.seconds_passed <= 86400 %}
+    {% if order.cancel_seconds <= 86400 %}
 
         {% if order.payment_method == "cod" %}
 
@@ -340,7 +340,7 @@ Print Invoice
 {% endif %}
 {% if order.is_delivered and not order.return_requested and not order.refund_processed %}
 
-    {% if order.seconds_passed <= 604800 %}  {# 7 days #}
+    {% if order.return_seconds != None and order.return_seconds <= 172800 %}
 
         <a href="{% url 'return_policy' order.id %}">
             <button class="cancel-btn" style="background:#0066ff;">
@@ -349,13 +349,15 @@ Print Invoice
         </a>
 
         <div class="info-box info-warning">
-            🔄 Return allowed within 7 days after delivery.
+            🔄 Return allowed within 2 days after delivery.
         </div>
 
     {% else %}
+
         <div class="info-box info-muted">
-            ❌ Return period expired
+            ❌ Return period expired (2 days over)
         </div>
+
     {% endif %}
 
 {% elif order.return_requested and not order.refund_processed %}

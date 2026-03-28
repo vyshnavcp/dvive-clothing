@@ -281,9 +281,9 @@ class Order(models.Model):
     refund_id = models.CharField(max_length=120, blank=True, null=True)
     refund_status = models.BooleanField(default=False)
     payment_status = models.BooleanField(default=False)
-
     is_completed = models.BooleanField(default=False)
     is_delivered = models.BooleanField(default=False)
+    delivered_at = models.DateTimeField(blank=True, null=True)
     is_cancelled = models.BooleanField(default=False)
     is_pos_order = models.BooleanField(default=False)
     cancel_requested = models.BooleanField(default=False)

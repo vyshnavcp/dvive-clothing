@@ -187,20 +187,6 @@ width:fit-content;
 
 <div class="main">
 
-<!-- ✅ MESSAGE ALERT ADDED -->
-
-{% if messages %}
-<div class="mb-3">
-{% for message in messages %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-{{ message }}
-<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-</div>
-{% endif %}
-
-<!-- HEADER -->
 
 <div class="topbar">
 
@@ -305,18 +291,7 @@ width:fit-content;
 </a>
 </div>
 {% endif %}
-{% if shipping_orders_count > 0 %}
-<div class="col-md-3">
-<a href="{% url 'shipping_orders' %}" class="text-decoration-none text-dark d-block">
-<div class="stat-card border border-primary">
-<div class="stat-title text-primary">Shipping Orders</div>
-<div class="stat-value text-primary">
-{{ shipping_orders_count }}
-</div>
-</div>
-</a>
-</div>
-{% endif %}
+
 </div>
 
 <div class="row">
@@ -497,8 +472,16 @@ Quick Actions
 </div>
 
 <div class="card-body d-grid gap-2">
-<a href="{% url 'shipping_orders' %}" class="quick-btn">
-    <i class="bi bi-truck"></i> Shipping Orders
+<a href="{% url 'shipping_orders' %}" class="quick-btn justify-content-between">
+    <span>
+        <i class="bi bi-truck"></i> Shipping Orders
+    </span>
+
+    {% if shipping_orders_count > 0 %}
+        <span class="badge bg-primary">
+            {{ shipping_orders_count }}
+        </span>
+    {% endif %}
 </a>
 <a href="{% url 'pos_page' %}" class="quick-btn"><i class="bi bi-receipt"></i> POS Billing</a>
 <a href="{% url 'add_category' %}" class="quick-btn"><i class="bi bi-plus-square"></i> Add Category</a>

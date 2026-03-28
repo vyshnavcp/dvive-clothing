@@ -42,6 +42,7 @@ from django.core.mail import EmailMultiAlternatives
 import logging
 from django.utils.html import escape
 from datetime import timedelta
+from django.middleware.csrf import rotate_token
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
@@ -359,10 +360,6 @@ def reg_post(request):
 
     messages.success(request, "Account created successfully. Please login.")
     return redirect('user_login')
-import re
-from django.http import JsonResponse
-from django.contrib.auth.models import User
-from .models import Registration
 
 def ajax_validate_register(request):
     email = request.GET.get('email', '').strip()
@@ -449,6 +446,7 @@ def login_post(request):
 
     if user:
         login(request, user)
+        rotate_token(request)
 
         # ✅ ADD THIS HERE (clear old messages)
         from django.contrib.messages import get_messages
@@ -963,10 +961,10 @@ def profile(request):
     return render(request, "profile.html", {"profile": profile})
 
 
-
 @login_required
 def my_orders(request):
     registration = get_object_or_404(Registration, authuser=request.user)
+
     orders = (
         Order.objects
         .filter(registration=registration)
@@ -979,15 +977,20 @@ def my_orders(request):
     )
 
     current_time = timezone.now()
-    orders_with_time = []
 
     for order in orders:
-        seconds_passed = (current_time - order.created_at).total_seconds()
-        order.seconds_passed = seconds_passed 
-        orders_with_time.append(order)
+
+        # ✅ Cancel time (based on order created)
+        order.cancel_seconds = (current_time - order.created_at).total_seconds()
+
+        # ✅ Return time (based on delivery time)
+        if order.delivered_at:
+            order.return_seconds = (current_time - order.delivered_at).total_seconds()
+        else:
+            order.return_seconds = None
 
     return render(request, "my_orders.html", {
-        "orders": orders_with_time,
+        "orders": orders,
     })
 
 @login_required
@@ -1136,6 +1139,11 @@ def dashboard(request):
     new_return_requests_count = return_requests.filter(
         created_at__gte=now() - timedelta(days=1)
     ).count()
+    shipping_orders_count = orders.filter(
+    is_shipped=True,
+    is_delivered=False,
+    is_cancelled=False
+    ).count()
 
     # ✅ Profit / Income Calculation
     total_income = Decimal("0.00")
@@ -1172,6 +1180,7 @@ def dashboard(request):
 
         "return_requests_count": return_requests_count if return_requests_count > 0 else None,
         "new_return_requests_count": new_return_requests_count if new_return_requests_count > 0 else None,
+        "shipping_orders_count": shipping_orders_count,
 
         "orders": orders,
     }
@@ -1782,18 +1791,18 @@ def mark_order_completed(request, order_id):
 
     # 🔥 REDIRECT TO NEW PAGE
     return redirect("delivery_page", order_id=order.id)
-
+@login_required
+@role_required(['admin','Accountant'])
 def mark_as_delivered(request, order_id):
     order = get_object_or_404(Order, id=order_id)
 
     if order.is_cancelled or order.refund_processed:
-        messages.error(request, "Cannot deliver this order.")
         return redirect("order_detail", order_id=order.id)
 
     order.is_delivered = True
+    order.delivered_at = timezone.now()  # ✅ ADD THIS
     order.save()
 
-    messages.success(request, "Order marked as Delivered.")
     return redirect("order_detail", order_id=order.id)
 
 @role_required(["Accountant","Staff"])
@@ -1804,10 +1813,13 @@ def delivery_page(request, order_id):
     return render(request, "delivery_page.html", {
         "order": order
     })
+
 @role_required(["Accountant","Staff"])
 @login_required
 def shipping_orders(request):
-    orders = Order.objects.filter(is_shipped=True, is_delivered=False).order_by("-created_at")
+    orders = Order.objects.filter(
+        is_shipped=True
+    ).order_by("-created_at")
 
     return render(request, "shipping_orders.html", {
         "orders": orders
@@ -2338,14 +2350,18 @@ def cancel_policy(request, order_id):
     })
 
 
-
 @login_required
 def confirm_cancel_request(request, order_id):
     order = get_object_or_404(Order, id=order_id)
 
-    # Prevent duplicate cancel requests
+    # ❌ Prevent duplicate cancel requests
     if order.cancel_requested:
         messages.warning(request, "Cancellation already requested.")
+        return redirect("my_orders")
+
+    # ✅ ADD THIS BLOCK (24-hour restriction)
+    if timezone.now() > order.created_at + timedelta(hours=24):
+        messages.error(request, "❌ Cancellation period expired (24 hours).")
         return redirect("my_orders")
 
     # Update order status

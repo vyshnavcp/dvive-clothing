@@ -78,7 +78,6 @@ body { background: #f4f6fb; font-family: 'Poppins', sans-serif; }
 <th>Phone</th>
 <th>Total</th>
 <th>Status</th>
-<th>Action</th>
 </tr>
 </thead>
 
@@ -92,16 +91,32 @@ body { background: #f4f6fb; font-family: 'Poppins', sans-serif; }
 <td>₹ {{ order.total }}</td>
 
 <td>
-<span class="status-badge">
-Shipping
-</span>
+
+{% if order.is_cancelled %}
+<span class="badge bg-danger">Cancelled</span>
+
+{% elif order.return_requested and not order.return_approved %}
+<span class="badge bg-warning text-dark">Return Requested</span>
+
+{% elif order.return_approved and not order.refund_processed %}
+<span class="badge bg-info text-dark">Return Approved</span>
+
+{% elif order.return_approved and order.refund_processed %}
+<span class="badge bg-success">Returned</span>
+
+{% elif order.is_shipped and not order.is_delivered %}
+<span class="badge bg-primary">Shipping Processing</span>
+
+{% elif order.is_delivered %}
+<span class="badge bg-success">Delivered</span>
+
+{% else %}
+<span class="badge bg-secondary">Pending</span>
+{% endif %}
+
 </td>
 
-<td>
-<a href="{% url 'delivery_page' order.id %}" class="btn btn-sm btn-primary">
-View
-</a>
-</td>
+
 </tr>
 {% empty %}
 <tr>
