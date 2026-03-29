@@ -154,8 +154,13 @@ Add
 </div>
 
 <ul id="cart-list" class="list-group mb-3"></ul>
+<div class="mb-3">
+<label class="form-label">Discount (₹)</label>
+<input type="number" id="discountAmount" class="form-control" placeholder="Enter discount amount" oninput="renderCart()"></div>
 
 <div class="total-box mb-3">
+Subtotal: ₹ <span id="subtotal">0</span><br>
+Discount: ₹ <span id="discount">0</span><br>
 Total: ₹ <span id="total">0</span>
 </div>
 
@@ -177,7 +182,6 @@ Total: ₹ <span id="total">0</span>
 </div>
 </div>
 </div>
-
 <script>
 let cart = [];
 
@@ -225,7 +229,7 @@ function addToCart(id, name, price, btn) {
     );
 
     if (existing) {
-        if (existing.quantity + quantity > stock) {
+        if (stock && existing.quantity + quantity > stock) {
             alert("Stock limit exceeded");
             return;
         }
@@ -267,7 +271,20 @@ function renderCart() {
         </li>`;
     });
 
-    document.getElementById("total").innerText = total;
+    // ✅ GET DISCOUNT
+    let discount = parseFloat(document.getElementById("discountAmount").value) || 0;
+
+if (discount > total) {
+    discount = total;
+    document.getElementById("discountAmount").value = total;
+}
+
+let finalTotal = Math.max(total - discount, 0);
+
+// ✅ SHOW ALL VALUES
+document.getElementById("subtotal").innerText = total.toFixed(2);
+document.getElementById("discount").innerText = discount.toFixed(2);
+document.getElementById("total").innerText = finalTotal.toFixed(2);
 }
 
 function filterProducts() {
@@ -282,6 +299,7 @@ function filterProducts() {
             ? "block" : "none";
     });
 }
+
 function checkout() {
 
     if (cart.length === 0) return;
@@ -290,7 +308,13 @@ function checkout() {
     const customerPhone = document.getElementById("customerPhone").value.trim();
     const paymentMethod = document.getElementById("paymentMethod").value;
 
-    if (!customerName || !customerPhone) return;
+    // ✅ GET DISCOUNT
+    const discountAmount = parseFloat(document.getElementById("discountAmount").value) || 0;
+
+    if (!customerName || !customerPhone) {
+        alert("Enter customer details");
+        return;
+    }
 
     fetch("{% url 'pos_create_order' %}", {
         method: "POST",
@@ -302,20 +326,24 @@ function checkout() {
             items: cart,
             customer_name: customerName,
             customer_phone: customerPhone,
-            pos_payment_type: paymentMethod
+            pos_payment_type: paymentMethod,
+
+            // ✅ DISCOUNT SENT HERE
+            discount_amount: discountAmount
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.status === "success") {
 
-            // ✅ DIRECT REDIRECT (NO ALERT)
-            window.location.href = "{% url 'dashboard' %}";
+            // ✅ REDIRECT
+            window.location.href = "{% url 'order_list' %}";
+        } else {
+            alert(data.message);
         }
     })
     .catch(error => console.error(error));
 }
-
 </script>
 
 </body>

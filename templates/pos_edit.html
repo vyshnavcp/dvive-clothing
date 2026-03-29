@@ -148,6 +148,13 @@ Add
 <div class="card p-3 cart-card">
 <h5 class="mb-3">Cart</h5>
 <ul id="cart-list" class="list-group mb-3"></ul>
+<div class="mb-3">
+    <label class="form-label">Discount (₹)</label>
+    <input type="number" id="discountAmount"
+           class="form-control"
+           value="{{ order.coupon_discount|default:0 }}"
+           placeholder="Enter discount">
+</div>
 
 <div class="total-box mb-3">
 Total: ₹ <span id="total">0</span>
@@ -161,6 +168,7 @@ Total: ₹ <span id="total">0</span>
 <option value="card" {% if order.pos_payment_type == "card" %}selected{% endif %}>💳 Card</option>
 </select>
 </div>
+
 
 <button class="btn btn-warning w-100" onclick="updateOrder()">
 Update Order
@@ -193,116 +201,141 @@ null
 {% endfor %}
 ];
 
-document.addEventListener("DOMContentLoaded", renderCart);
+document.addEventListener("DOMContentLoaded", () => {
+    renderCart();
 
-/* ✅ MERGE LOGIC FIXED */
+    // ✅ LIVE DISCOUNT UPDATE
+    document.getElementById("discountAmount")
+        .addEventListener("input", renderCart);
+});
 
+/* ================= ADD ================= */
 function addToCart(id, name, price, btn) {
 
-const card = btn.closest(".card");
-const qtyInput = card.querySelector(".quantity-input");
-const variantSelect = card.querySelector(".variant-dropdown");
+    const card = btn.closest(".card");
+    const qtyInput = card.querySelector(".quantity-input");
+    const variantSelect = card.querySelector(".variant-dropdown");
 
-let quantity = parseInt(qtyInput.value) || 1;
-let variant = null;
+    let quantity = parseInt(qtyInput.value) || 1;
+    let variant = null;
 
-if (variantSelect) {
-if (!variantSelect.value) return;
+    if (variantSelect) {
+        if (!variantSelect.value) return;
 
-const selected = variantSelect.options[variantSelect.selectedIndex];
-const stock = parseInt(selected.dataset.stock);
+        const selected = variantSelect.options[variantSelect.selectedIndex];
+        const stock = parseInt(selected.dataset.stock);
 
-if (quantity > stock) quantity = stock;
-if (stock <= 0) return;
+        if (stock <= 0) return;
+        if (quantity > stock) quantity = stock;
 
-variant = {
-id: variantSelect.value,
-color: selected.dataset.color,
-size: selected.dataset.size
-};
+        variant = {
+            id: variantSelect.value,
+            color: selected.dataset.color,
+            size: selected.dataset.size
+        };
+    }
+
+    let existing = cart.find(item =>
+        item.id === id &&
+        (
+            (!item.variant && !variant) ||
+            (item.variant && variant && item.variant.id == variant.id)
+        )
+    );
+
+    if (existing) {
+        existing.quantity += quantity;
+    } else {
+        cart.push({ id, name, price, quantity, variant });
+    }
+
+    renderCart();
+    qtyInput.value = 1;
 }
 
-let existing = cart.find(item =>
-item.id === id &&
-(
-(!item.variant && !variant) ||
-(item.variant && variant && item.variant.id == variant.id)
-)
-);
-
-if (existing) {
-existing.quantity += quantity;
-} else {
-cart.push({ id, name, price, quantity, variant });
-}
-
-renderCart();
-qtyInput.value = 1;
-}
-
+/* ================= REMOVE ================= */
 function removeFromCart(index) {
-cart.splice(index, 1);
-renderCart();
+    cart.splice(index, 1);
+    renderCart();
 }
 
+/* ================= RENDER ================= */
 function renderCart() {
-let list = document.getElementById("cart-list");
-let total = 0;
-list.innerHTML = "";
+    let list = document.getElementById("cart-list");
+    let total = 0;
+    list.innerHTML = "";
 
-cart.forEach((item, index) => {
+    cart.forEach((item, index) => {
+        total += item.price * item.quantity;
 
-total += item.price * item.quantity;
+        let variantText = item.variant
+            ? ` (${item.variant.color} / ${item.variant.size})`
+            : "";
 
-let variantText = "";
-if (item.variant) {
-variantText = ` (${item.variant.color} / ${item.variant.size})`;
+        list.innerHTML += `
+        <li class="list-group-item d-flex justify-content-between align-items-center cart-item">
+            <span>${item.name}${variantText} x ${item.quantity}</span>
+            <div>
+                ₹ ${item.price * item.quantity}
+                <button class="btn btn-sm btn-outline-danger ms-2"
+                onclick="removeFromCart(${index})">&times;</button>
+            </div>
+        </li>`;
+    });
+
+    // ✅ DISCOUNT
+    let discount = parseFloat(document.getElementById("discountAmount").value) || 0;
+
+    if (discount > total) {
+        discount = total;
+        document.getElementById("discountAmount").value = total;
+    }
+
+    let finalTotal = Math.max(total - discount, 0);
+
+    document.getElementById("total").innerText = finalTotal.toFixed(2);
 }
 
-list.innerHTML += `
-<li class="list-group-item d-flex justify-content-between align-items-center cart-item">
-<span>${item.name}${variantText} x ${item.quantity}</span>
-<div>
-₹ ${item.price * item.quantity}
-<button class="btn btn-sm btn-outline-danger ms-2"
-onclick="removeFromCart(${index})">&times;</button>
-</div>
-</li>`;
-});
-
-document.getElementById("total").innerText = total;
-}
-
+/* ================= FILTER ================= */
 function filterProducts() {
-const query = document.getElementById("productSearch").value.toLowerCase();
-document.querySelectorAll(".product-card").forEach(card => {
-const name = card.dataset.name;
-const code = card.dataset.code;
-card.style.display =
-(name.includes(query) || code.includes(query)) ? "block" : "none";
-});
+    const query = document.getElementById("productSearch").value.toLowerCase();
+    document.querySelectorAll(".product-card").forEach(card => {
+        const name = card.dataset.name;
+        const code = card.dataset.code;
+        card.style.display =
+            (name.includes(query) || code.includes(query)) ? "block" : "none";
+    });
 }
 
+/* ================= UPDATE ================= */
 function updateOrder() {
-fetch("{% url 'pos_update_order' order.id %}", {
-method: "POST",
-headers: {
-"Content-Type": "application/json",
-"X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
-},
-body: JSON.stringify({
-items: cart,
-pos_payment_type: document.getElementById("paymentMethod").value,
-customer_name: document.getElementById("customerName").value,
-customer_phone: document.getElementById("customerPhone").value
-})
-})
-.then(r => r.json())
-.then(data => {
-if (data.status === "success") {
-window.location.href = "{% url 'order_list' %}";
-}
-});
+
+    const discountAmount = parseFloat(document.getElementById("discountAmount").value) || 0;
+
+    fetch("{% url 'pos_update_order' order.id %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+        },
+        body: JSON.stringify({
+            items: cart,
+            pos_payment_type: document.getElementById("paymentMethod").value,
+            customer_name: document.getElementById("customerName").value,
+            customer_phone: document.getElementById("customerPhone").value,
+
+            // ✅ IMPORTANT
+            discount_amount: discountAmount
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === "success") {
+            window.location.href = "{% url 'order_list' %}";
+        } else {
+            alert(data.message);
+        }
+    });
 }
 </script>
 </body>

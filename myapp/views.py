@@ -517,49 +517,89 @@ def review_post(request, slug):
         'message': '⚠ Invalid request method.'
     })
 
-
 @login_required(login_url='user_login')
 def cart_page(request):
     if request.user.is_staff:
         return redirect("home")
+
     try:
         registration = Registration.objects.get(authuser=request.user)
     except Registration.DoesNotExist:
         messages.warning(request, "Only customers can access cart.")
         return redirect("home")
+
     cart, _ = Cart.objects.get_or_create(registration=registration)
     items = cart.items.all()
     has_items = items.exists()
     message = None
+
     if request.method == "POST" and has_items:
         if "remove_coupon" in request.POST:
             cart.coupon_code = None
             cart.coupon_discount = Decimal("0.00")
             cart.save()
             message = "Coupon removed"
+
         elif "coupon_code" in request.POST:
             coupon_code = request.POST.get("coupon_code", "").strip()
+
             if coupon_code:
                 try:
                     coupon = Coupon.objects.get(
                         code__iexact=coupon_code,
                         active=True
                     )
+
                     if coupon.expiry_date and coupon.expiry_date < date.today():
                         cart.coupon_code = None
                         cart.coupon_discount = Decimal("0.00")
                         message = "Coupon expired"
+
                     else:
+                        # ✅ FIX 1: prevent negative discount
+                        subtotal = cart.subtotal()
+                        discount = min(coupon.discount_amount, subtotal)
+
                         cart.coupon_code = coupon.code
-                        cart.coupon_discount = coupon.discount_amount
+                        cart.coupon_discount = discount
                         message = "Coupon applied!"
+
                 except Coupon.DoesNotExist:
                     cart.coupon_code = None
                     cart.coupon_discount = Decimal("0.00")
                     message = "Invalid coupon"
 
                 cart.save()
+
+    # =====================================================
+    # ✅ FIX 2: AUTO VALIDATE COUPON EVERY PAGE LOAD
+    # =====================================================
+    if cart.coupon_code:
+        try:
+            coupon = Coupon.objects.get(
+                code__iexact=cart.coupon_code,
+                active=True)
+
+        # ❌ expired
+            if coupon.expiry_date and coupon.expiry_date < date.today():
+                cart.coupon_code = None
+                cart.coupon_discount = Decimal("0.00")
+                message = "Coupon expired and removed"
+
+            else:
+                subtotal = cart.subtotal()
+                cart.coupon_discount = min(coupon.discount_amount, subtotal)
+
+        except Coupon.DoesNotExist:
+        # ❌ deleted by admin / inactive
+            cart.coupon_code = None
+            cart.coupon_discount = Decimal("0.00")
+            message = "Coupon is no longer available and removed"
+
+        cart.save()
+
     cart.update_totals()
+
     return render(request, "cart.html", {
         "cart": cart,
         "items": items,
@@ -572,7 +612,6 @@ def cart_page(request):
         "coupon_code": cart.coupon_code,
         "message": message,
     })
-
 @login_required
 def change_cart_quantity(request, item_id):
     item = get_object_or_404(CartItem, id=item_id)
@@ -641,7 +680,7 @@ def checkout(request):
     })
 
 def calculate_shipping(subtotal):
-    if subtotal < Decimal("899.00"):
+    if subtotal < Decimal("799.00"):
         return Decimal("80.00")
     return Decimal("0.00")
 
@@ -2090,41 +2129,47 @@ def pos_page(request):
     return render(request, "pos.html", {"products": products})
 
 @role_required(["Accountant","Staff"])
-@role_required(["Accountant","Staff"])
 @staff_member_required
 @csrf_exempt
 @transaction.atomic
 def pos_create_order(request):
     if request.method != "POST":
         return JsonResponse({"status": "error", "message": "Invalid request"})
+
     try:
         data = json.loads(request.body)
+
         items = data.get("items", [])
         customer_name = data.get("customer_name")
         customer_phone = data.get("customer_phone")
         pos_payment_type = data.get("pos_payment_type")
-        reference = data.get("reference", "").strip() 
+        reference = data.get("reference", "").strip()
+
+        # ✅ NEW: get discount
+        discount_amount = Decimal(str(data.get("discount_amount", 0)))
 
         if not items:
             return JsonResponse({"status": "error", "message": "Cart is empty"})
+
         if not customer_name or not customer_phone:
             return JsonResponse({"status": "error", "message": "Customer details required"})
 
         total_amount = Decimal("0.00")
 
-        # ✅ Create order as completed and paid
+        # ✅ Create order first
         order = Order.objects.create(
             registration=None,
             first_name=customer_name,
             phone=customer_phone,
-            payment_method=pos_payment_type,  # cash / card / upi
+            payment_method=pos_payment_type,
             pos_payment_type=pos_payment_type,
-            payment_status=True,               # mark as paid immediately
+            payment_status=True,
             is_completed=True,
             is_pos_order=True,
-            reference=reference, 
+            reference=reference,
             subtotal=0,
-            total=0
+            total=0,
+            coupon_discount=Decimal("0.00")  # initialize
         )
 
         for item in items:
@@ -2135,10 +2180,13 @@ def pos_create_order(request):
 
             if variant_data:
                 variant = ProductVariant.objects.select_for_update().get(id=variant_data["id"])
+
                 if variant.stock < quantity:
                     raise Exception(f"{product.name} stock not enough")
+
                 variant.stock -= quantity
                 variant.save()
+
                 OrderItem.objects.create(
                     order=order,
                     product=product,
@@ -2149,8 +2197,10 @@ def pos_create_order(request):
             else:
                 if product.stock < quantity:
                     raise Exception(f"{product.name} stock not enough")
+
                 product.stock -= quantity
                 product.save()
+
                 OrderItem.objects.create(
                     order=order,
                     product=product,
@@ -2160,14 +2210,28 @@ def pos_create_order(request):
 
             total_amount += price * quantity
 
+        # ✅ APPLY DISCOUNT SAFELY
+        if discount_amount < 0:
+            discount_amount = Decimal("0.00")
+
+        if discount_amount > total_amount:
+            discount_amount = total_amount
+
+        final_total = total_amount - discount_amount
+
+        # ✅ SAVE FINAL VALUES
         order.subtotal = total_amount
-        order.total = total_amount
+        order.coupon_discount = discount_amount
+        order.total = final_total
         order.save()
 
         return JsonResponse({"status": "success"})
 
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)})
+        return JsonResponse({
+            "status": "error",
+            "message": str(e)
+        })
     
 @role_required(["Accountant","Staff"])
 @staff_member_required
@@ -2181,6 +2245,12 @@ def pos_edit_page(request, order_id):
         "order_items": order_items
     })
 
+from decimal import Decimal
+import json
+from django.http import JsonResponse
+from django.db import transaction
+from django.views.decorators.http import require_POST
+
 @role_required(["Accountant","Staff"])
 @require_POST
 @staff_member_required
@@ -2188,35 +2258,45 @@ def pos_edit_page(request, order_id):
 def pos_update_order(request, order_id):
     try:
         data = json.loads(request.body)
+
         items = data.get("items", [])
         pos_payment_type = data.get("pos_payment_type")
         customer_name = data.get("customer_name")
         customer_phone = data.get("customer_phone")
+        discount_amount = Decimal(str(data.get("discount_amount", 0)))
         order = Order.objects.select_for_update().get(
             id=order_id,
             is_pos_order=True
         )
         old_items = OrderItem.objects.filter(order=order)
+
         for old_item in old_items:
-            if hasattr(old_item, "variant") and old_item.variant:
+            if old_item.variant:
                 old_item.variant.stock += old_item.quantity
                 old_item.variant.save()
             else:
                 old_item.product.stock += old_item.quantity
                 old_item.product.save()
+
         old_items.delete()
         subtotal = Decimal("0.00")
+
         for item in items:
             quantity = int(item.get("quantity", 0))
-            variant_data = item.get("variant")
             if quantity <= 0:
                 continue
+
+            variant_data = item.get("variant")
+
             if variant_data:
                 variant = ProductVariant.objects.select_for_update().get(
                     id=variant_data["id"]
                 )
+
                 if variant.stock < quantity:
                     raise Exception(f"{variant.product.name} stock not enough")
+
+                # create item
                 OrderItem.objects.create(
                     order=order,
                     product=variant.product,
@@ -2224,41 +2304,57 @@ def pos_update_order(request, order_id):
                     quantity=quantity,
                     price=variant.product.price
                 )
+
+                # reduce stock
                 variant.stock -= quantity
                 variant.save()
+
                 subtotal += variant.product.price * quantity
+
             else:
                 product = Product.objects.select_for_update().get(
                     id=item["id"]
                 )
+
                 if product.stock < quantity:
                     raise Exception(f"{product.name} stock not enough")
+
                 OrderItem.objects.create(
                     order=order,
                     product=product,
                     quantity=quantity,
                     price=product.price
                 )
+
                 product.stock -= quantity
                 product.save()
+
                 subtotal += product.price * quantity
+        if discount_amount > subtotal:
+            discount_amount = subtotal
+
+        final_total = subtotal - discount_amount
         order.subtotal = subtotal
-        order.total = subtotal
+        order.coupon_discount = discount_amount
+        order.total = final_total
         order.pos_payment_type = pos_payment_type
+
         if customer_name:
             order.first_name = customer_name
+
         if customer_phone:
             order.phone = customer_phone
+
         order.save()
+
         return JsonResponse({"status": "success"})
+
     except Exception as e:
         return JsonResponse({
             "status": "error",
             "message": str(e)
         })
     
-
-
 @role_required(["Accountant"])
 @staff_member_required
 def total_income_page(request):

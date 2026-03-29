@@ -63,9 +63,10 @@
     font-size: 13px;
 }
 .close-button {
-    color: white;
-    background-color: red;
+    color: rgb(0, 0, 0);
+    /* background-color: rgb(0, 0, 0); */
     border: none;
+    
     border-radius: 30px;
     height: 35px;
     width: 35px;
@@ -75,9 +76,8 @@
     align-content: center;
 }
 .close-button:hover{
-    background-color: rgb(209, 5, 5);
-    height: 38px; 
-    width: 38px; 
+    background-color: rgb(238, 4, 4);
+    color: white;
 }
 
 @media (max-width: 768px) {
@@ -211,7 +211,7 @@
                            <div class="col-xl-6 col-xxl-7 col-md-6"> 
                                     <div class="coupon-code-panel">
 
-                                        {% if coupon_code %}
+                                        {% if coupon_code and coupon_discount > 0 %}
                                             <form method="POST" action="{% url 'cart_page' %}" class="coupon-container">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="remove_coupon" value="1">
@@ -234,6 +234,11 @@
                                             </form>
                                         {% endif %}
                                     </div>
+                                    {% if message %}
+                                        <p class="mt-2" style="color:#d92323; font-size:13px; font-weight:500;">
+                                            {{ message }}
+                                        </p>
+                                    {% endif %}
                                 </div>
 
 
