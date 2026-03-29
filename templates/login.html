@@ -110,7 +110,7 @@
                 <div class="row g-0 justify-content-center">
                     <div class="col-xl-4 col-lg-5 col-md-10 contact-form-style-04 md-mb-50px" data-anime='{ "translateY": [0, 0], "opacity": [0,1], "duration": 600, "delay":100, "staggervalue": 150, "easing": "easeOutQuad" }'>
                         <span class="fs-26 xs-fs-24 alt-font fw-600 text-dark-gray mb-20px d-block">Member login</span>
-                        <form action="{% url 'login_post' %}" method="post">
+                        <form action="{% url 'login_post' %}" method="post"onsubmit="let btn = this.querySelector('button[type=submit]');btn.disabled = true;btn.innerText = 'Logging in...';">
                              {% csrf_token %}
                             <label class="text-dark-gray mb-10px fw-500">Email address<span class="text-red">*</span></label> 
                             <input class="mb-20px bg-very-light-gray form-control required" type="text" name="name" placeholder="Enter your username" />
@@ -123,7 +123,7 @@
                                 </a>
                             </div>
                             <input type="hidden" name="redirect" value="">
-                            <button class="btn btn-medium btn-round-edge btn-dark-gray btn-box-shadow w-100" type="submit">Login</button>
+                            <button id="loginBtn" class="btn btn-medium btn-round-edge btn-dark-gray btn-box-shadow w-100" type="submit">Login</button>
                             <div class="text-center mt-25px">
                                 <span class="fs-14 text-medium-gray d-block mb-5px">
                                     Don’t have an account?

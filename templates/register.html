@@ -151,7 +151,7 @@ input:focus {
                                 placeholder="Re-enter your password" style="border-radius: 10px;">
                             <div id="confirm_password_error" class="error-box"></div>
 
-                            <button style="border-radius: 10px; padding: 12px;" class="btn btn-dark-gray w-100" type="submit">Register</button>
+                           <button id="registerBtn" style="border-radius: 10px; padding: 12px;" class="btn btn-dark-gray w-100" type="submit">Register</button>
                             <a href="{% url 'user_login' %}" class="btn btn-outline-dark-gray w-100 mt-3">Already have an account?</a>
 
                         </form>
@@ -337,5 +337,35 @@ document.getElementById("regForm").addEventListener("submit", function(e){
     {% endfor %}
 </script>
 {% endif %}    
+
+<script>
+
+document.getElementById("regForm").addEventListener("submit", function(e){
+
+    const btn = document.getElementById("registerBtn");
+
+    // ❌ If invalid → stop + DO NOT disable
+    if (!validName || !validEmail || !validPhone || !validPassword || !validConfirmPassword) {
+        e.preventDefault();
+
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Please fix the highlighted fields',
+            showConfirmButton: false,
+            timer: 2500
+        });
+
+        return; // 🚨 stop here
+    }
+
+    // ✅ If valid → disable button
+    btn.disabled = true;
+    btn.innerHTML = "Creating account... <span class='spinner-border spinner-border-sm'></span>";
+    btn.style.opacity = "0.7";
+    btn.style.cursor = "not-allowed";
+});
+</script>
 </body>
 </html>

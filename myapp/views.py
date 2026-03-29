@@ -469,8 +469,13 @@ def login_post(request):
     return redirect('user_login')
     
 def user_logout(request):
+    # ✅ clear all messages before logout
+    storage = messages.get_messages(request)
+    for _ in storage:
+        pass
+
     logout(request)
-    return redirect('user_login')
+    return redirect("user_login")
 
 @login_required
 def review_post(request, slug):

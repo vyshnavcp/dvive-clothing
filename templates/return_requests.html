@@ -331,12 +331,13 @@ POS ({{ order.pos_payment_type|default:"-" }})
 
 {% if not order.refund_processed %}
 
-<form method="POST" action="{% url 'process_return' order.id %}">
+<form method="POST" action="{% url 'process_return' order.id %}"onsubmit="let btn = this.querySelector('button[type=submit]');btn.disabled = true;btn.innerText = 'Processing...';">
 {% csrf_token %}
 <button type="submit" class="btn-approve">
 ✔ Approve Return
 </button>
 </form>
+
 
 {% else %}
 
