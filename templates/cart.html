@@ -62,6 +62,24 @@
     content: "⚠";
     font-size: 13px;
 }
+.close-button {
+    color: white;
+    background-color: red;
+    border: none;
+    border-radius: 30px;
+    height: 35px;
+    width: 35px;
+    display: flex;
+    cursor: pointer;
+    justify-content: center;
+    align-content: center;
+}
+.close-button:hover{
+    background-color: rgb(209, 5, 5);
+    height: 38px; 
+    width: 38px; 
+}
+
 @media (max-width: 768px) {
     .cart-products td.product-remove {
         display: table-cell !important;
@@ -71,8 +89,9 @@
     }
 
     .cart-products td.product-remove button {
-    padding: 5px;
-}
+        right: 0;
+        position: absolute;
+    }
 }
 
         </style>
@@ -125,7 +144,7 @@
                                             <td class="product-remove">
                                                 <form method="POST" action="{% url 'remove_cart_item' item.id %}" style="display:inline;">
                                                     {% csrf_token %}
-                                                    <button type="submit" class="fs-20 fw-500" style="background:none; border:none; padding:0; cursor:pointer;">x</button>
+                                                    <button type="submit" class="fs-20 fw-500 close-button">x</button>
                                                 </form>
                                             </td>
 
@@ -162,11 +181,7 @@
 
                                                     <form method="POST" action="{% url 'change_cart_quantity' item.id %}" style="display:inline;">
                                                         {% csrf_token %}
-                                                        <button
-                                                            type="submit"
-                                                            name="action"
-                                                            value="plus"
-                                                            class="qty-plus"
+                                                        <button type="submit" name="action" value="plus" class="qty-plus"
                                                             {% if item.quantity >= item.product.stock %}disabled{% endif %}
                                                         >
                                                             +
@@ -227,11 +242,6 @@
                                 <a href="{% url 'empty_cart' %}" class="btn btn-small border-1 btn-round-edge btn-transparent-light-gray text-transform-none me-15px lg-me-5px">
                                     Empty cart
                                 </a>
-
-                                <!-- Update Cart Button -->
-                                <!-- <a href="{% url 'cart_page' %}" class="btn btn-small border-1 btn-round-edge btn-transparent-light-gray text-transform-none">
-                                    Update cart
-                                </a> -->
                             </div>
                         </div>
                     </div>
