@@ -310,6 +310,9 @@ class Order(models.Model):
         return self.is_completed
 
     def get_status_display(self):
+        
+        if self.is_pos_order:
+            return "Delivered"
 
     # RETURN FLOW
         if self.return_requested and not self.return_approved:

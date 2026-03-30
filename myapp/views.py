@@ -2163,15 +2163,21 @@ def pos_create_order(request):
             registration=None,
             first_name=customer_name,
             phone=customer_phone,
-            payment_method=pos_payment_type,
+            payment_method="pos",              # ✅ IMPORTANT FIX
             pos_payment_type=pos_payment_type,
             payment_status=True,
             is_completed=True,
+
+            # ✅ AUTO DELIVERY FOR POS
+            is_shipped=True,
+            is_delivered=True,
+            delivered_at=timezone.now(),
+
             is_pos_order=True,
             reference=reference,
             subtotal=0,
             total=0,
-            coupon_discount=Decimal("0.00")  # initialize
+            coupon_discount=Decimal("0.00")
         )
 
         for item in items:
