@@ -97,11 +97,29 @@ onkeyup="filterProducts()">
 {% for product in products %}
 <div class="col-md-4 mb-3 product-card"
 data-name="{{ product.name|lower }}"
-data-code="{{ product.product_code|lower }}">
+data-code="{{ product.product_code|lower }}"
+data-category="{{ product.subcategory.category.name|lower }}"
+data-subcategory="{{ product.subcategory.name|lower }}">
 
 <div class="card text-center">
 
+<!-- ✅ IMAGE (small + clean) -->
+{% if product.image1 %}
+<img src="{{ product.image1.url }}"
+     style="width:80px;height:80px;object-fit:cover;border-radius:12px;margin:auto;margin-bottom:8px;">
+{% else %}
+<img src="https://via.placeholder.com/80"
+     style="width:80px;height:80px;object-fit:cover;border-radius:12px;margin:auto;margin-bottom:8px;">
+{% endif %}
+
 <div class="product-name">{{ product.name }}</div>
+
+<!-- ✅ CATEGORY + SUBCATEGORY + ID -->
+<div class="stock">
+    {{ product.subcategory.category.name }} → {{ product.subcategory.name }} <br>
+    Code: {{ product.product_code }}
+</div>
+
 <div class="product-price">₹ {{ product.price }}</div>
 
 {% if product.variants.all %}
@@ -122,7 +140,7 @@ data-size="{{ variant.size.name }}"
 <div class="stock">Stock: {{ product.stock }}</div>
 {% endif %}
 
-{% if product.stock > 0 or product.variants.all %}
+{% if product.stock > 0 or product.variants.exists %}
 <div class="d-flex justify-content-center gap-2 align-items-center mt-2">
 <input type="number" min="1" value="1"
 class="form-control form-control-sm quantity-input">
@@ -299,14 +317,21 @@ function renderCart() {
 /* ================= FILTER ================= */
 function filterProducts() {
     const query = document.getElementById("productSearch").value.toLowerCase();
+
     document.querySelectorAll(".product-card").forEach(card => {
         const name = card.dataset.name;
         const code = card.dataset.code;
+        const category = card.dataset.category;
+        const subcategory = card.dataset.subcategory;
+
         card.style.display =
-            (name.includes(query) || code.includes(query)) ? "block" : "none";
+            (name.includes(query) ||
+             code.includes(query) ||
+             category.includes(query) ||
+             subcategory.includes(query))
+            ? "block" : "none";
     });
 }
-
 /* ================= UPDATE ================= */
 function updateOrder() {
 

@@ -15,6 +15,27 @@ body{
     background: linear-gradient(135deg,#eef2f7,#f9fbfd);
     font-family:'Poppins',sans-serif;
 }
+.product-image-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.product-image {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 14px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    transition: 0.3s ease;
+}
+
+/* 🔥 hover effect */
+.product-card:hover .product-image {
+    transform: scale(1.08);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.15);
+}
 .header-with-topbar{background:#0d0d0d;box-shadow:0 6px 25px rgba(0,0,0,0.4);}
 .dashboard-header{padding:18px 28px;}
 .dashboard-header h4,.dashboard-header small,.dashboard-header i{color:#fff;}
@@ -88,10 +109,24 @@ body{
 {% for product in products %}
 <div class="col-md-4 mb-3 product-card"
      data-name="{{ product.name|lower }}"
-     data-code="{{ product.product_code|lower }}">
+     data-code="{{ product.product_code|lower }}"
+     data-category="{{ product.subcategory.category.name|lower }}"
+     data-subcategory="{{ product.subcategory.name|lower }}">
 <div class="card text-center">
-
+<div class="product-image-wrapper mb-2">
+    {% if product.image1 %}
+    <img src="{{ product.image1.url }}" class="product-image">
+    {% else %}
+    <img src="https://via.placeholder.com/150" class="product-image">
+    {% endif %}
+</div>
 <div class="product-name">{{ product.name }}</div>
+
+<div class="stock">
+    Code: {{ product.product_code }} <br>
+    {{ product.subcategory.category.name }} → {{ product.subcategory.name }}
+</div>
+
 <div class="product-price">₹ {{ product.price }}</div>
 
 {% if product.variants.all %}
@@ -294,8 +329,14 @@ function filterProducts() {
     products.forEach(card => {
         const name = card.dataset.name;
         const code = card.dataset.code;
+        const category = card.dataset.category;
+        const subcategory = card.dataset.subcategory;
+
         card.style.display =
-            (name.includes(query) || code.includes(query))
+            (name.includes(query) ||
+             code.includes(query) ||
+             category.includes(query) ||
+             subcategory.includes(query))
             ? "block" : "none";
     });
 }

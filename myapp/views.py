@@ -2122,10 +2122,12 @@ def faq_page(request):
 @role_required(["Accountant"])
 @staff_member_required
 def pos_page(request):
-    products = Product.objects.filter(status=True).prefetch_related(
-        "variants__color",
-        "variants__size"
-    )
+    products = Product.objects.filter(status=True).select_related(
+    "subcategory__category"
+).prefetch_related(
+    "variants__color",
+    "variants__size"
+)
     return render(request, "pos.html", {"products": products})
 
 @role_required(["Accountant","Staff"])
@@ -2237,19 +2239,17 @@ def pos_create_order(request):
 @staff_member_required
 def pos_edit_page(request, order_id):
     order = Order.objects.get(id=order_id, is_pos_order=True)
-    products = Product.objects.filter(status=True)
+    products = Product.objects.filter(status=True).select_related(
+    "subcategory__category"
+    ).prefetch_related(
+    "variants__color",
+    "variants__size")
     order_items = OrderItem.objects.filter(order=order)
     return render(request, "pos_edit.html", {
         "order": order,
         "products": products,
         "order_items": order_items
     })
-
-from decimal import Decimal
-import json
-from django.http import JsonResponse
-from django.db import transaction
-from django.views.decorators.http import require_POST
 
 @role_required(["Accountant","Staff"])
 @require_POST
