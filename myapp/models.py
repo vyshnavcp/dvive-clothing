@@ -122,6 +122,9 @@ class Product(models.Model):
     image5 = models.ImageField(upload_to='products/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    @property
+    def total_stock(self):
+        return sum(variant.stock for variant in self.variants.all())
     
     def save(self, *args, **kwargs):
 

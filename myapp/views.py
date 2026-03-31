@@ -1427,6 +1427,7 @@ def product_list(request):
         "products": products
     })
 
+
 @staff_member_required
 @transaction.atomic
 def edit_product(request, slug):

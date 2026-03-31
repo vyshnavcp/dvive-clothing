@@ -140,8 +140,7 @@ td img:hover{
 
 <td>₹ {{ product.price }}</td>
 
-<td>{{ product.stock }}</td>
-
+<td>{{ product.total_stock }}</td>
 <td>
 <a href="{% url 'edit_product' product.slug %}" class="btn btn-sm btn-edit">Edit</a>
 <a href="{% url 'delete_product' product.slug %}" class="btn btn-sm btn-delete">Delete</a>

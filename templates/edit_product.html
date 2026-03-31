@@ -302,7 +302,6 @@ Logout
 </div>
 </div>
 </div>
-
 <script>
 function addColorVariant(){
     const html = `
@@ -339,6 +338,11 @@ function calculateTotalStock(){
     document.querySelectorAll(".stock-input").forEach(i => total += parseInt(i.value || 0));
     document.getElementById("totalStock").value = total;
 }
+
+/* ✅ FIX ADDED HERE */
+document.addEventListener("DOMContentLoaded", function () {
+    calculateTotalStock();
+});
 </script>
 
 </body>
