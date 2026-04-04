@@ -1196,18 +1196,33 @@ def dashboard(request):
         order__is_cancelled=False,
         order__refund_processed=False,
         order__return_approved=False
-    ).select_related("product")
+    ).select_related("product", "order")
 
     for item in order_items:
         if item.product and item.product.cost_price:
-            profit = (item.price - item.product.cost_price) * item.quantity
-            total_income += profit
+
+            order = item.order
+            item_total = item.price * item.quantity
+
+            # ✅ Coupon distribution
+            if order.coupon_discount and order.subtotal and order.subtotal > 0:
+                proportion = item_total / order.subtotal
+                item_coupon_discount = (order.coupon_discount * proportion).quantize(Decimal("0.01"))
+            else:
+                item_coupon_discount = Decimal("0.00")
+
+            profit_per_item = item.price - item.product.cost_price
+
+            # ✅ FINAL NET PROFIT
+            total_profit = (profit_per_item * item.quantity) - item_coupon_discount
+
+            total_income += total_profit
 
     # ✅ Context
     context = {
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
-        "total_income": total_income,
+        "total_net_income": total_income,
 
         "total_orders": total_orders,
         "paid_orders": total_paid_orders,
