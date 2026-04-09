@@ -43,12 +43,13 @@ import logging
 from django.utils.html import escape
 from datetime import timedelta
 from django.middleware.csrf import rotate_token
+from django.db.models import Q
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
-   best_seller_products = Product.objects.filter(is_best_seller=True)[:5]
-   featured_product= Product.objects.filter(is_featured=True)[:5]
-   signature_products = Product.objects.filter( is_signature_collection=True,status=True)[:8]
+   best_seller_products = Product.objects.filter(is_best_seller=True, is_active=True)[:5]
+   featured_product= Product.objects.filter(is_featured=True,is_active=True)[:5]
+   signature_products = Product.objects.filter( is_signature_collection=True,status=True,is_active=True)[:8]
    categories = Category.objects.prefetch_related("subcategories").all()
    banners = HomeBanner.objects.filter(is_active=True)
    return render(request, "home.html", {'blogs': blogs,
@@ -110,7 +111,7 @@ def contact(request):
 
 
 def product(request, slug=None):
-    products = Product.objects.filter(status=True).distinct()
+    products = Product.objects.filter(status=True,is_active=True).distinct()
     query = request.GET.get('q')
     if query:
         products = products.filter(name__icontains=query)
@@ -157,7 +158,7 @@ def product(request, slug=None):
     })
 
 def product_detail(request, slug):
-    product = get_object_or_404(Product, slug=slug)
+    product = get_object_or_404(Product, slug=slug,is_active=True)
     variants = product.variants.select_related('size', 'color')
     colors = list({v.color for v in variants if v.color})
     sizes = list({v.size for v in variants if v.size})
@@ -174,7 +175,7 @@ def product_detail(request, slug):
     for i in range(1, 6):
         rating_percent[i] = round((rating_dict[i] / total_reviews) * 100) if total_reviews else 0
     related_products = Product.objects.filter(
-        subcategory=product.subcategory
+        subcategory=product.subcategory,is_active=True
     ).exclude(id=product.id)[:4]
     product_images = []
     for img_field in ['image1', 'image2', 'image3', 'image4', 'image5']:
@@ -1437,11 +1438,74 @@ def ajax_validate_product_code(request):
 
 @staff_member_required
 def product_list(request):
-    products = Product.objects.all()
+    query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    product_qs = Product.objects.all()
+
+    if query:
+        product_qs = product_qs.filter(
+            Q(name__icontains=query) |
+            Q(brand__icontains=query) |
+            Q(product_code__icontains=query)
+        )
+
+    if status_filter == 'active':
+        product_qs = product_qs.filter(is_active=True)
+    elif status_filter == 'inactive':
+        product_qs = product_qs.filter(is_active=False)
+
+    paginator = Paginator(product_qs, 30)
+    page_number = request.GET.get('page')
+    products = paginator.get_page(page_number)
+
     return render(request, "product_list.html", {
-        "products": products
+        "products": products,
+        "query": query,
+        "status_filter": status_filter,
+        "total_active": Product.objects.filter(is_active=True).count(),
+        "total_inactive": Product.objects.filter(is_active=False).count(),
+        "total_all": Product.objects.count(),
     })
 
+
+@staff_member_required
+def product_search_suggestions(request):
+    query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '')
+    results = []
+
+    if query:
+        qs = Product.objects.filter(
+            Q(name__icontains=query) |
+            Q(brand__icontains=query) |
+            Q(product_code__icontains=query)
+        )
+        if status_filter == 'active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'inactive':
+            qs = qs.filter(is_active=False)
+
+        for p in qs.values('name', 'brand', 'product_code', 'slug', 'price')[:8]:
+            results.append({
+                'name': p['name'],
+                'brand': p['brand'],
+                'product_code': p['product_code'],
+                'price': str(p['price']),
+                'slug': p['slug'],
+            })
+
+    return JsonResponse({'results': results})
+
+
+def toggle_product_active(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    product.is_active = not product.is_active
+    product.save()
+    next_url = request.GET.get('next', '')
+    if next_url:
+        from urllib.parse import unquote
+        return redirect(unquote(next_url))
+    return redirect('product_list')
 
 @staff_member_required
 @transaction.atomic

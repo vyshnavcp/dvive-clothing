@@ -159,6 +159,8 @@ urlpatterns = [
     path("delivery/<int:order_id>/", views.delivery_page, name="delivery_page"),
     path("shipping-orders/", views.shipping_orders, name="shipping_orders"),
     path('faq/', views.faq_page, name='faq_page'),
+    path('product/toggle-active/<slug:slug>/', views.toggle_product_active, name='toggle_product_active'),
+    path('ajax/product-suggestions/', views.product_search_suggestions, name='product_search_suggestions'),
     
     
 

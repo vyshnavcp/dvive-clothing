@@ -7,176 +7,1158 @@
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{
-    font-family:'Poppins', sans-serif;
-    background:#f4f6f9;
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    margin: 0;
 }
 
-.header-with-topbar{
-    background:#000;
+/* ── NAVBAR ── */
+.top-navbar {
+    background: #0a0a0a;
+    padding: 0 32px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #1f1f1f;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.4);
 }
 
-.dashboard-header{
-    padding:18px 24px;
-}
-.dashboard-header h4,
-.dashboard-header small,
-.dashboard-header i{
-    color:#fff;
-}
-
-.page-wrapper{
-    padding:40px 20px;
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-decoration: none;
 }
 
-.container-box{
-    max-width:1200px;
-    margin:auto;
+.nav-brand-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #fff;
 }
 
-.table{
-    background:#fff;
-    border-radius:12px;
-    overflow:hidden;
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.table thead th{
-    background:#111827;
-    color:#fff;
+.nav-links a {
+    color: #888;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.table tbody tr:hover{
-    background:#f3f4f6;
+.nav-links a:hover { color: #fff; background: #1a1a1a; }
+
+.nav-links a.logout { color: #f87171; }
+.nav-links a.logout:hover { background: rgba(248,113,113,0.1); color: #f87171; }
+
+/* ── PAGE ── */
+.page-wrapper { padding: 32px 24px 60px; max-width: 1260px; margin: auto; }
+
+/* ── PAGE HEADER ── */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
 }
 
-.btn-add, .btn-edit{
-    background:#111;
-    color:#fff;
-}
-.btn-delete{
-    background:black;
-    color:#fff;
-}
-.btn-delete:hover{
-    background:red;
+.page-title h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px;
+    letter-spacing: -0.3px;
 }
 
-td img:hover{
-    transform:scale(1.2);
-    transition:.3s;
+.page-title p {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0;
 }
+
+.btn-add-product {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 22px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.25s;
+    border: 1px solid #1e293b;
+    letter-spacing: 0.2px;
+}
+
+.btn-add-product:hover {
+    background: #1e293b;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(15,23,42,0.25);
+}
+
+.btn-add-product i {
+    width: 20px;
+    height: 20px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+/* ── FILTER TABS ── */
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.22s ease;
+    cursor: pointer;
+    letter-spacing: 0.1px;
+    border: 1.5px solid transparent;
+    position: relative;
+}
+
+/* ALL TAB */
+.filter-tab.all {
+    background: #fff;
+    color: #475569;
+    border-color: #e2e8f0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.filter-tab.all:hover {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.2);
+    transform: translateY(-1px);
+}
+
+.filter-tab.all.tab-active {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.25);
+}
+
+/* ACTIVE TAB */
+.filter-tab.active-tab {
+    background: #fff;
+    color: #059669;
+    border-color: #a7f3d0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.filter-tab.active-tab:hover {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+    box-shadow: 0 4px 16px rgba(5,150,105,0.25);
+    transform: translateY(-1px);
+}
+
+.filter-tab.active-tab.tab-active {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+    box-shadow: 0 4px 16px rgba(5,150,105,0.3);
+}
+
+/* INACTIVE TAB */
+.filter-tab.inactive-tab {
+    background: #fff;
+    color: #dc2626;
+    border-color: #fecaca;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.filter-tab.inactive-tab:hover {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+    box-shadow: 0 4px 16px rgba(220,38,38,0.25);
+    transform: translateY(-1px);
+}
+
+.filter-tab.inactive-tab.tab-active {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+    box-shadow: 0 4px 16px rgba(220,38,38,0.3);
+}
+
+/* FILTER COUNT BADGE */
+.filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(0,0,0,0.08);
+    transition: background 0.22s;
+}
+
+.filter-tab.tab-active .filter-count {
+    background: rgba(255,255,255,0.22);
+}
+
+.filter-tab.all .filter-count { background: #f1f5f9; color: #475569; }
+.filter-tab.all.tab-active .filter-count { background: rgba(255,255,255,0.18); color: #fff; }
+
+.filter-tab.active-tab .filter-count { background: #d1fae5; color: #059669; }
+.filter-tab.active-tab.tab-active .filter-count { background: rgba(255,255,255,0.2); color: #fff; }
+
+.filter-tab.inactive-tab .filter-count { background: #fee2e2; color: #dc2626; }
+.filter-tab.inactive-tab.tab-active .filter-count { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* ── SEARCH ── */
+.search-wrapper { position: relative; z-index: 999; }
+
+.search-input-group {
+    display: flex;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    transition: all 0.25s;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}
+
+.search-input-group:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+
+.search-icon-box {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    color: #94a3b8;
+    font-size: 15px;
+    background: #fff;
+}
+
+#searchInput {
+    border: none;
+    outline: none;
+    flex: 1;
+    padding: 13px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #1e293b;
+    background: transparent;
+}
+
+#searchInput::placeholder { color: #94a3b8; }
+
+.search-spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 14px;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.search-submit-btn {
+    background: #0f172a;
+    color: #fff;
+    border: none;
+    padding: 0 24px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+.search-submit-btn:hover { background: #1e293b; }
+
+/* SUGGESTIONS DROPDOWN */
+.suggestions-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1.5px solid #e8edf2;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.13);
+    z-index: 9999;
+    overflow: hidden;
+    display: none;
+    animation: dropDown 0.18s ease-out;
+}
+
+@keyframes dropDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.suggestion-header {
+    padding: 11px 16px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #94a3b8;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover, .suggestion-item.keyboard-active { background: #f8fafc; }
+.suggestion-item:hover .suggestion-name,
+.suggestion-item.keyboard-active .suggestion-name { color: #6366f1; }
+
+.suggestion-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.suggestion-info { flex: 1; min-width: 0; }
+
+.suggestion-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+}
+
+.suggestion-name mark {
+    background: #fef08a;
+    border-radius: 3px;
+    padding: 0 2px;
+    font-weight: 700;
+    color: #000;
+}
+
+.suggestion-meta {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.suggestion-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #059669;
+    white-space: nowrap;
+    background: #ecfdf5;
+    padding: 3px 10px;
+    border-radius: 8px;
+}
+
+.suggestion-footer {
+    padding: 11px 16px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6366f1;
+    background: #fafbff;
+    cursor: pointer;
+    border-top: 1px solid #f1f5f9;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.suggestion-footer:hover { background: #f0f1ff; }
+
+.suggestion-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.suggestion-empty i { font-size: 26px; display: block; margin-bottom: 8px; color: #cbd5e1; }
+
+/* RESULT BADGE */
+.result-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: #475569;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.clear-search {
+    font-size: 12px;
+    color: #94a3b8;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: 0.2s;
+    padding: 5px 10px;
+    border-radius: 8px;
+}
+
+.clear-search:hover { color: #dc2626; background: #fef2f2; }
+
+/* ── TABLE ── */
+.table-card {
+    background: #fff;
+    border-radius: 18px;
+    border: 1.5px solid #e8edf2;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.table { margin-bottom: 0; }
+
+.table thead th {
+    background: #0f172a;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    padding: 16px 20px;
+    border: none;
+    white-space: nowrap;
+}
+
+.table thead th:first-child { border-radius: 0; }
+
+.table tbody tr {
+    transition: all 0.2s;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table tbody tr:last-child { border-bottom: none; }
+
+.table tbody tr:hover {
+    background: #fafbff;
+    box-shadow: inset 3px 0 0 #6366f1;
+}
+
+.table tbody td { padding: 14px 20px; vertical-align: middle; }
+
+/* PRODUCT IMAGE */
+.prod-img {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1.5px solid #e8edf2;
+    transition: transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+    cursor: zoom-in;
+}
+
+.prod-img:hover {
+    transform: scale(1.55);
+    z-index: 10;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.no-img {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 18px;
+}
+
+/* PRODUCT NAME */
+.product-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+
+/* CODE BADGE */
+.code-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.3px;
+}
+
+/* PRICE */
+.price-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* STOCK */
+.stock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stock-in   { background: #ecfdf5; color: #059669; }
+.stock-low  { background: #fffbeb; color: #d97706; }
+.stock-out  { background: #fef2f2; color: #dc2626; }
+
+/* TOGGLE STATUS BUTTON */
+.toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.22s ease;
+    letter-spacing: 0.1px;
+    border: 1.5px solid transparent;
+}
+
+.toggle-active {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+}
+
+.toggle-active:hover {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+    box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+    transform: translateY(-1px);
+}
+
+.toggle-inactive {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.toggle-inactive:hover {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220,38,38,0.25);
+    transform: translateY(-1px);
+}
+
+/* ACTION BUTTONS */
+.btn-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f8fafc;
+    color: #475569;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
+    padding: 6px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-edit:hover {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(15,23,42,0.2);
+}
+
+.btn-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1.5px solid #fecaca;
+    border-radius: 9px;
+    padding: 6px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(220,38,38,0.2);
+}
+
+/* EMPTY STATE */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+
+.empty-state i { font-size: 42px; display: block; margin-bottom: 12px; color: #cbd5e1; }
+.empty-state p { font-size: 14px; margin: 0; }
+
+/* ── PAGINATION ── */
+.pagination-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 32px;
+}
+
+.pagination-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.page-btn:hover:not(.disabled) {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(15,23,42,0.2);
+}
+
+.page-btn.active {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.25);
+}
+
+.page-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.page-btn.dots {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    pointer-events: none;
+    color: #94a3b8;
+}
+
+.page-info {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.page-info strong { color: #475569; }
 </style>
 </head>
 
 <body>
 
 <!-- NAVBAR -->
-<header class="header-with-topbar">
-<nav class="navbar dashboard-header navbar-expand-lg">
-<div class="container-fluid">
-
-<h4 class="text-white">Product List</h4>
-
-<div class="collapse navbar-collapse justify-content-end">
-<ul class="navbar-nav gap-3">
-<li><a class="nav-link text-white" href="{% url 'dashboard' %}">Home</a></li>
-<li><a class="nav-link text-white" href="{% url 'order_list' %}">Orders</a></li>
-<li><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
-</ul>
-</div>
-
-</div>
+<nav class="top-navbar">
+    <a href="#" class="nav-brand">
+        <div class="nav-brand-icon"><i class="bi bi-box-seam-fill"></i></div>
+        Product Inventory
+    </a>
+    <div class="nav-links">
+        <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="{% url 'order_list' %}"><i class="bi bi-bag-check"></i> Orders</a>
+        <a href="{% url 'user_logout' %}" class="logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
 </nav>
-</header>
 
 <div class="page-wrapper">
-<div class="container-box">
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4>Products</h4>
-    <a href="{% url 'add_product' %}" class="btn btn-sm btn-add">+ Add Product</a>
-</div>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-title">
+            <h2>Products</h2>
+            <p>Manage your store inventory and availability</p>
+        </div>
+        <a href="{% url 'add_product' %}" class="btn-add-product">
+            <i class="bi bi-plus-lg"></i>
+            Add New Product
+        </a>
+    </div>
 
-<!-- ✅ SEARCH BAR -->
-<div class="mb-3">
-    <input type="text" id="searchInput" class="form-control"
-           placeholder="Search name, brand, code...">
-</div>
+    <!-- FILTER TABS -->
+    <div class="filter-tabs">
 
-<table class="table table-hover align-middle">
-<thead>
-<tr>
-    <th>Image</th>
-    <th>Name</th>
-    <th>Code</th>
-    <th>Brand</th>
-    <th>Price</th>
-    <th>Stock</th>
-    <th>Actions</th>
-</tr>
-</thead>
+        <a href="?q={{ query }}&status="
+           class="filter-tab all {% if status_filter == '' %}tab-active{% endif %}">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            All Products
+            <span class="filter-count">{{ total_all }}</span>
+        </a>
 
-<tbody id="productTable">
-{% for product in products %}
-<tr>
+        <a href="?q={{ query }}&status=active"
+           class="filter-tab active-tab {% if status_filter == 'active' %}tab-active{% endif %}">
+            <i class="bi bi-check-circle-fill"></i>
+            Active
+            <span class="filter-count">{{ total_active }}</span>
+        </a>
 
-<td>
-{% if product.image1 %}
-<img src="{{ product.image1.url }}"
-     style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
-{% endif %}
-</td>
+        <a href="?q={{ query }}&status=inactive"
+           class="filter-tab inactive-tab {% if status_filter == 'inactive' %}tab-active{% endif %}">
+            <i class="bi bi-x-circle-fill"></i>
+            Inactive
+            <span class="filter-count">{{ total_inactive }}</span>
+        </a>
 
-<td>{{ product.name }}</td>
+    </div>
 
-<td>
-<span class="badge bg-dark">{{ product.product_code }}</span>
-</td>
+    <!-- SEARCH -->
+    <div class="mb-3">
+        <form method="GET" action="" id="searchForm">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <div class="search-wrapper">
+                <div class="search-input-group">
+                    <div class="search-icon-box">
+                        <i class="bi bi-search" id="searchIcon"></i>
+                    </div>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        name="q"
+                        value="{{ query }}"
+                        placeholder="Search by name, brand, or SKU code..."
+                        autocomplete="off"
+                    >
+                    <div class="search-spinner" id="searchSpinner"></div>
+                    {% if query %}
+                    <a href="?status={{ status_filter }}"
+                       style="display:flex;align-items:center;padding:0 12px;
+                              color:#94a3b8;font-size:16px;text-decoration:none;transition:0.2s;"
+                       onmouseover="this.style.color='#dc2626'"
+                       onmouseout="this.style.color='#94a3b8'">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </a>
+                    {% endif %}
+                    <button type="submit" class="search-submit-btn">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+                <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
+            </div>
+        </form>
 
-<td>{{ product.brand }}</td>
+        <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+            {% if query %}
+                <span class="result-badge">
+                    <i class="bi bi-funnel-fill" style="color:#6366f1;"></i>
+                    <strong>{{ products.paginator.count }}</strong> result{{ products.paginator.count|pluralize }}
+                    for "{{ query }}"
+                    {% if status_filter %}· <strong>{{ status_filter }}</strong> only{% endif %}
+                </span>
+                <a href="?status={{ status_filter }}" class="clear-search">
+                    <i class="bi bi-x-circle"></i> Clear
+                </a>
+            {% else %}
+                <span class="result-badge">
+                    <i class="bi bi-box-seam" style="color:#6366f1;"></i>
+                    <strong>{{ products.paginator.count }}</strong>
+                    {% if status_filter == 'active' %}active{% elif status_filter == 'inactive' %}inactive{% endif %}
+                    product{{ products.paginator.count|pluralize }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
 
-<td>₹ {{ product.price }}</td>
+    <!-- TABLE -->
+    <div class="table-card">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Code</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productTable">
+            {% for product in products %}
+            <tr>
+                <td>
+                    {% if product.image1 %}
+                        <img src="{{ product.image1.url }}" class="prod-img">
+                    {% else %}
+                        <div class="no-img"><i class="bi bi-image"></i></div>
+                    {% endif %}
+                </td>
 
-<td>{{ product.total_stock }}</td>
-<td>
-<a href="{% url 'edit_product' product.slug %}" class="btn btn-sm btn-edit">Edit</a>
-<a href="{% url 'delete_product' product.slug %}" class="btn btn-sm btn-delete">Delete</a>
-</td>
+                <td>
+                    <div class="product-name">{{ product.name }}</div>
+                </td>
 
-</tr>
-{% empty %}
-<tr>
-<td colspan="7" class="text-center">No products found</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+                <td>
+                    <span class="code-badge">{{ product.product_code }}</span>
+                </td>
 
-</div>
+                <td style="font-size:13px;color:#64748b;font-weight:500;">
+                    {{ product.brand }}
+                </td>
+
+                <td>
+                    <span class="price-text">₹{{ product.price }}</span>
+                </td>
+
+                <td>
+                    {% if product.total_stock == 0 %}
+                        <span class="stock-pill stock-out">
+                            <i class="bi bi-x-circle-fill"></i> Out
+                        </span>
+                    {% elif product.total_stock < 10 %}
+                        <span class="stock-pill stock-low">
+                            <i class="bi bi-exclamation-triangle-fill"></i> {{ product.total_stock }}
+                        </span>
+                    {% else %}
+                        <span class="stock-pill stock-in">
+                            <i class="bi bi-check-circle-fill"></i> {{ product.total_stock }}
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a href="{% url 'toggle_product_active' product.slug %}?next={{ request.get_full_path|urlencode }}"
+                       class="toggle-btn {% if product.is_active %}toggle-active{% else %}toggle-inactive{% endif %}">
+                        {% if product.is_active %}
+                            <i class="bi bi-check-circle-fill"></i> Active
+                        {% else %}
+                            <i class="bi bi-x-circle-fill"></i> Inactive
+                        {% endif %}
+                    </a>
+                </td>
+
+                <td>
+                    <div style="display:flex;justify-content:flex-end;gap:6px;">
+                        <a href="{% url 'edit_product' product.slug %}" class="btn-edit">
+                            <i class="bi bi-pencil-fill"></i> Edit
+                        </a>
+                        <a href="{% url 'delete_product' product.slug %}" class="btn-delete">
+                            <i class="bi bi-trash3-fill"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>
+                            {% if query and status_filter %}
+                                No <strong>{{ status_filter }}</strong> products for "<strong>{{ query }}</strong>"
+                            {% elif query %}
+                                No products found for "<strong>{{ query }}</strong>"
+                            {% elif status_filter %}
+                                No <strong>{{ status_filter }}</strong> products found.
+                            {% else %}
+                                No products in the database.
+                            {% endif %}
+                        </p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination-section">
+        <div class="pagination-wrapper">
+
+            {% if products.has_previous %}
+                <a href="?q={{ query }}&status={{ status_filter }}&page=1" class="page-btn" title="First">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+                <a href="?q={{ query }}&status={{ status_filter }}&page={{ products.previous_page_number }}" class="page-btn">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            {% else %}
+                <span class="page-btn disabled"><i class="bi bi-chevron-double-left"></i></span>
+                <span class="page-btn disabled"><i class="bi bi-chevron-left"></i></span>
+            {% endif %}
+
+            {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                    <span class="page-btn active">{{ num }}</span>
+                {% elif num >= products.number|add:"-2" and num <= products.number|add:"2" %}
+                    <a href="?q={{ query }}&status={{ status_filter }}&page={{ num }}" class="page-btn">{{ num }}</a>
+                {% elif num == 1 or num == products.paginator.num_pages %}
+                    <a href="?q={{ query }}&status={{ status_filter }}&page={{ num }}" class="page-btn">{{ num }}</a>
+                {% elif num == products.number|add:"-3" or num == products.number|add:"3" %}
+                    <span class="page-btn dots">···</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+                <a href="?q={{ query }}&status={{ status_filter }}&page={{ products.next_page_number }}" class="page-btn">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a href="?q={{ query }}&status={{ status_filter }}&page={{ products.paginator.num_pages }}" class="page-btn" title="Last">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            {% else %}
+                <span class="page-btn disabled"><i class="bi bi-chevron-right"></i></span>
+                <span class="page-btn disabled"><i class="bi bi-chevron-double-right"></i></span>
+            {% endif %}
+
+        </div>
+
+        <p class="page-info">
+            Page <strong>{{ products.number }}</strong> of <strong>{{ products.paginator.num_pages }}</strong>
+            &nbsp;·&nbsp;
+            <strong>{{ products.paginator.count }}</strong> total products
+        </p>
+    </div>
+
 </div>
 
 <script>
-// ✅ SAME SEARCH LOGIC AS ORDERS PAGE
-document.getElementById("searchInput").addEventListener("keyup", function(){
+const searchInput  = document.getElementById('searchInput');
+const dropdown     = document.getElementById('suggestionsDropdown');
+const spinner      = document.getElementById('searchSpinner');
+const searchIcon   = document.getElementById('searchIcon');
+const statusFilter = "{{ status_filter }}";
 
-    let filter = this.value.toLowerCase();
-    let rows = document.querySelectorAll("#productTable tr");
+let debounceTimer;
+let currentFocus = -1;
 
-    rows.forEach(row => {
+function highlightMatch(text, query) {
+    if (!query) return text;
+    const rx = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return text.replace(rx, '<mark>$1</mark>');
+}
 
-        let text = row.innerText.toLowerCase();
+function showSpinner(show) {
+    spinner.style.display = show ? 'block' : 'none';
+    searchIcon.style.display = show ? 'none' : 'block';
+}
 
-        if(text.includes(filter)){
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
+function closeDropdown() {
+    dropdown.style.display = 'none';
+    currentFocus = -1;
+}
 
+function buildDropdown(results, query) {
+    dropdown.innerHTML = '';
+
+    if (!results.length) {
+        dropdown.innerHTML = `
+            <div class="suggestion-empty">
+                <i class="bi bi-search"></i>
+                No results for "<strong>${query}</strong>"
+            </div>`;
+        dropdown.style.display = 'block';
+        return;
+    }
+
+    dropdown.innerHTML = `
+        <div class="suggestion-header">
+            <i class="bi bi-lightning-charge-fill" style="color:#6366f1;"></i>
+            Quick Results
+        </div>`;
+
+    results.forEach(p => {
+        const a = document.createElement('a');
+        a.className = 'suggestion-item';
+        a.href = `?q=${encodeURIComponent(p.name)}&status=${statusFilter}`;
+        a.innerHTML = `
+            <div class="suggestion-icon"><i class="bi bi-box-seam"></i></div>
+            <div class="suggestion-info">
+                <div class="suggestion-name">${highlightMatch(p.name, query)}</div>
+                <div class="suggestion-meta">
+                    <span><i class="bi bi-tag"></i> ${highlightMatch(p.brand, query)}</span>
+                    <span>·</span>
+                    <span><i class="bi bi-upc"></i> ${highlightMatch(p.product_code, query)}</span>
+                </div>
+            </div>
+            <div class="suggestion-price">₹${p.price}</div>`;
+        dropdown.appendChild(a);
     });
 
+    const footer = document.createElement('div');
+    footer.className = 'suggestion-footer';
+    footer.innerHTML = `<i class="bi bi-search"></i> See all results for "<strong>${query}</strong>"`;
+    footer.onclick = () => document.getElementById('searchForm').submit();
+    dropdown.appendChild(footer);
+    dropdown.style.display = 'block';
+}
+
+searchInput.addEventListener('input', function () {
+    const q = this.value.trim();
+    currentFocus = -1;
+    if (!q) { closeDropdown(); showSpinner(false); return; }
+    clearTimeout(debounceTimer);
+    showSpinner(true);
+    debounceTimer = setTimeout(() => {
+        fetch(`/ajax/product-suggestions/?q=${encodeURIComponent(q)}&status=${statusFilter}`)
+            .then(r => r.json())
+            .then(d => { showSpinner(false); buildDropdown(d.results, q); })
+            .catch(() => { showSpinner(false); closeDropdown(); });
+    }, 280);
+});
+
+searchInput.addEventListener('keydown', function (e) {
+    const items = dropdown.querySelectorAll('.suggestion-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentFocus = Math.min(currentFocus + 1, items.length - 1);
+        items.forEach(i => i.classList.remove('keyboard-active'));
+        items[currentFocus].classList.add('keyboard-active');
+        searchInput.value = items[currentFocus].querySelector('.suggestion-name').innerText;
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentFocus = Math.max(currentFocus - 1, 0);
+        items.forEach(i => i.classList.remove('keyboard-active'));
+        items[currentFocus].classList.add('keyboard-active');
+        searchInput.value = items[currentFocus].querySelector('.suggestion-name').innerText;
+    } else if (e.key === 'Enter' && currentFocus >= 0) {
+        e.preventDefault(); items[currentFocus].click();
+    } else if (e.key === 'Escape') {
+        closeDropdown();
+    }
+});
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrapper')) closeDropdown();
+});
+
+searchInput.addEventListener('focus', function () {
+    if (this.value.trim() && dropdown.innerHTML) dropdown.style.display = 'block';
 });
 </script>
 
