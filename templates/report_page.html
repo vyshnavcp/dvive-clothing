@@ -3,206 +3,722 @@
 <head>
 <meta charset="UTF-8">
 <title>{{ title }}</title>
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-body { background:#f4f6fb;font-family:'Poppins',sans-serif;margin:0;}
-.header-with-topbar {background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.35);}
-.dashboard-header{padding:18px 24px;}
-.dashboard-header h4,.dashboard-header small,.dashboard-header i{color:#fff;}
-.dashboard-header .nav-link{color:#fff!important;font-weight:500;transition:.3s;}
-.dashboard-header .nav-link:hover{color:#bdbdbd!important;}
-.navbar-toggler{border:0;}
-.navbar-toggler-icon{filter:invert(1);}
-.container-fluid{padding:30px 40px;}
-.page-header{background:linear-gradient(135deg,#111827,#1f2933);color:#fff;padding:20px;border-radius:12px;margin-bottom:20px;}
-.status-badge{padding:6px 12px;border-radius:30px;font-size:13px;}
-.completed{background:#dcfce7;color:#166534;}
-.pending{background:#fef3c7;color:#92400e;}
-.cancelled{background:#fee2e2;color:#991b1b;}
-.order-row{cursor:pointer;transition:.3s ease;}
-.order-row:hover{background:#fff;transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.08);}
-.filter-row{margin-bottom:20px;}
+:root {
+  --ink: #0a0a0f;
+  --surface: #f7f7fa;
+  --card: #ffffff;
+  --accent: #6c47ff;
+  --accent2: #ff6b6b;
+  --gold: #f5a623;
+  --muted: #8a8a9a;
+  --border: #e8e8f0;
+  --green: #00c48c;
+  --red: #ff4757;
+  --yellow: #ffbe21;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(108,71,255,.10);
+  --shadow-lg: 0 12px 40px rgba(10,10,15,.13);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--surface);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.site-header {
+  background: var(--ink);
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.site-header nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 20px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: #fff;
+}
+.logo-text {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -.3px;
+  color: #fff;
+}
+.logo-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  font-weight: 400;
+  display: block;
+  line-height: 1;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+}
+.nav-links a {
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: all .2s;
+}
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,.08); }
+.nav-links .logout a { color: var(--accent2); }
+.nav-links .logout a:hover { background: rgba(255,107,107,.12); }
+
+/* ── MAIN ── */
+.main { padding: 32px; max-width: 1440px; margin: 0 auto; }
+
+/* ── PAGE TOP ── */
+.page-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -.6px;
+  color: var(--ink);
+}
+.page-title span { color: var(--accent); }
+.page-sub { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.export-btn {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: .2s;
+}
+.export-btn:hover { background: var(--accent); }
+
+/* ── STATS STRIP ── */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+}
+.stat-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--card-accent, var(--accent));
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.stat-card.c-total   { --card-accent: var(--accent); }
+.stat-card.c-revenue { --card-accent: var(--green); }
+.stat-card.c-paid    { --card-accent: var(--gold); }
+.stat-card.c-pending { --card-accent: var(--yellow); }
+.stat-card.c-returned{ --card-accent: var(--red); }
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-family: 'Space Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* ── REVENUE: plain font, no weird symbol ── */
+.stat-card.c-revenue .stat-value {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.stat-icon {
+  position: absolute;
+  right: 18px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 32px;
+  opacity: .07;
+}
+
+/* ── FILTERS ── */
+.filter-bar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 160px;
+}
+.filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.filter-bar input, .filter-bar select {
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--surface);
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+  cursor: pointer;
+}
+.filter-bar input:focus, .filter-bar select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,71,255,.12);
+  background: #fff;
+}
+.reset-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 9px 18px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: .2s;
+}
+.reset-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ── TABLE ── */
+.table-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.table-title { font-size: 15px; font-weight: 700; }
+.order-count {
+  font-size: 12px;
+  background: rgba(108,71,255,.1);
+  color: var(--accent);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-family: 'Space Mono', monospace;
+}
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: var(--surface);
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .15s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(108,71,255,.04); }
+tbody td {
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--ink);
+  vertical-align: middle;
+}
+.order-id {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.customer-name { font-weight: 600; }
+.amount {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+}
+.method-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.s-completed  { background: rgba(0,196,140,.12); color: #00875a; }
+.s-pending    { background: rgba(255,190,33,.15); color: #a67c00; }
+.s-cancelled  { background: rgba(255,71,87,.12);  color: #c0392b; }
+.s-returned   { background: rgba(108,71,255,.12); color: var(--accent); }
+.s-return-req { background: rgba(255,107,107,.12);color: #c0392b; }
+.s-paid       { background: rgba(0,196,140,.12);  color: #00875a; }
+
+.date-cell { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-state i { font-size: 48px; display: block; margin-bottom: 12px; opacity: .3; }
+
+/* ── PAGINATION ── */
+.pagination-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-info { font-size: 13px; color: var(--muted); }
+.page-info strong { color: var(--ink); }
+.page-btns { display: flex; gap: 6px; }
+.page-btn {
+  width: 34px; height: 34px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  border-radius: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: .15s;
+  color: var(--ink);
+}
+.page-btn:hover { border-color: var(--accent); color: var(--accent); }
+.page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.page-btn:disabled { opacity: .3; pointer-events: none; }
+
+/* ── LOADING OVERLAY ── */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(247,247,250,.7);
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.loading-overlay.active { opacity: 1; pointer-events: all; }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fade-in { animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .main { padding: 16px; }
+  .stats-strip { grid-template-columns: repeat(2, 1fr); }
+  .nav-links { display: none; }
+}
+@media (max-width: 600px) {
+  .stats-strip { grid-template-columns: 1fr; }
+  .site-header { padding: 0 16px; }
+}
 </style>
 </head>
-
 <body>
 
-<header class="header-with-topbar">
-<nav class="navbar dashboard-header navbar-expand-lg">
-<div class="container-fluid px-0">
-<div class="d-flex align-items-center gap-3">
-<i class="bi bi-speedometer2 fs-2"></i>
-<div>
-<h4 class="mb-0">Admin Dashboard</h4>
-<small>Store Report</small>
-</div>
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
 </div>
 
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
-<span class="navbar-toggler-icon"></span>
-</button>
-
-<div class="collapse navbar-collapse justify-content-end" id="adminNavbar">
-<ul class="navbar-nav align-items-lg-center gap-lg-3 mt-3 mt-lg-0">
-<li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Home</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'order_list' %}">Orders</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'paid_orders' %}">Paid</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'pending_orders' %}">Pending</a></li>
-<li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
-<li class="nav-item"><a class="nav-link text-danger" href="{% url 'user_logout' %}">Logout</a></li>
-</ul>
-</div>
-</div>
-</nav>
+<!-- HEADER -->
+<header class="site-header">
+  <nav>
+    <a href="{% url 'dashboard' %}" class="logo">
+      <div class="logo-icon"><i class="bi bi-speedometer2"></i></div>
+      <div>
+        <span class="logo-text">Admin Panel</span>
+        <span class="logo-sub">Store Management</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="{% url 'dashboard' %}"><i class="bi bi-house me-1"></i>Home</a></li>
+      <li><a href="{% url 'order_list' %}"><i class="bi bi-bag me-1"></i>Orders</a></li>
+      <li><a href="{% url 'paid_orders' %}"><i class="bi bi-check-circle me-1"></i>Paid</a></li>
+      <li><a href="{% url 'pending_orders' %}"><i class="bi bi-clock me-1"></i>Pending</a></li>
+      <li><a href="{% url 'customer_list' %}"><i class="bi bi-people me-1"></i>Customers</a></li>
+      <li class="logout"><a href="{% url 'user_logout' %}"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+    </ul>
+  </nav>
 </header>
 
-<div class="container-fluid mt-4">
+<!-- MAIN -->
+<div class="main">
 
-<div class="page-header d-flex justify-content-between align-items-center">
-<h4>{{ title }}</h4>
-<i class="bi bi-clipboard-data fs-2"></i>
-</div>
-
-<!-- FILTER -->
-<div class="card shadow-sm mb-4 p-3">
-<form method="get" class="row g-3 align-items-end">
-    <div class="col-md-3">
-        <label class="form-label">From Date</label>
-        <input type="date" name="from_date" class="form-control" value="{{ request.GET.from_date }}">
+  <!-- PAGE TOP -->
+  <div class="page-top">
+    <div>
+      <h1 class="page-title">Order <span>Report</span></h1>
+      <p class="page-sub">Live sales & order analytics — updates instantly</p>
     </div>
-    <div class="col-md-3">
-        <label class="form-label">To Date</label>
-        <input type="date" name="to_date" class="form-control" value="{{ request.GET.to_date }}">
+    <button class="export-btn" onclick="window.print()">
+      <i class="bi bi-download"></i> Export
+    </button>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="stats-strip">
+    <div class="stat-card c-total">
+      <div class="stat-label">Total Orders</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <i class="bi bi-bag stat-icon"></i>
     </div>
-    <div class="col-md-3">
-        <label class="form-label">Payment Method</label>
-        <select name="payment" class="form-select">
-            <option value="">All</option>
-            <option value="cod" {% if request.GET.payment == 'cod' %}selected{% endif %}>COD</option>
-            <option value="razorpay" {% if request.GET.payment == 'razorpay' %}selected{% endif %}>Razorpay</option>
-            <option value="pos_paid" {% if request.GET.payment == 'pos_paid' %}selected{% endif %}>Retail Shop</option>
-        </select>
+    <div class="stat-card c-revenue">
+      <div class="stat-label">Revenue</div>
+      <div class="stat-value" id="statRevenue">—</div>
+      <i class="bi bi-currency-rupee stat-icon"></i>
     </div>
-    <div class="col-md-3">
-        <label class="form-label">Status</label>
-        <select name="status" class="form-select">
-            <option value="">All</option>
-            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
-            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
-            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-            <!-- ✅ NEW -->
-            <option value="returned" {% if request.GET.status == 'returned' %}selected{% endif %}>Returned</option>
-        </select>
+    <div class="stat-card c-paid">
+      <div class="stat-label">Paid Orders</div>
+      <div class="stat-value" id="statPaid">—</div>
+      <i class="bi bi-check-circle stat-icon"></i>
     </div>
-    <div class="col-md-12">
-        <button type="submit" class="btn btn-dark">Filter</button>
-        <a href="{% url 'report_page' %}" class="btn btn-outline-secondary ms-2">Reset</a>
+    <div class="stat-card c-pending">
+      <div class="stat-label">Pending</div>
+      <div class="stat-value" id="statPending">—</div>
+      <i class="bi bi-hourglass stat-icon"></i>
     </div>
-</form>
-</div>
+    <div class="stat-card c-returned">
+      <div class="stat-label">Returned</div>
+      <div class="stat-value" id="statReturned">—</div>
+      <i class="bi bi-arrow-return-left stat-icon"></i>
+    </div>
+  </div>
 
-<!-- REPORT TABLE -->
-<div class="card shadow-sm">
-<div class="card-body p-0">
-<table class="table mb-0 align-middle">
-<thead class="table-light">
-<tr>
-<th>Order ID</th>
-<th>Customer</th>
-<th>Total</th>
-<th>Payment Method</th>
-<th>Payment</th>
-<th>Status</th>
-<th>Date</th>
-</tr>
-</thead>
-<tbody>
-{% for order in orders %}
-<tr class="order-row" onclick="window.location.href='{% url 'order_detail' order.id %}'">
-<td>#{{ order.id }}</td>
-<td>{{ order.first_name }}</td>
-<td>₹ {{ order.total }}</td>
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label class="filter-label">From Date</label>
+      <input type="date" id="fFromDate">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">To Date</label>
+      <input type="date" id="fToDate">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Payment Method</label>
+      <select id="fPayment">
+        <option value="">All Methods</option>
+        <option value="cod">COD</option>
+        <option value="razorpay">Razorpay</option>
+        <option value="pos_paid">Retail Shop</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Status</label>
+      <select id="fStatus">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="returned">Returned</option>
+      </select>
+    </div>
+    <button class="reset-btn" id="resetBtn">
+      <i class="bi bi-x-circle me-1"></i>Reset
+    </button>
+  </div>
 
-<td>
-{% if order.is_pos_order %}
-    Retail Shop
-{% elif order.payment_method == "razorpay" %}
-    Razorpay
-{% elif order.payment_method == "cod" %}
-    COD
-{% else %}
-    {{ order.get_payment_method_display }}
-{% endif %}
-</td>
-
-<td>
-{% if order.is_pos_order %}
-    {% if order.payment_status %}
-        {{ order.pos_payment_type|capfirst }}
-    {% else %}
-        —
-    {% endif %}
-{% else %}
-    —
-{% endif %}
-</td>
-<td>
-{% if order.return_approved and order.refund_processed %}
-    <span class="status-badge cancelled">Returned</span>
-
-{% elif order.return_requested %}
-    <span class="status-badge pending">Return Requested</span>
-
-{% elif order.is_cancelled %}
-    <span class="status-badge cancelled">Cancelled</span>
-
-{% elif order.is_delivered %}
-    <span class="status-badge completed">Delivered</span>
-
-{% elif order.is_pos_order %}
-    {% if order.payment_status %}
-        <span class="status-badge completed">Paid</span>
-    {% else %}
-        <span class="status-badge pending">Pending</span>
-    {% endif %}
-
-{% else %}
-    <span class="status-badge pending">Pending</span>
-{% endif %}
-</td>
-
-<td>{{ order.created_at|date:"d M Y" }}</td>
-</tr>
-
-{% empty %}
-<tr>
-<td colspan="7" class="text-center text-muted">No orders found.</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
-</div>
-
-<!-- TOTALS -->
-<div class="card shadow-sm mt-4 p-3">
-<h5>Report Summary</h5>
-<p>Total Orders: <strong>{{ total_orders }}</strong></p>
-<p>Total Revenue: <strong>₹ {{ total_revenue }}</strong></p>
-<p>Paid Orders: <strong>{{ total_paid_orders }}</strong></p>
-<p>Pending Orders: <strong>{{ pending_orders }}</strong></p>
-
-<!-- ✅ NEW -->
-<p>Returned Orders: <strong>{{ returned_orders }}</strong></p>
-
-</div>
+  <!-- TABLE CARD -->
+  <div class="table-card">
+    <div class="table-header-row">
+      <span class="table-title"><i class="bi bi-table me-2" style="color:var(--accent)"></i>Orders</span>
+      <span class="order-count" id="countBadge">— orders</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Method</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody">
+          <tr><td colspan="7"><div class="empty-state"><i class="bi bi-hourglass-split"></i>Loading orders…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination-wrap" id="paginationWrap" style="display:none">
+      <span class="page-info" id="pageInfo"></span>
+      <div class="page-btns" id="pageBtns"></div>
+    </div>
+  </div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const AJAX_URL  = "{% url 'report_page' %}";
+  const ORDER_BASE = "{% url 'order_detail' 0 %}".replace('/0/', '/');
+
+  let currentPage = 1;
+  let debounceTimer = null;
+
+  function getFilters() {
+    return {
+      from_date: document.getElementById('fFromDate').value,
+      to_date:   document.getElementById('fToDate').value,
+      payment:   document.getElementById('fPayment').value,
+      status:    document.getElementById('fStatus').value,
+      page:      currentPage,
+      ajax:      '1'
+    };
+  }
+
+  function buildQuery(params) {
+    return Object.entries(params)
+      .filter(([, v]) => v !== '')
+      .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+      .join('&');
+  }
+
+  function showLoading() { document.getElementById('loadingOverlay').classList.add('active'); }
+  function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+
+  function statusPill(o) {
+    if (o.return_approved && o.refund_processed)
+      return '<span class="status-pill s-returned"><i class="bi bi-arrow-return-left"></i> Returned</span>';
+    if (o.return_requested)
+      return '<span class="status-pill s-return-req"><i class="bi bi-exclamation-circle"></i> Return Req.</span>';
+    if (o.is_cancelled)
+      return '<span class="status-pill s-cancelled"><i class="bi bi-x-circle"></i> Cancelled</span>';
+    if (o.is_delivered)
+      return '<span class="status-pill s-completed"><i class="bi bi-check-circle"></i> Delivered</span>';
+    if (o.is_pos_order)
+      return o.payment_status
+        ? '<span class="status-pill s-paid"><i class="bi bi-check-circle"></i> Paid</span>'
+        : '<span class="status-pill s-pending"><i class="bi bi-clock"></i> Pending</span>';
+    return '<span class="status-pill s-pending"><i class="bi bi-clock"></i> Pending</span>';
+  }
+
+  function methodPill(o) {
+    if (o.is_pos_order)             return '<span class="method-pill"><i class="bi bi-shop"></i> Retail</span>';
+    if (o.payment_method==='razorpay') return '<span class="method-pill"><i class="bi bi-credit-card"></i> Razorpay</span>';
+    if (o.payment_method==='cod')      return '<span class="method-pill"><i class="bi bi-cash"></i> COD</span>';
+    return '<span class="method-pill">' + (o.payment_method || '—') + '</span>';
+  }
+
+  function posPayment(o) {
+    if (o.is_pos_order && o.payment_status && o.pos_payment_type)
+      return o.pos_payment_type.charAt(0).toUpperCase() + o.pos_payment_type.slice(1);
+    return '—';
+  }
+
+  function renderTable(data) {
+    const tbody  = document.getElementById('orderTableBody');
+    const orders = data.orders;
+
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="bi bi-inbox"></i>No orders match your filters.</div></td></tr>';
+      document.getElementById('paginationWrap').style.display = 'none';
+      document.getElementById('countBadge').textContent = '0 orders';
+      return;
+    }
+
+    tbody.innerHTML = orders.map(o => `
+      <tr class="fade-in" onclick="window.location.href='${ORDER_BASE}${o.id}/'">
+        <td><span class="order-id">#${o.id}</span></td>
+        <td><span class="customer-name">${o.first_name}</span></td>
+        <td><span class="amount">₹ ${parseFloat(o.total).toLocaleString('en-IN')}</span></td>
+        <td>${methodPill(o)}</td>
+        <td>${posPayment(o)}</td>
+        <td>${statusPill(o)}</td>
+        <td><span class="date-cell"><i class="bi bi-calendar3 me-1"></i>${o.created_at}</span></td>
+      </tr>`).join('');
+
+    // Stats — revenue uses en-IN locale, plain font via CSS
+    document.getElementById('statTotal').textContent   = data.total_orders;
+    document.getElementById('statRevenue').textContent = '₹ ' + parseFloat(data.total_revenue).toLocaleString('en-IN');
+    document.getElementById('statPaid').textContent    = data.total_paid_orders;
+    document.getElementById('statPending').textContent = data.pending_orders;
+    document.getElementById('statReturned').textContent= data.returned_orders;
+    document.getElementById('countBadge').textContent  = data.total_orders + ' orders';
+
+    renderPagination(data);
+  }
+
+  function renderPagination(data) {
+    const wrap       = document.getElementById('paginationWrap');
+    const info       = document.getElementById('pageInfo');
+    const btns       = document.getElementById('pageBtns');
+    const total      = data.total_orders;
+    const perPage    = data.per_page;
+    const totalPages = data.total_pages;
+    const page       = data.current_page;
+    const start      = (page - 1) * perPage + 1;
+    const end        = Math.min(page * perPage, total);
+
+    if (totalPages <= 1) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'flex';
+    info.innerHTML = `Showing <strong>${start}–${end}</strong> of <strong>${total}</strong> orders`;
+
+    let pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages = [1];
+      if (page > 3) pages.push('…');
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+      if (page < totalPages - 2) pages.push('…');
+      pages.push(totalPages);
+    }
+
+    btns.innerHTML =
+      `<button class="page-btn" ${page === 1 ? 'disabled' : ''} onclick="goPage(${page - 1})"><i class="bi bi-chevron-left"></i></button>` +
+      pages.map(p => p === '…'
+        ? `<button class="page-btn" disabled>…</button>`
+        : `<button class="page-btn ${p === page ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`
+      ).join('') +
+      `<button class="page-btn" ${page === totalPages ? 'disabled' : ''} onclick="goPage(${page + 1})"><i class="bi bi-chevron-right"></i></button>`;
+  }
+
+  function goPage(p) { currentPage = p; fetchOrders(); }
+
+  function fetchOrders(resetPage) {
+    if (resetPage) currentPage = 1;
+    showLoading();
+    fetch(AJAX_URL + '?' + buildQuery(getFilters()), {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => { renderTable(data); hideLoading(); })
+    .catch(() => hideLoading());
+  }
+
+  function debounce(fn, delay) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(fn, delay);
+  }
+
+  ['fFromDate','fToDate','fPayment','fStatus'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => debounce(() => fetchOrders(true), 180));
+  });
+  document.getElementById('fFromDate').addEventListener('input', () => debounce(() => fetchOrders(true), 400));
+  document.getElementById('fToDate').addEventListener('input',   () => debounce(() => fetchOrders(true), 400));
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('fFromDate').value = '';
+    document.getElementById('fToDate').value   = '';
+    document.getElementById('fPayment').value  = '';
+    document.getElementById('fStatus').value   = '';
+    fetchOrders(true);
+  });
+
+  fetchOrders(true);
+</script>
 </body>
 </html>

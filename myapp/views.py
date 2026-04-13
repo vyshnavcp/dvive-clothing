@@ -43,7 +43,7 @@ import logging
 from django.utils.html import escape
 from datetime import timedelta
 from django.middleware.csrf import rotate_token
-from django.db.models import Q
+from django.db.models import Q, Sum
 
 def home(request):
    blogs = Article.objects.order_by('-posted_on')[:4]
@@ -1708,110 +1708,139 @@ def delete_article(request, slug):
     messages.success(request, "Article Deleted Successfully")
     return redirect('article_list')
 
-from django.db.models import Q, Sum
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from datetime import datetime
 
-@role_required(["Accountant"])
+@role_required(["Accountant","admin"])
 @login_required(login_url='user_login')
 def report_page(request):
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     orders = Order.objects.all()
 
-    # ================= DATE FILTER =================
+    # ── DATE FILTER ──
     from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
+    to_date   = request.GET.get('to_date')
 
     if from_date:
-        orders = orders.filter(created_at__date__gte=datetime.strptime(from_date, "%Y-%m-%d"))
+        try:
+            orders = orders.filter(
+                created_at__date__gte=datetime.strptime(from_date, "%Y-%m-%d").date()
+            )
+        except ValueError:
+            pass
 
     if to_date:
-        orders = orders.filter(created_at__date__lte=datetime.strptime(to_date, "%Y-%m-%d"))
-
-    # ================= PAYMENT FILTER =================
-    payment = request.GET.get('payment')
-
-    if payment:
-        if payment == "cod":
-            orders = orders.filter(payment_method="cod", is_pos_order=False)
-
-        elif payment == "razorpay":
-            orders = orders.filter(payment_method="razorpay", is_pos_order=False)
-
-        elif payment == "pos_paid":
-            orders = orders.filter(is_pos_order=True, payment_status=True)
-
-        elif payment == "pos_pending":
-            orders = orders.filter(is_pos_order=True, payment_status=False)
-
-    # ================= STATUS FILTER =================
-    status = request.GET.get('status')
-
-    if status:
-        if status == "pending":
+        try:
             orders = orders.filter(
-                is_delivered=False,
-                is_cancelled=False
-            ).exclude(
-                is_pos_order=True,
-                payment_status=True
+                created_at__date__lte=datetime.strptime(to_date, "%Y-%m-%d").date()
             )
+        except ValueError:
+            pass
 
-        elif status == "completed":
-            # Include delivered online orders OR POS paid orders
-            orders = orders.filter(
-                Q(is_delivered=True, is_cancelled=False, return_approved=False) |
-                Q(is_pos_order=True, payment_status=True)
-            )
+    # ── PAYMENT FILTER ──
+    payment = request.GET.get('payment', '').strip()
 
-        elif status == "cancelled":
-            orders = orders.filter(is_cancelled=True)
+    if payment == 'cod':
+        orders = orders.filter(payment_method='cod', is_pos_order=False)
+    elif payment == 'razorpay':
+        orders = orders.filter(payment_method='razorpay', is_pos_order=False)
+    elif payment == 'pos_paid':
+        orders = orders.filter(is_pos_order=True, payment_status=True)
+    elif payment == 'pos_pending':
+        orders = orders.filter(is_pos_order=True, payment_status=False)
 
-        elif status == "returned":
-            orders = orders.filter(return_approved=True)
+    # ── STATUS FILTER ──
+    status = request.GET.get('status', '').strip()
 
-    # ================= COUNTS =================
+    if status == 'pending':
+        orders = orders.filter(
+            is_delivered=False,
+            is_cancelled=False,
+        ).exclude(is_pos_order=True, payment_status=True)
+
+    elif status == 'completed':
+        orders = orders.filter(
+            Q(is_delivered=True, is_cancelled=False, return_approved=False) |
+            Q(is_pos_order=True, payment_status=True)
+        )
+
+    elif status == 'cancelled':
+        orders = orders.filter(is_cancelled=True)
+
+    elif status == 'returned':
+        orders = orders.filter(return_approved=True)
+
+    # ── SUMMARY COUNTS (before pagination) ──
     total_orders = orders.count()
 
-    # ✅ VALID REVENUE = delivered online orders (exclude cancelled, returned, refunded)
     valid_orders = orders.filter(
         is_delivered=True,
         is_cancelled=False,
         return_approved=False,
-        refund_processed=False
+        refund_processed=False,
     )
-
     total_revenue = valid_orders.aggregate(Sum('total'))['total__sum'] or 0
 
-    # ✅ Paid orders = delivered online OR POS paid
     total_paid_orders = orders.filter(
         Q(is_delivered=True, is_cancelled=False, return_approved=False, refund_processed=False) |
         Q(is_pos_order=True, payment_status=True)
     ).count()
 
-    # Pending orders = not delivered and not cancelled
-    pending_orders = orders.filter(
+    pending_orders_count = orders.filter(
         is_delivered=False,
-        is_cancelled=False
-    ).exclude(
-        is_pos_order=True,
-        payment_status=True
-    ).count()
+        is_cancelled=False,
+    ).exclude(is_pos_order=True, payment_status=True).count()
 
-    # Returned orders
-    returned_orders = orders.filter(return_approved=True).count()
+    returned_orders_count = orders.filter(return_approved=True).count()
 
-    # ================= RESPONSE =================
-    return render(request, "report_page.html", {
-        "title": "Order Report",
-        "orders": orders.order_by("-created_at"),
-        "total_orders": total_orders,
-        "total_revenue": total_revenue,
-        "total_paid_orders": total_paid_orders,
-        "pending_orders": pending_orders,
-        "returned_orders": returned_orders,
+    # ── PAGINATION ──
+    PER_PAGE = 20
+    paginator = Paginator(orders.order_by('-created_at'), PER_PAGE)
+    page_number = request.GET.get('page', 1)
+
+    try:
+        page_number = int(page_number)
+    except (ValueError, TypeError):
+        page_number = 1
+
+    page_obj = paginator.get_page(page_number)
+
+    # ── AJAX RESPONSE ──
+    if is_ajax:
+        orders_data = []
+        for o in page_obj:
+            orders_data.append({
+                'id': o.id,
+                'first_name': o.first_name,
+                'total': str(o.total),
+                'payment_method': o.payment_method or '',
+                'is_pos_order': o.is_pos_order,
+                'payment_status': o.payment_status,
+                'pos_payment_type': getattr(o, 'pos_payment_type', '') or '',
+                'is_delivered': o.is_delivered,
+                'is_cancelled': o.is_cancelled,
+                'return_approved': o.return_approved,
+                'refund_processed': o.refund_processed,
+                'return_requested': getattr(o, 'return_requested', False),
+                'created_at': o.created_at.strftime('%d %b %Y'),
+            })
+
+        return JsonResponse({
+            'orders': orders_data,
+            'total_orders': total_orders,
+            'total_revenue': str(total_revenue),
+            'total_paid_orders': total_paid_orders,
+            'pending_orders': pending_orders_count,
+            'returned_orders': returned_orders_count,
+            'current_page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'per_page': PER_PAGE,
+        })
+
+    # ── HTML RESPONSE ──
+    return render(request, 'report_page.html', {
+        'title': 'Order Report',
     })
+
 
 @role_required(["Accountant","Staff"])
 @login_required(login_url='user_login')
